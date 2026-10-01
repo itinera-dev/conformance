@@ -15,6 +15,8 @@ Not started. The case format will be defined together with version 0.1 of the sp
 
 The process is described in [PROCESS.md](https://github.com/itinera-dev/spec/blob/main/PROCESS.md).
 
+Built with AI under the terms of [A manifesto for software engineering with AI](https://marlon-sousa.com/blog/manifesto/); see [how Itinera is built](https://github.com/itinera-dev/.github/blob/main/CONTRIBUTING.md#how-itinera-is-built).
+
 ## License
 
 Licensed under either of
