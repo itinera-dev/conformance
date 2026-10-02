@@ -3,13 +3,16 @@ Feature: Outcomes of running a step
   Checks items 6 to 11 of proposal 0008 (Steps): an error escaping a running
   step is an abnormal termination; a failure is not retriable unless the step
   says so; a retriable failure is tried again while the retry budget lasts;
-  failures carry a reason; exhausted retries reach the failure hook.
+  failures carry a reason; exhausted retries reach the failure hook. Amended by
+  proposal 0024: an abnormal termination is retried only when the step's
+  descriptor marks it retriable.
 
-  Scenario: An error escaping a running step is an abnormal termination that is retried
+  Scenario: An error escaping a running step is an abnormal termination, retried when the step marks it retriable
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
     And step "charge" allows 1 retries
+    And the abnormal termination of step "charge" is retriable
     And step "charge" attempts:
       | attempt | outcome |
       | 1       | error   |
