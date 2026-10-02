@@ -23,7 +23,7 @@ Feature: Skipped steps
     And step "ship" ended as succeeded after 1 attempts
     And the events include, in order:
       | event        | step     | key | attempt | code             |
-      | step skipped | discount |     | 1       | no discount here |
+      | step_skipped | discount |     | 1       | no discount here |
     And the journey succeeded
 
   Scenario: A skipped step's contributions are discarded
@@ -37,7 +37,7 @@ Feature: Skipped steps
     Then the result's data bag has no key "discount"
     And the events include, in order:
       | event                  | step     | key | attempt | code |
-      | contributions discarded | discount |     | 1       |      |
+      | contributions_discarded | discount |     | 1       |      |
     And the journey succeeded
 
   Scenario: A later step requiring what a skipped step would have contributed aborts the journey

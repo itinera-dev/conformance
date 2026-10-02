@@ -17,9 +17,9 @@ Feature: Order, the scan and retries
     When the workflow runs
     Then the events include, in order:
       | event           | step    | key | attempt | code |
-      | attempt started | reserve |     | 1       |      |
-      | attempt started | charge  |     | 1       |      |
-      | attempt started | ship    |     | 1       |      |
+      | attempt_started | reserve |     | 1       |      |
+      | attempt_started | charge  |     | 1       |      |
+      | attempt_started | ship    |     | 1       |      |
     And the journey succeeded
 
   Scenario: A contribution from one step is an input to a later step
@@ -76,7 +76,7 @@ Feature: Order, the scan and retries
     Then step "charge" ended as failed after 3 attempts
     And the events include, in order:
       | event           | step   | key | attempt | code |
-      | attempt started | charge |     | 1       |      |
-      | attempt started | charge |     | 2       |      |
-      | attempt started | charge |     | 3       |      |
+      | attempt_started | charge |     | 1       |      |
+      | attempt_started | charge |     | 2       |      |
+      | attempt_started | charge |     | 3       |      |
     And the journey failed

@@ -66,7 +66,7 @@ Each sentence names the proposal that introduced it.
 - **`Then step "<step>" ended as aborted`**: the journey was aborted during this step; its status in the result is `Aborted`. (0009)
 - **`Then the journey ID is a UUID v4`** (0009)
 - **`Then the journey ID is "<id>"`** (0009)
-- **`Then the journey started event lists the initial keys "<key>", "<key>" without their values`**: one or more keys; the event carries exactly these keys and none of their values. (0009)
+- **`Then the journey_started event lists the initial keys "<key>", "<key>" without their values`**: one or more keys; the event carries exactly these keys and none of their values. (0009)
 - **`Then the result names the failed step "<step>" with the code "<code>"`**: the result of a failed journey names the step that failed and the code of its reason. (0009)
 - **`Then the result names the step "<step>" as where the journey was aborted, with the abort reason "<reason>"`**: using an abort reason name from the list below. (0009)
 - **`Then step "<step>" was built <n> times, each time as a new instance`** (0008)
@@ -115,13 +115,29 @@ What happened:
 - **`Then the contribution of "<key>" is recorded as made by the hook "<hook>" of policy "<policy>"`**: the events record that this contribution came from that hook, not from a step. (0010)
 - **`Then the operation "<operation>" of the role "<role>" was called <n> times`** (0010)
 
+## Events and reporters
+
+- **`And the workflow lists the reporters "<reporter>", "<reporter>"`**: one or more recording reporters, named for the scenario. (0011)
+- **`And the executor uses its default dispatcher`**: the runner gives the executor no dispatcher. (0011)
+- **`And the executor is given a dispatcher holding the reporter "<reporter>"`**: a dispatcher that adds the workflow's reporters as usual. (0011)
+- **`And the executor is given a dispatcher holding the reporter "<reporter>" that ignores added reporters`** (0011)
+- **`And the reporter "<reporter>" throws`**: the reporter throws on the first event it receives. (0011)
+- **`And step "<step>" emits <kind> "<message>"`**, **`And step "<step>" emits <kind> "<message>" with data <data>`** and **`And step "<step>" emits <kind> "<message>" with data that cannot be serialized`**: the step emits a `step_info`, `step_warning` or `step_error` event before ending. (0011)
+- **`And the hook "<hook>" of policy "<policy>" emits <kind> "<message>"`**: the hook emits a `journey_info`, `journey_warning` or `journey_error` event before returning. (0011)
+- **`Then the reporters "<reporter>", "<reporter>" received the same events`** (0011)
+- **`Then the reporter "<reporter>" received the event "<event>"`** (0011)
+- **`Then the reporter "<reporter>" received no event`** (0011)
+- **`Then every event carries the journey ID "<id>" and the workflow name "<workflow>", with increasing sequence numbers`** (0011)
+- **`Then no engine event carries the value of "<key>"`**: no event of the engine catalogue contains the value of this key, anywhere. (0011)
+- **`Then the event "<event>" of step "<step>" carries the unserializable data marker`** (0011)
+
 ## Hook names
 
 Until the hooks proposal ([itinera-dev/spec#10](https://github.com/itinera-dev/spec/issues/10)) is accepted, cases use these provisional names: `on step success`, `on step failure`, `on step retry`, `on step abnormal termination`, `on workflow success`, `on workflow failure`. (0002; defined by 0010)
 
 ## Event names
 
-Until the events proposal ([itinera-dev/spec#11](https://github.com/itinera-dev/spec/issues/11)) is accepted, cases use these provisional names: `input adapter supplied`, `input adapter failed`, `optional input absent` (0002); `step skipped`, `contributions discarded`, `data overwritten` (0008); `journey started`, `attempt started` (0009).
+The engine catalogue of proposal 0011: `journey_started`, `attempt_started`, `input_adapter_supplied`, `input_adapter_failed`, `optional_input_absent`, `step_succeeded`, `step_failed`, `step_skipped`, `abnormal_termination`, `hook_called`, `contribution_committed`, `contributions_discarded`, `data_overwritten`, `journey_succeeded`, `journey_failed`, `journey_aborted`; and the events steps and hooks emit: `step_info`, `step_warning`, `step_error`, `journey_info`, `journey_warning`, `journey_error`. (0011)
 
 ## Abort reasons
 
