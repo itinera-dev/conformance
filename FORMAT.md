@@ -12,7 +12,7 @@ Draft, agreed in [#5](https://github.com/itinera-dev/conformance/issues/5). The 
 
 1. **Only catalogued sentences.** Every `Given`, `When`, `Then`, `And` and `But` line uses a sentence from [STEPS.md](STEPS.md), with its parameters. A sentence outside the catalogue is an error, not an extension. A new sentence is added to the catalogue in the same pull request as the first case that needs it, with its exact meaning.
 2. **Scripted steps, not business steps.** The steps of a workflow under test are test steps whose behaviour the scenario dictates: what they request, what they contribute, and how each attempt ends. The same holds for policies and adapters.
-3. **The trace is the event stream.** Behaviour is checked by comparing the events the engine emitted, recorded by a reporter, with a table. Other `Then` sentences check the journey's result, which is also observable.
+3. **The trace is the event stream.** Behaviour is checked by comparing the events the engine emitted, recorded by a reporter, with a table. Other `Then` sentences check the journey's result, which is also observable. A workflow refused before any journey exists has no event stream: its trace is the refusal, the error listing every violation that building the workflow (through the language's builder, while the runner runs) or admitting it returns, and the runner checks that error directly.
 4. **One behaviour per scenario.** A scenario checks one rule of the specification. Its name states the rule in plain words.
 5. **Cite the source.** The feature's description names the proposal and, once it exists, the section of the specification it checks.
 6. **Screen-reader friendly.** Plain sentences and simple tables. No ASCII art, no decorative characters.
@@ -32,6 +32,7 @@ Every feature carries:
 A feature or scenario that needs a capability also carries:
 
 - `@capability-sync` or `@capability-async`: the execution mode it requires;
+- `@capability-build-time-configuration-check` or `@capability-run-time-configuration-check`: whether the language catches errors in how a workflow is put together when the workflow is built, or only once a journey runs (proposal 0032). A language claims exactly one of the two;
 - other capability tags as later tiers add them.
 
 A language runs the cases of the proposals it lists in its manifest (see below), excluding capabilities it does not claim, and every one must pass. It claims tier N of a specification version once every proposal of tiers 1 to N is listed.
