@@ -19,7 +19,12 @@ Each sentence names the proposal that introduced it.
 ## Data
 
 - **`And the data bag is empty`**: the journey starts with no initial data. (0002)
-- **`And the data bag contains:`** followed by a table with the columns `key` and `value`: the journey starts with this data. (0002)
+- **`And the data bag contains:`** followed by a table with the columns `key` and `value`: the workflow instance is created with this initial data, so the journey starts with it. (0002, 0009)
+
+## Journey IDs
+
+- **`And the workflow has no ID generator`**: the workflow uses its default generator. (0009)
+- **`And the workflow's ID generator returns "<id>"`**: the workflow defines a custom ID generator returning this value. (0009)
 
 ## Input adapters
 
@@ -55,6 +60,12 @@ Each sentence names the proposal that introduced it.
 - **`Then the journey was aborted`** (0002)
 - **`Then the journey failed`** (0008)
 - **`Then step "<step>" ended as <status> after <n> attempts`**: the step's final status in the journey's result, one of `succeeded`, `failed`, `skipped` or `not executed`, and how many attempts it took. (0008)
+- **`Then step "<step>" ended as aborted`**: the journey was aborted during this step; its status in the result is `Aborted`. (0009)
+- **`Then the journey ID is a UUID v4`** (0009)
+- **`Then the journey ID is "<id>"`** (0009)
+- **`Then the journey started event lists the initial keys "<key>", "<key>" without their values`**: one or more keys; the event carries exactly these keys and none of their values. (0009)
+- **`Then the result names the failed step "<step>" with the code "<code>"`**: the result of a failed journey names the step that failed and the code of its reason. (0009)
+- **`Then the result names the step "<step>" as where the journey was aborted, with the abort reason "<reason>"`**: using an abort reason name from the list below. (0009)
 - **`Then step "<step>" was built <n> times, each time as a new instance`** (0008)
 - **`Then the result's data bag contains:`** followed by a table with the columns `key` and `value`: the result's data bag has at least these keys with these values. (0008)
 - **`Then the result's data bag has no key "<key>"`** (0008)
@@ -80,7 +91,11 @@ Until the hooks proposal ([itinera-dev/spec#10](https://github.com/itinera-dev/s
 
 ## Event names
 
-Until the events proposal ([itinera-dev/spec#11](https://github.com/itinera-dev/spec/issues/11)) is accepted, cases use these provisional names: `input adapter supplied`, `input adapter failed`, `optional input absent` (0002); `step skipped`, `contributions discarded`, `data overwritten` (0008).
+Until the events proposal ([itinera-dev/spec#11](https://github.com/itinera-dev/spec/issues/11)) is accepted, cases use these provisional names: `input adapter supplied`, `input adapter failed`, `optional input absent` (0002); `step skipped`, `contributions discarded`, `data overwritten` (0008); `journey started`, `attempt started` (0009).
+
+## Abort reasons
+
+The abort reasons of a journey's result (0009): `step could not be built`, `required data missing`, `wrong type`, `hook threw`, `invalid lifecycle`, `reporter threw`.
 
 ## Violation names
 
