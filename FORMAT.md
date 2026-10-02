@@ -70,7 +70,7 @@ Each language repository runs the cases as its conformance tests.
    - `cases`: the tag of this repository it runs against, for example `v0.1.0`;
    - `tiers`: the highest tier it claims, for example `1`;
    - `capabilities`: the capabilities it claims, for example `["sync", "async"]`.
-2. **A runner** in the language repository holds the step definitions for every sentence in [STEPS.md](STEPS.md) and runs the cases with that language's Cucumber implementation. It is started by one command, documented in the language repository, and:
+2. **A runner** in the language repository holds the step definitions for every sentence in [STEPS.md](STEPS.md) and runs the cases with that language's Cucumber implementation. The runner builds each scenario's workflow programmatically, while the program runs, from the scenario's sentences and tables, using the language's public API for constructing workflows; scripted test steps declare their inputs, contributions and outcomes the same way. How a language's own declarative syntax, such as annotations or macros, maps onto that API is tested in the language's own test suite, not here. It is started by one command, documented in the language repository, and:
    - reads the cases from the directory named by the environment variable `ITINERA_CONFORMANCE_CASES`;
    - runs only the scenarios selected by the Cucumber tag expression in `ITINERA_CONFORMANCE_TAGS`;
    - writes a Cucumber JSON report to the file named by `ITINERA_CONFORMANCE_REPORT`;
