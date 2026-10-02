@@ -2,7 +2,7 @@
 Feature: The workflow instance, its data and its journey ID
   Checks items 1 to 5 and 16 of proposal 0009 (Running a workflow): the initial
   data of the workflow instance is the initial content of the data bag, the
-  journey started event lists the initial keys without their values, a
+  journey_started event lists the initial keys without their values, a
   contribution may overwrite an initial key, and the workflow provides the
   journey ID.
 
@@ -18,7 +18,7 @@ Feature: The workflow instance, its data and its journey ID
     And step "charge" succeeds
     When the workflow runs
     Then step "charge" was built with input "amount" = 42
-    And the journey started event lists the initial keys "amount", "currency" without their values
+    And the journey_started event lists the initial keys "amount", "currency" without their values
     And the journey succeeded
 
   Scenario: A contribution may overwrite a key from the initial data
@@ -36,7 +36,7 @@ Feature: The workflow instance, its data and its journey ID
       | status | "paid" |
     And the events include, in order:
       | event            | step   | key    | attempt | code |
-      | data overwritten | charge | status | 1       |      |
+      | data_overwritten | charge | status | 1       |      |
 
   Scenario: Without a custom generator, the journey ID is a UUID v4
     Given a workflow "orders" with the steps:

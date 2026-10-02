@@ -78,5 +78,5 @@ Feature: Contributions
       | amount | 2     |
     And the events include, in order:
       | event            | step   | key    | attempt | code |
-      | data overwritten | charge | amount | 1       |      |
+      | data_overwritten | charge | amount | 1       |      |
     And the journey succeeded

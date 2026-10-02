@@ -31,7 +31,7 @@ Feature: Data from the workflow
     Then step "charge" was built with input "amount" = 7
     And the events include, in order:
       | event                  | step   | key    | attempt |
-      | input adapter supplied | charge | amount |         |
+      | input_adapter_supplied | charge | amount |         |
     And the journey succeeded
 
   Scenario: A missing required input aborts the journey
@@ -56,7 +56,7 @@ Feature: Data from the workflow
     Then step "charge" was built with input "discount" absent
     And the events include, in order:
       | event                 | step   | key      | attempt |
-      | optional input absent | charge | discount |         |
+      | optional_input_absent | charge | discount |         |
     And the journey succeeded
 
   Scenario: An adapter with no value for an optional input builds the step with the input absent
@@ -81,7 +81,7 @@ Feature: Data from the workflow
     Then no step ran
     And the events include, in order:
       | event                | step   | key      | attempt |
-      | input adapter failed | charge | discount |         |
+      | input_adapter_failed | charge | discount |         |
     And the journey was aborted
 
   Scenario: An input of the wrong type aborts the journey, even when optional

@@ -45,20 +45,22 @@ A language runs the cases of the proposals it lists in its manifest (see below),
 
 ## Events
 
-Event tables use one row per event and these columns, leaving a cell empty when it does not apply:
+Event tables use one row per event. The column `event` is required; any of these columns may be added, and **an empty cell is not compared**:
 
-- `event`: the event's name in the engine event catalogue;
-- `step`: the step it concerns;
+- `step`, `attempt`: the step and attempt the event concerns;
 - `key`: the data key it concerns;
-- `attempt`: the attempt number;
-- `code`: the reason code it carries, for events about a failure or a skip.
+- `code`: the reason code it carries, for events about a failure, a skip or an abort;
+- `retriable`: `true` or `false`, for `step_failed`;
+- `policy`, `hook`, `lifecycle`: for events from or about a hook; `lifecycle` is the lifecycle returned, or `none`;
+- `source`: who made a contribution: the step's name, or the policy and hook as `policy, hook`;
+- `message`, `data`: for events emitted by steps and hooks; `data` is JSON.
 
 Two sentences compare them:
 
 - "the events include, in order" checks that these events appear in this order, possibly with others in between;
 - "the events are exactly" checks the complete stream.
 
-Event names follow the engine event catalogue defined by the events proposal ([itinera-dev/spec#11](https://github.com/itinera-dev/spec/issues/11)). Until it is accepted, names in the cases are provisional and will be aligned with it.
+Event names are those of the engine catalogue of proposal 0011 (Events), and the `step_*` and `journey_*` events steps and hooks emit.
 
 ## Versions of the cases
 
@@ -77,7 +79,8 @@ Each language repository runs the cases as its conformance tests.
    - runs only the scenarios selected by the Cucumber tag expression in `ITINERA_CONFORMANCE_TAGS`;
    - writes a Cucumber JSON report to the file named by `ITINERA_CONFORMANCE_REPORT`;
    - exits with a failure when any selected scenario fails.
-3. **The `run-conformance` action** from [itinera-dev/actions](https://github.com/itinera-dev/actions) reads the manifest, downloads the cases at the pinned tag, builds the tag expression (the listed proposals, without capabilities the language does not claim), sets the three variables and runs the language's command.
+3. **The recorder.** The runner gives the executor a dispatcher holding its recording reporter, from which every `Then` sentence about events reads. When a scenario says the executor uses its default dispatcher, the runner gives none, and the scenario's sentences read the reporters the workflow lists.
+4. **The `run-conformance` action** from [itinera-dev/actions](https://github.com/itinera-dev/actions) reads the manifest, downloads the cases at the pinned tag, builds the tag expression (the listed proposals, without capabilities the language does not claim), sets the three variables and runs the language's command.
 
 ## When the cases run
 
