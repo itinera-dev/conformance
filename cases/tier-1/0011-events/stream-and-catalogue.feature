@@ -74,9 +74,9 @@ Feature: The event stream and the engine catalogue
     And step "charge" has the policies "record"
     When the workflow runs
     Then the events include, in order:
-      | event                  | step   | key  | attempt | source                  |
-      | abnormal_termination   | charge |      | 1       |                         |
-      | contribution_committed | charge | note | 1       | record, on step failure |
+      | event                     | step   | key  | attempt | source                  |
+      | step_abnormal_termination | charge |      | 1       |                         |
+      | contribution_committed    | charge | note | 1       | record, on step failure |
 
   Scenario: Engine events never carry data values
     Given a workflow "orders" with the steps:

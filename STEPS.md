@@ -151,7 +151,7 @@ Until the hooks proposal ([itinera-dev/spec#10](https://github.com/itinera-dev/s
 
 ## Event names
 
-The engine catalogue of proposal 0011: `journey_started`, `attempt_started`, `input_adapter_supplied`, `input_adapter_failed`, `optional_input_absent`, `step_succeeded`, `step_failed`, `step_skipped`, `abnormal_termination`, `hook_called`, `contribution_committed`, `contributions_discarded`, `data_overwritten`, `journey_succeeded`, `journey_failed`, `journey_aborted`; and the events steps and hooks emit: `step_info`, `step_warning`, `step_error`, `journey_info`, `journey_warning`, `journey_error`. (0011)
+The engine catalogue of proposal 0011 as amended by proposal 0040. Facts: `journey_started`, `attempt_started`, `input_adapter_supplied`, `input_adapter_failed`, `optional_input_absent`, `step_succeeded`, `step_failed`, `step_skipped`, `step_abnormal_termination`, `hook_called`, `contribution_committed`, `contributions_discarded`, `data_overwritten`, `journey_aborted`. Decisions: `step_retrying`, `step_given_up`, `journey_succeeded`, `journey_failed`; and the events steps and hooks emit: `step_info`, `step_warning`, `step_error`, `journey_info`, `journey_warning`, `journey_error`. (0011, 0040)
 
 ## Abort reasons
 

@@ -53,6 +53,8 @@ Event tables use one row per event. The column `event` is required; any of these
 - `retriable`: `true` or `false`, for `step_failed`;
 - `policy`, `hook`, `lifecycle`: for events from or about a hook; `lifecycle` is the lifecycle returned, or `none`;
 - `source`: who made a contribution: the step's name, or the policy and hook as `policy, hook`;
+- `cause`: the cause carried by a decision event, such as `retries exhausted`;
+- `decided by`: who took a decision: `default`, or the policy and hook as `policy, hook`;
 - `message`, `data`: for events emitted by steps and hooks; `data` is JSON.
 
 Two sentences compare them:
@@ -60,7 +62,7 @@ Two sentences compare them:
 - "the events include, in order" checks that these events appear in this order, possibly with others in between;
 - "the events are exactly" checks the complete stream.
 
-Event names are those of the engine catalogue of proposal 0011 (Events), and the `step_*` and `journey_*` events steps and hooks emit.
+Event names are those of the engine catalogue of proposal 0011 (Events), as amended by proposal 0040, and the `step_*` and `journey_*` events steps and hooks emit.
 
 ## Versions of the cases
 
