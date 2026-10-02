@@ -85,9 +85,36 @@ Each sentence names the proposal that introduced it.
 - **`Then the events include, in order:`** followed by an event table. (0002)
 - **`Then the events are exactly:`** followed by an event table. (0002)
 
+## Hooks, lifecycles and roles
+
+What a hook does:
+
+- **`And the hook "<hook>" of policy "<policy>" returns FinishWorkflow`** (0010)
+- **`And the hook "<hook>" of policy "<policy>" returns FailWorkflow with code "<code>"`** (0010)
+- **`And the hook "<hook>" of policy "<policy>" throws`**: the hook throws or panics. (0010)
+- **`And the hook "<hook>" of policy "<policy>" requests data from the workflow "<key>" of type <type>`**: a required request for data from the workflow, resolved as a step's input would be. (0010)
+- **`And the hook "<hook>" of policy "<policy>" requests optional data from the workflow "<key>" of type <type>`** (0010)
+- **`And the hook "<hook>" of policy "<policy>" requests the attempt number`** (0010)
+- **`And the hook "<hook>" of policy "<policy>" requests the journey ID`** (0010)
+- **`And the hook "<hook>" of policy "<policy>" contributes "<key>" = <value>`**: the hook contributes through its contributor before returning. (0010)
+- **`And the workflow provides the role "<role>" with the operation "<operation>"`**: the workflow implements this role; the operation records each call. (0010)
+- **`And the hook "<hook>" of policy "<policy>" requests the role "<role>" and calls its operation "<operation>"`**: the hook declares the role as a parameter and calls the operation once. (0010)
+
+What happened:
+
+- **`Then the hook "<hook>" of policy "<policy>" was called <n> times`** (0010)
+- **`Then the hooks were called in this order:`** followed by a table with the columns `policy` and `hook`, listing calls in the order they happened. (0010)
+- **`Then the hook "<hook>" of policy "<policy>" received data from the workflow "<key>" = <value>`** (0010)
+- **`Then the hook "<hook>" of policy "<policy>" received data from the workflow "<key>" absent`** (0010)
+- **`Then the hook "<hook>" of policy "<policy>" received the attempt number <n>`** (0010)
+- **`Then the hook "<hook>" of policy "<policy>" received the journey ID "<id>"`** (0010)
+- **`Then the result names the step "<step>" whose hook failed the journey, with the code "<code>"`**: the result of a journey failed by `FailWorkflow` names the step whose hook returned it, and its reason's code. (0010)
+- **`Then the contribution of "<key>" is recorded as made by the hook "<hook>" of policy "<policy>"`**: the events record that this contribution came from that hook, not from a step. (0010)
+- **`Then the operation "<operation>" of the role "<role>" was called <n> times`** (0010)
+
 ## Hook names
 
-Until the hooks proposal ([itinera-dev/spec#10](https://github.com/itinera-dev/spec/issues/10)) is accepted, cases use these provisional names: `on step success`, `on step failure`, `on step retry`, `on step abnormal termination`, `on workflow success`, `on workflow failure`. (0002)
+Until the hooks proposal ([itinera-dev/spec#10](https://github.com/itinera-dev/spec/issues/10)) is accepted, cases use these provisional names: `on step success`, `on step failure`, `on step retry`, `on step abnormal termination`, `on workflow success`, `on workflow failure`. (0002; defined by 0010)
 
 ## Event names
 
@@ -101,3 +128,4 @@ The abort reasons of a journey's result (0009): `step could not be built`, `requ
 
 - **`hook defined twice`**: two policies attached to the same step, or to the same workflow, define the same hook. (0002)
 - **`duplicate step name`**: two steps in one workflow have the same name. (0008)
+- **`role not provided`**: a policy attached to the workflow requests a role the workflow does not provide. (0010)
