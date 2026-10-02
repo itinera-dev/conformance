@@ -135,6 +135,16 @@ What happened:
 - **`Then no engine event carries the value of "<key>"`**: no event of the engine catalogue contains the value of this key, anywhere. (0011)
 - **`Then the event "<event>" of step "<step>" carries the unserializable data marker`** (0011)
 
+## The executor
+
+- **`And step "<step>" is asynchronous`**: the scripted step runs asynchronously. (0012)
+- **`And the executor accepts only synchronous steps, hooks and reporters`**: the scenario uses a synchronous-only executor. (0012)
+- **`When the same executor runs the workflow twice, with a new instance each time`**: one executor runs two journeys, one after the other, each with a new workflow instance created the same way. (0012)
+- **`Then run returned a result instead of throwing`** (0012)
+- **`Then the two journeys have different journey IDs`** (0012)
+- **`Then the second journey's events are the first journey's events, apart from the journey ID and timestamps`** (0012)
+- **`Then each instance's reporter "<reporter>" received only its own journey's events`**: the reporter is created with each workflow instance. (0012)
+
 ## Hook names
 
 Until the hooks proposal ([itinera-dev/spec#10](https://github.com/itinera-dev/spec/issues/10)) is accepted, cases use these provisional names: `on step success`, `on step failure`, `on step retry`, `on step abnormal termination`, `on workflow success`, `on workflow failure`. (0002; defined by 0010)
@@ -152,3 +162,4 @@ The abort reasons of a journey's result (0009, 0032): `step could not be built`,
 - **`hook defined twice`**: two policies attached to the same step, or to the same workflow, define the same hook. (0002)
 - **`duplicate step name`**: two steps in one workflow have the same name. (0008)
 - **`role not provided`**: a policy attached to the workflow requests a role the workflow does not provide. (0010)
+- **`mode not accepted`**: a step, hook or reporter runs in an execution mode the executor does not accept. (0012)
