@@ -49,7 +49,8 @@ Event tables use one row per event and these columns, leaving a cell empty when 
 - `event`: the event's name in the engine event catalogue;
 - `step`: the step it concerns;
 - `key`: the data key it concerns;
-- `attempt`: the attempt number.
+- `attempt`: the attempt number;
+- `code`: the reason code it carries, for events about a failure or a skip.
 
 Two sentences compare them:
 
