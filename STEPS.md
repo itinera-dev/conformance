@@ -99,7 +99,7 @@ What a hook does:
 - **`And the hook "<hook>" of policy "<policy>" returns FinishWorkflow`** (0010)
 - **`And the hook "<hook>" of policy "<policy>" returns FailWorkflow with code "<code>"`** (0010)
 - **`And the hook "<hook>" of policy "<policy>" throws`**: the hook throws or panics. (0010)
-- **`And the hook "<hook>" of policy "<policy>" requests data from the workflow "<key>" of type <type>`**: a required request for data from the workflow, resolved as a step's input would be. (0010)
+- **`And the hook "<hook>" of policy "<policy>" requests data from the workflow "<key>" of type <type>`**: a required request for data from the workflow, read from the data bag; input adapters are never used for a hook's request. (0010, 0041)
 - **`And the hook "<hook>" of policy "<policy>" requests optional data from the workflow "<key>" of type <type>`** (0010)
 - **`And the hook "<hook>" of policy "<policy>" requests the attempt number`** (0010)
 - **`And the hook "<hook>" of policy "<policy>" requests the journey ID`** (0010)

@@ -40,7 +40,8 @@ Feature: What hooks read and write, and hooks that throw
     Then the hook "on step success" of policy "audit" received the attempt number 2
     And the hook "on step success" of policy "audit" received the journey ID "order-1"
 
-  Scenario: A step hook's data from the workflow is resolved like an input of its step
+  @proposal-0041
+  Scenario: A step hook's data from the workflow comes from the data bag, not from the step's input adapter
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
@@ -48,12 +49,14 @@ Feature: What hooks read and write, and hooks that throw
       | key    | value |
       | amount | 42    |
     And the workflow declares an input adapter for step "charge" and key "amount" that returns 7
+    And step "charge" requests input "amount" of type integer
     And step "charge" succeeds
     And a step policy "audit" defines the hook "on step success"
     And the hook "on step success" of policy "audit" requests data from the workflow "amount" of type integer
     And step "charge" has the policies "audit"
     When the workflow runs
-    Then the hook "on step success" of policy "audit" received data from the workflow "amount" = 7
+    Then the hook "on step success" of policy "audit" received data from the workflow "amount" = 42
+    And step "charge" was built with input "amount" = 7
 
   Scenario: A hook's contributions are committed when it returns, even when the step failed
     Given a workflow "orders" with the steps:
