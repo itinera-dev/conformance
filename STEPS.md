@@ -57,8 +57,7 @@ Each sentence names the proposal that introduced it.
 
 ## Outcomes
 
-- **`Then admission is refused with the violations:`** followed by a table with the column `violation`, using the violation names below: the workflow is refused when it is built or admitted, before any journey exists. The order of rows does not matter. (0002, 0032)
-- **`Then the journey was aborted with the abort reason "<reason>", listing the violations:`** followed by a table with the column `violation`: a configuration error found only once the journey runs. (0032)
+- **`Then admission is refused with the violations:`** followed by a table with the column `violation`, using the violation names below: the workflow is refused when it is built, or when the instance is handed to the executor, before any journey exists. The order of rows does not matter. (0002, 0032, 0042)
 - **`Then the last event is "<event>"`** (0032)
 - **`Then no event was emitted`** (0032)
 - **`Then no journey ID was produced`**: the workflow's ID generator was never called. (0032)
@@ -155,7 +154,7 @@ The engine catalogue of proposal 0011 as amended by proposal 0040. Facts: `journ
 
 ## Abort reasons
 
-The abort reasons of a journey's result (0009, 0032): `step could not be built`, `required data missing`, `wrong type`, `invalid lifecycle`, `invalid configuration`, `hook threw`, `reporter threw`.
+The abort reasons of a journey's result (0009, 0032, 0042): `step could not be built`, `required data missing`, `wrong type`, `invalid lifecycle`, `hook threw`, `reporter threw`.
 
 ## Violation names
 

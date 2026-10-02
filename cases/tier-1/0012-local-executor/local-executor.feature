@@ -46,8 +46,8 @@ Feature: The local executor
     When the same executor runs the workflow twice, with a new instance each time
     Then each instance's reporter "audit" received only its own journey's events
 
-  @capability-sync @capability-build-time-configuration-check
-  Scenario: A synchronous-only executor refuses an asynchronous step when the workflow is built
+  @capability-sync @proposal-0042
+  Scenario: A synchronous-only executor refuses an asynchronous step before the journey starts
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
@@ -59,17 +59,4 @@ Feature: The local executor
       | violation         |
       | mode not accepted |
     And no event was emitted
-
-  @capability-sync @capability-run-time-configuration-check
-  Scenario: A synchronous-only executor aborts a journey with an asynchronous step
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" is asynchronous
-    And step "charge" succeeds
-    And the executor accepts only synchronous steps, hooks and reporters
-    When the workflow runs
-    Then the journey was aborted with the abort reason "invalid configuration", listing the violations:
-      | violation         |
-      | mode not accepted |
-    And no step ran
+    And no journey ID was produced
