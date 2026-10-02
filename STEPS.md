@@ -13,6 +13,7 @@ Each sentence names the proposal that introduced it.
 - **`And step "<step>" succeeds`**: every attempt of the step ends with success. (0002)
 - **`And step "<step>" attempts:`** followed by a table scripting each attempt, with the columns `attempt` (the attempt number) and `outcome` (`success`, `failure`, `retriable failure`, `skipped` or `error`), and optionally `code`, `message`, `details` (JSON) for the reason, and `contributes` (a JSON object of keys and values contributed before ending). `error` means an error escapes the running step, an abnormal termination. Attempts after the last row repeat the last row. (0008)
 - **`And step "<step>" cannot be built because its constructor fails with "<message>"`**: building the step fails. (0008)
+- **`And the abnormal termination of step "<step>" is retriable`**: the step's descriptor sets `abnormal termination retriable`; without this sentence it is false. (0024)
 - **`And step "<step>" allows <n> retries`**: the step's retry budget: after the first attempt, at most `n` more. Provisional until the retry configuration of [itinera-dev/spec#9](https://github.com/itinera-dev/spec/issues/9) is accepted. (0008)
 
 ## Data
@@ -36,7 +37,7 @@ Each sentence names the proposal that introduced it.
 - **`And the hook "<hook>" of policy "<policy>" requests optional step data "<key>" of type <type>`** (0002)
 - **`And the hook "<hook>" of policy "<policy>" requests the step name`**: the hook asks for the name of the step it is acting on. (0002)
 - **`And the hook "<hook>" of policy "<policy>" requests the failure reason`**: the failure's code, message and details. (0008)
-- **`And the hook "<hook>" of policy "<policy>" requests the failure cause`**: why the failure hook was called: `failure` or `retries exhausted`. (0008)
+- **`And the hook "<hook>" of policy "<policy>" requests the failure cause`**: why the failure hook was called: `failure`, `retries exhausted` or `abnormal termination`. (0008, 0024)
 - **`And the hook "<hook>" of policy "<policy>" requests the retry cause`**: why the retry hook was called: `retriable failure` or `abnormal termination`. (0008)
 - **`And the hook "<hook>" of policy "<policy>" requests the error`**: the error of an abnormal termination. (0008)
 
