@@ -12,7 +12,7 @@ Draft, agreed in [#5](https://github.com/itinera-dev/conformance/issues/5). The 
 
 1. **Only catalogued sentences.** Every `Given`, `When`, `Then`, `And` and `But` line uses a sentence from [STEPS.md](STEPS.md), with its parameters. A sentence outside the catalogue is an error, not an extension. A new sentence is added to the catalogue in the same pull request as the first case that needs it, with its exact meaning.
 2. **Scripted steps, not business steps.** The steps of a workflow under test are test steps whose behaviour the scenario dictates: what they request, what they contribute, and how each attempt ends. The same holds for policies and adapters.
-3. **The trace is the event stream.** Behaviour is checked by comparing the events the engine emitted, recorded by a reporter, with a table. Other `Then` sentences check the journey's result, which is also observable.
+3. **The trace is the event stream.** Behaviour is checked by comparing the events the engine emitted, recorded by a reporter, with a table. Other `Then` sentences check the journey's result, which is also observable. A workflow refused before any journey exists has no event stream: its trace is the refusal, the error listing every violation that building the workflow (through the language's builder, while the runner runs) or admitting it returns, and the runner checks that error directly.
 4. **One behaviour per scenario.** A scenario checks one rule of the specification. Its name states the rule in plain words.
 5. **Cite the source.** The feature's description names the proposal and, once it exists, the section of the specification it checks.
 6. **Screen-reader friendly.** Plain sentences and simple tables. No ASCII art, no decorative characters.
