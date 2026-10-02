@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: itinera-dev/actions/pr-has-issue@v1
         with:
-          profile: implementation
+          profile: conformance
 
   no-cross-repo-closing:
     name: no cross-repository closing keywords

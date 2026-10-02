@@ -34,7 +34,7 @@ A feature or scenario that needs a capability also carries:
 - `@capability-sync` or `@capability-async`: the execution mode it requires;
 - other capability tags as later tiers add them.
 
-A language claiming tier N of a specification version runs every case tagged `@tier-1` to `@tier-N`, excluding capabilities it does not claim. Every one must pass.
+A language runs the cases of the proposals it lists in its manifest (see below), excluding capabilities it does not claim, and every one must pass. It claims tier N of a specification version once every proposal of tiers 1 to N is listed.
 
 ## Values and types
 
@@ -68,18 +68,18 @@ Each language repository runs the cases as its conformance tests.
 
 1. **A manifest**, `conformance.json` at the root of the language repository, states:
    - `cases`: the tag of this repository it runs against, for example `v0.1.0`;
-   - `tiers`: the highest tier it claims, for example `1`;
+   - `proposals`: the numbers of the proposals it implements, for example `[2, 8]`. A proposal is listed by the pull request that completes it, which also closes the language's implementation issue for it; from then on its cases run on every pull request. The tier the language claims follows from this list;
    - `capabilities`: the capabilities it claims, for example `["sync", "async"]`.
 2. **A runner** in the language repository holds the step definitions for every sentence in [STEPS.md](STEPS.md) and runs the cases with that language's Cucumber implementation. The runner builds each scenario's workflow programmatically, while the program runs, from the scenario's sentences and tables, using the language's public API for constructing workflows; scripted test steps declare their inputs, contributions and outcomes the same way. How a language's own declarative syntax, such as annotations or macros, maps onto that API is tested in the language's own test suite, not here. It is started by one command, documented in the language repository, and:
    - reads the cases from the directory named by the environment variable `ITINERA_CONFORMANCE_CASES`;
    - runs only the scenarios selected by the Cucumber tag expression in `ITINERA_CONFORMANCE_TAGS`;
    - writes a Cucumber JSON report to the file named by `ITINERA_CONFORMANCE_REPORT`;
    - exits with a failure when any selected scenario fails.
-3. **The `run-conformance` action** from [itinera-dev/actions](https://github.com/itinera-dev/actions) reads the manifest, downloads the cases at the pinned tag, builds the tag expression (tiers 1 to the claimed tier, without capabilities the language does not claim), sets the three variables and runs the language's command.
+3. **The `run-conformance` action** from [itinera-dev/actions](https://github.com/itinera-dev/actions) reads the manifest, downloads the cases at the pinned tag, builds the tag expression (the listed proposals, without capabilities the language does not claim), sets the three variables and runs the language's command.
 
 ## When the cases run
 
-- **On every pull request** in a language repository, as a required check. A pull request that breaks conformance cannot be merged.
+- **On every pull request** in a language repository, as a required check, for the proposals already listed. A pull request that breaks a finished proposal cannot be merged, while work on a proposal not yet listed merges freely.
 - **Moving to newer cases** is a pull request that changes `cases` in the manifest. Until a language passes the newer cases, only that pull request is affected.
 - **On every release** of a language, as a gate: if any case fails, there is no release. A release that passes carries its conformance report as a release asset, which is the proof of what it claims.
 
