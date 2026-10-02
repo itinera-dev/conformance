@@ -31,6 +31,7 @@ Each sentence names the proposal that introduced it.
 - **`And the workflow has the policies "<policy>", "<policy>"`**: attaches workflow policies, in this order. (0002)
 - **`And the hook "<hook>" of policy "<policy>" requests step data "<key>" of type <type>`**: a required request for data from the step. (0002)
 - **`And the hook "<hook>" of policy "<policy>" requests optional step data "<key>" of type <type>`** (0002)
+- **`And the hook "<hook>" of policy "<policy>" requests the step name`**: the hook asks for the name of the step it is acting on. (0002)
 
 ## Actions
 
@@ -48,12 +49,17 @@ Each sentence names the proposal that introduced it.
 - **`Then step "<step>" was built with input "<key>" absent`** (0002)
 - **`Then the hook "<hook>" of policy "<policy>" received step data "<key>" = <value>`** (0002)
 - **`Then the hook "<hook>" of policy "<policy>" received step data "<key>" absent`** (0002)
-- **`Then the listing is:`** followed by a table with the columns `step`, `position`, `policies` and `adapters`, where `policies` and `adapters` list names separated by commas in declaration order. (0002)
+- **`Then the hook "<hook>" of policy "<policy>" received the step name "<step>"`**: on at least one call, the hook received this step name. (0002)
+- **`Then the listing is:`** followed by a table with the columns `step`, `position`, `policies` and `adapters`, where `policies` lists the attached policies' names and `adapters` lists the keys that have an input adapter, each separated by commas in declaration order, and empty when there are none. (0002)
 
 ## Events
 
 - **`Then the events include, in order:`** followed by an event table. (0002)
 - **`Then the events are exactly:`** followed by an event table. (0002)
+
+## Hook names
+
+Until the hooks proposal ([itinera-dev/spec#10](https://github.com/itinera-dev/spec/issues/10)) is accepted, cases use these provisional names: `on step success`, `on step failure`, `on step retry`, `on step abnormal termination`, `on workflow success`, `on workflow failure`. (0002)
 
 ## Violation names
 
