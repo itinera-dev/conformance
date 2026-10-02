@@ -32,7 +32,6 @@ Every feature carries:
 A feature or scenario that needs a capability also carries:
 
 - `@capability-sync` or `@capability-async`: the execution mode it requires;
-- `@capability-build-time-configuration-check` or `@capability-run-time-configuration-check`: whether the language catches errors in how a workflow is put together when the workflow is built, or only once a journey runs (proposal 0032). A language claims exactly one of the two;
 - other capability tags as later tiers add them.
 
 A language runs the cases of the proposals it lists in its manifest (see below), excluding capabilities it does not claim, and every one must pass. It claims tier N of a specification version once every proposal of tiers 1 to N is listed.

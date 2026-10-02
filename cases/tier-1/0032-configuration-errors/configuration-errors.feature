@@ -1,9 +1,9 @@
 @tier-1 @proposal-0032
 Feature: Configuration errors
-  Checks proposal 0032, which amends proposal 0009: a configuration error caught
-  when the workflow is built produces no journey and no event; one found while
-  the journey runs aborts it, the events already emitted remain, and
-  journey_aborted is the last event.
+  Checks proposal 0032, which amends proposal 0009, as amended by proposal 0042:
+  an error in how a workflow is put together is refused before any journey, with
+  no event; a configuration error found while the journey runs aborts it, the
+  events already emitted remain, and journey_aborted is the last event.
 
   Scenario: A configuration error found partway through a journey ends the stream with journey_aborted
     Given a workflow "orders" with the steps:
@@ -28,8 +28,8 @@ Feature: Configuration errors
     And step "charge" ended as succeeded after 1 attempts
     And the journey was aborted
 
-  @capability-build-time-configuration-check
-  Scenario: A configuration error caught when the workflow is built produces no event
+  @proposal-0042
+  Scenario: A configuration error in how the workflow is put together is refused before any journey, with no event
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
@@ -41,17 +41,3 @@ Feature: Configuration errors
       | duplicate step name |
     And no event was emitted
     And no journey ID was produced
-
-  @capability-run-time-configuration-check
-  Scenario: A configuration error found only when the journey runs aborts it with "invalid configuration"
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | charge |
-    And step "charge" succeeds
-    When the workflow runs
-    Then the journey was aborted with the abort reason "invalid configuration", listing the violations:
-      | violation           |
-      | duplicate step name |
-    And the last event is "journey_aborted"
-    And no step ran
