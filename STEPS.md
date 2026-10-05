@@ -16,7 +16,7 @@ Each sentence names the proposal that introduced it.
 - **`And step "<step>" attempts:`** followed by a table scripting each attempt, with the columns `attempt` (the attempt number) and `outcome` (`success`, `failure`, `retriable failure`, `skipped` or `error`), and optionally `code`, `message`, `details` (JSON) for the reason, and `contributes` (a JSON object of keys and values contributed before ending). `error` means an error escapes the running step, an abnormal termination. Attempts after the last row repeat the last row. (0008)
 - **`And step "<step>" cannot be built because its constructor fails with "<message>"`**: building the step fails. (0008)
 - **`And the abnormal termination of step "<step>" is retriable`**: the step's descriptor sets `abnormal termination retriable`; without this sentence it is false. (0024)
-- **`And step "<step>" allows <n> retries`**: the step's retry budget: after the first attempt, at most `n` more. Provisional until the retry configuration of [itinera-dev/spec#9](https://github.com/itinera-dev/spec/issues/9) is accepted. (0008)
+- **`And step "<step>" allows <n> retries`**: the step's retry budget: after the first attempt, at most `n` more. (0008, 0009)
 
 ## Data
 
@@ -155,7 +155,7 @@ What happened:
 
 ## Hook names
 
-Until the hooks proposal ([itinera-dev/spec#10](https://github.com/itinera-dev/spec/issues/10)) is accepted, cases use these provisional names: `on step success`, `on step failure`, `on step retry`, `on step abnormal termination`, `on workflow success`, `on workflow failure`. (0002; defined by 0010)
+The hook names of proposal 0010: `on step success`, `on step failure`, `on step retry`, `on step abnormal termination`, `on workflow success`, `on workflow failure`. (0002; defined by 0010)
 
 ## Event names
 
