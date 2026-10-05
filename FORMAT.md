@@ -67,7 +67,11 @@ Event names are those of the engine catalogue of proposal 0011 (Events), as amen
 
 ## Versions of the cases
 
-This repository is versioned with tags aligned with the specification's versions, for example `v0.1.0`. The cases at a tag never change. Fixes and new cases are released under a new tag.
+This repository is tagged with the specification's versions, in three parts, for example `v0.1.0`. The cases at a tag never change, and a tag is never moved.
+
+- **Release candidates.** Until a version is proven by a first implementation passing all its cases, each change to the cases is released as a new candidate: `v0.1.0-rc.1`, `v0.1.0-rc.2`, and so on. Implementations pin the latest candidate.
+- **Proven.** The version is then tagged `v0.1.0`, here and in the specification.
+- **Afterwards.** Corrections of spec defects are released as patch versions, such as `v0.1.1`, and accepted proposals as minor versions, such as `v0.2.0`. See "The behaviour specification" in the specification's [PROCESS.md](https://github.com/itinera-dev/spec/blob/main/PROCESS.md).
 
 ## Running the cases in a language
 

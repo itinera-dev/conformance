@@ -4,14 +4,15 @@ Test cases, written as data, that every [Itinera](https://github.com/itinera-dev
 
 ## Status
 
-Not started. The case format will be defined together with version 0.1 of the specification.
+Every case of tier 1, specification 0.1.0, is here. Until a first implementation passes them all, they are released as candidates, `v0.1.0-rc.N`; then they are tagged `v0.1.0`, like the specification.
 
-## How it will work
+## How it works
 
-- Each case contains a workflow, scripted step outcomes and the expected trace, and cites the accepted proposal and the section of the specification it checks.
-- The expected trace is the stream of events the engine emits, recorded by a reporter.
-- Cases are tagged with their tier. A language claims a tier only when every case of that tier and the tiers before it passes.
-- Each language implements a small runner that loads the cases, runs them and produces a report.
+- **The cases** are Gherkin features under [cases/](cases/), one folder per proposal: `cases/tier-N/NNNN-short-name/`. Each scenario builds a workflow, scripts what its steps and hooks do, and checks the result and the event stream.
+- **The format** is in [FORMAT.md](FORMAT.md): tags, values and types, event tables, versions, and how a language runs the cases through its `conformance.json` manifest.
+- **The sentences** a case may use form a closed catalogue, [STEPS.md](STEPS.md). Each language implements every sentence once, in its runner.
+- **Tags** give each case's tier, proposal and required capabilities. A language claims a tier only when every case of that tier and the tiers before it passes.
+- **Each language** implements a small runner that loads the cases, runs them and produces a report.
 
 The process is described in [PROCESS.md](https://github.com/itinera-dev/spec/blob/main/PROCESS.md).
 
