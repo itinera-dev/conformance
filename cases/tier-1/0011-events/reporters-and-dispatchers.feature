@@ -47,3 +47,18 @@ Feature: Reporters and dispatchers
     When the workflow runs
     Then the reporter "audit" received the event "journey_aborted"
     And the journey was aborted
+
+  @spec-defect-0047
+  Scenario: The event a reporter threw on still reaches the reporters after it
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" succeeds
+    And the workflow lists the reporters "broken", "audit"
+    And the reporter "broken" throws on "journey_started"
+    And the executor uses its default dispatcher
+    When the workflow runs
+    Then the reporter "audit" received the event "journey_started"
+    And the reporter "audit" received the event "journey_aborted"
+    And the reporter "broken" did not receive the event "journey_aborted"
+    And the journey was aborted with the abort reason "reporter threw"

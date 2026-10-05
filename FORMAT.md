@@ -29,6 +29,8 @@ Every feature carries:
 - `@tier-N`: the tier it belongs to;
 - `@proposal-NNNN`: the proposal it checks.
 
+A scenario added to settle a spec defect also carries `@spec-defect-NNNN`, the number of the defect issue in `spec`, so the correction can be traced. It lives with the cases of the proposal whose text it clarifies.
+
 A feature or scenario that needs a capability also carries:
 
 - `@capability-sync` or `@capability-async`: the execution mode it requires;
