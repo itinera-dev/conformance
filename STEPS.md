@@ -27,6 +27,7 @@ Each sentence names the proposal that introduced it.
 
 - **`And the workflow has no ID generator`**: the workflow uses its default generator. (0009)
 - **`And the workflow's ID generator returns "<id>"`**: the workflow defines a custom ID generator returning this value. (0009)
+- **`And the workflow's ID generator fails with "<message>"`**: the custom ID generator fails, in whatever way the language expresses failure. (0049)
 
 ## Input adapters
 
@@ -64,8 +65,10 @@ Each sentence names the proposal that introduced it.
 - **`Then no step ran`** (0002)
 - **`Then the journey succeeded`** (0002)
 - **`Then the journey was aborted`** (0002)
+- **`Then the journey was aborted with the abort reason "<reason>"`**: the result's abort reason, from the list below. (0049)
+- **`Then run was refused`** and **`Then run was refused with the message "<message>"`**: `run` reported a refusal to the developer instead of a journey result, carrying this message. (0049)
 - **`Then the journey failed`** (0008)
-- **`Then step "<step>" ended as <status> after <n> attempts`**: the step's final status in the journey's result, one of `succeeded`, `failed`, `skipped` or `not executed`, and how many attempts it took. (0008)
+- **`Then step "<step>" ended as <status> after <n> attempts`**: the step's final status in the journey's result, one of `succeeded`, `failed`, `skipped`, `not executed` or `aborted`, and how many attempts it took; an attempt counts from its `attempt_started`. (0008, spec#48)
 - **`Then step "<step>" ended as aborted`**: the journey was aborted during this step; its status in the result is `Aborted`. (0009)
 - **`Then the journey ID is a UUID v4`** (0009)
 - **`Then the journey ID is "<id>"`** (0009)
@@ -117,6 +120,7 @@ What happened:
 - **`Then the result names the step "<step>" whose hook failed the journey, with the code "<code>"`**: the result of a journey failed by `FailWorkflow` names the step whose hook returned it, and its reason's code. (0010)
 - **`Then the contribution of "<key>" is recorded as made by the hook "<hook>" of policy "<policy>"`**: the events record that this contribution came from that hook, not from a step. (0010)
 - **`Then the operation "<operation>" of the role "<role>" was called <n> times`** (0010)
+- **`And the operation "<operation>" of the role "<role>" throws`**: the role operation fails when called. (0049)
 
 ## Events and reporters
 
@@ -125,11 +129,16 @@ What happened:
 - **`And the executor is given a dispatcher holding the reporter "<reporter>"`**: a dispatcher that adds the workflow's reporters as usual. (0011)
 - **`And the executor is given a dispatcher holding the reporter "<reporter>" that ignores added reporters`** (0011)
 - **`And the reporter "<reporter>" throws`**: the reporter throws on the first event it receives. (0011)
+- **`And the reporter "<reporter>" throws on "<event>"`**: the reporter throws whenever it receives an event of this kind, and on no other. (0049)
+- **`And the executor is given a dispatcher holding the reporter "<reporter>" that throws when a reporter is added`** (0049)
+- **`And the executor is given a dispatcher holding the reporter "<reporter>" that throws when dispatching "<event>"`**: the dispatcher throws instead of delivering events of this kind, and delivers every other event to its reporter. (0049)
 - **`And step "<step>" emits <kind> "<message>"`**, **`And step "<step>" emits <kind> "<message>" with data <data>`** and **`And step "<step>" emits <kind> "<message>" with data that cannot be serialized`**: the step emits a `step_info`, `step_warning` or `step_error` event before ending. (0011)
 - **`And the hook "<hook>" of policy "<policy>" emits <kind> "<message>"`**: the hook emits a `journey_info`, `journey_warning` or `journey_error` event before returning. (0011)
 - **`Then the reporters "<reporter>", "<reporter>" received the same events`** (0011)
 - **`Then the reporter "<reporter>" received the event "<event>"`** (0011)
 - **`Then the reporter "<reporter>" received no event`** (0011)
+- **`Then the reporter "<reporter>" received the event "<event>" <n> times`** (0049)
+- **`Then the reporter "<reporter>" did not receive the event "<event>"`** (spec#47)
 - **`Then every event carries the journey ID "<id>" and the workflow name "<workflow>", with increasing sequence numbers`** (0011)
 - **`Then no engine event carries the value of "<key>"`**: no event of the engine catalogue contains the value of this key, anywhere. (0011)
 - **`Then the event "<event>" of step "<step>" carries the unserializable data marker`** (0011)

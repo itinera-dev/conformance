@@ -39,3 +39,14 @@ Feature: Data from the step
     And the hook "on step success" of policy "audit" requests optional step data "receipt" of type string
     When the workflow runs
     Then the journey was aborted
+
+  @spec-defect-0046
+  Scenario: A hook's optional request for data the step did not contribute emits optional_input_absent
+    Given step "charge" succeeds
+    And the hook "on step success" of policy "audit" requests optional step data "receipt" of type string
+    When the workflow runs
+    Then the events include, in order:
+      | event                 | step   | key     | policy | hook            |
+      | step_succeeded        | charge |         |        |                 |
+      | optional_input_absent | charge | receipt | audit  | on step success |
+      | hook_called           | charge |         | audit  | on step success |

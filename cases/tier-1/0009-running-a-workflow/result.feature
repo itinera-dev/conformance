@@ -61,3 +61,13 @@ Feature: The journey result
       | key         | value |
       | reservation | "X-1" |
     And the journey was aborted
+
+  @spec-defect-0048
+  Scenario: A step aborted while being built counts the attempt that started
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" cannot be built because its constructor fails with "no connection"
+    When the workflow runs
+    Then step "charge" ended as aborted after 1 attempts
+    And the journey was aborted
