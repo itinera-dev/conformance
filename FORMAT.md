@@ -43,6 +43,8 @@ A language runs the cases of the proposals it lists in its manifest (see below),
 - **Keys** are strings, written in double quotes.
 - **Values** are written as JSON: `"text"`, `42`, `4.5`, `true`, `null`, `[1, 2]`, `{"a": 1}`.
 - **Types** use this neutral vocabulary: `string`, `integer`, `number`, `boolean`, `list`, `object`. A language maps each to its own types in its step definitions.
+- **Numbers.** A JSON number written without a fraction or an exponent, such as `42`, is an `integer`. Any other JSON number, such as `4.5` or `4.0`, is a `number`.
+- **Cases MUST NOT depend on whether an `integer` is also a `number`.** No case requests `number` for an integer value, or `integer` for a non-integer value, and expects either success or `wrong type`: languages differ on it. A wrong-type scenario uses types that differ in every language, such as `string` against `integer`.
 
 ## Events
 
