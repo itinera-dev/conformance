@@ -61,4 +61,4 @@ Feature: Reporters and dispatchers
     Then the reporter "audit" received the event "journey_started"
     And the reporter "audit" received the event "journey_aborted"
     And the reporter "broken" did not receive the event "journey_aborted"
-    And the journey was aborted with the abort reason "reporter threw"
+    And the journey was aborted with the abort reason "reporter failed"

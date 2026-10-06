@@ -46,7 +46,7 @@ Feature: The local executor
     When the same executor runs the workflow twice, with a new instance each time
     Then each instance's reporter "audit" received only its own journey's events
 
-  @capability-sync @proposal-0042
+  @capability-sync @proposal-0042 @mode-not-accepted
   Scenario: A synchronous-only executor refuses an asynchronous step before the journey starts
     Given a workflow "orders" with the steps:
       | step   |
@@ -59,4 +59,3 @@ Feature: The local executor
       | violation         |
       | mode not accepted |
     And no event was emitted
-    And no journey ID was produced

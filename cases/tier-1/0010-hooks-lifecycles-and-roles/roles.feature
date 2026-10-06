@@ -18,6 +18,7 @@ Feature: Workflow roles
     Then the operation "notify" of the role "notifier" was called 1 times
     And the journey succeeded
 
+  @role-not-provided
   Scenario: A policy needing a role the workflow does not provide is refused at admission
     Given a workflow "orders" with the steps:
       | step   |

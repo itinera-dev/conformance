@@ -2,7 +2,7 @@
 Feature: Events emitted by steps and hooks
   Checks points 20 to 22 of proposal 0011 (Events): steps emit step_* events and
   hooks emit journey_* events, with a message and optional data; data that
-  cannot be serialized still produces the event, with a marker.
+  that is not a value aborts the journey (as amended by proposal 0064).
 
   Scenario: A step's event carries the step, the attempt, the message and the data
     Given a workflow "orders" with the steps:
@@ -31,12 +31,13 @@ Feature: Events emitted by steps and hooks
       | journey_info | charge | 1       | audit  | on step success | charge checked |
       | hook_called  | charge | 1       | audit  | on step success |                |
 
-  Scenario: Data that cannot be serialized still produces the event, with a marker
+  @proposal-0064 @non-value
+  Scenario: Data that is not a value aborts the journey, and the event is not delivered
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
-    And step "charge" emits step_info "odd data" with data that cannot be serialized
+    And step "charge" emits step_info "odd data" with data that is not a value
     And step "charge" succeeds
     When the workflow runs
-    Then the event "step_info" of step "charge" carries the unserializable data marker
-    And the journey succeeded
+    Then the journey was aborted with the abort reason "not a value"
+    And no event carries the message "odd data"
