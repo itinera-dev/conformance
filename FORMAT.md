@@ -85,14 +85,29 @@ Each language repository runs the cases as its conformance tests.
    - `cases`: the tag of this repository it runs against, for example `v0.1.0`;
    - `proposals`: the numbers of the proposals it implements, for example `[2, 8]`. A proposal is listed by the pull request that completes it, which also closes the language's implementation issue for it; from then on its cases run on every pull request. The tier the language claims follows from this list;
    - `capabilities`: the capabilities it claims, for example `["sync", "async"]`;
-   - `impossible`: the tags of rules the language makes impossible to express, for example `["invalid-lifecycle"]`. Scenarios carrying them are excluded and reported as not applicable; for each, the language's own test suite MUST prove that the rule cannot be expressed (proposal 0054).
+   - `impossible`: the rules the language makes impossible to express (proposal 0054), as a map from each excluded tag to the scenarios it excludes, each with the test in the language's own suite that proves the rule cannot be expressed:
+
+     ```json
+     "impossible": {
+       "invalid-lifecycle": [
+         {
+           "feature": "cases/tier-1/0010-hooks-lifecycles-and-roles/order-and-lifecycles.feature",
+           "scenario": "A lifecycle a hook may not return aborts the journey",
+           "proof": { "test": "success_hook_cannot_return_retry", "file": "tests/compile_fail/lifecycle.rs" }
+         }
+       ]
+     }
+     ```
+
+     Every scenario carrying an excluded tag at the pinned `cases` tag MUST have an entry, and every entry MUST name a scenario that exists there. The language's own CI runs the proving tests.
 2. **A runner** in the language repository holds the step definitions for every sentence in [STEPS.md](STEPS.md) and runs the cases with that language's Cucumber implementation. The runner builds each scenario's workflow programmatically, while the program runs, from the scenario's sentences and tables, using the language's public API for constructing workflows; scripted test steps declare their inputs, contributions and outcomes the same way. How a language's own declarative syntax, such as annotations or macros, maps onto that API is tested in the language's own test suite, not here. It is started by one command, documented in the language repository, and:
    - reads the cases from the directory named by the environment variable `ITINERA_CONFORMANCE_CASES`;
    - runs only the scenarios selected by the Cucumber tag expression in `ITINERA_CONFORMANCE_TAGS`;
-   - writes a Cucumber JSON report to the file named by `ITINERA_CONFORMANCE_REPORT`;
+   - writes a Cucumber JSON report to the file named by `ITINERA_CONFORMANCE_REPORT`, holding only the scenarios that ran;
    - exits with a failure when any selected scenario fails.
-3. **The recorder.** The runner gives the executor a dispatcher holding its recording reporter, from which every `Then` sentence about events reads. When a scenario says the executor uses its default dispatcher, the runner gives none, and the scenario's sentences read the reporters the workflow lists.
-4. **The `run-conformance` action** from [itinera-dev/actions](https://github.com/itinera-dev/actions) reads the manifest, downloads the cases at the pinned tag, builds the tag expression (the listed proposals, without capabilities the language does not claim), sets the three variables and runs the language's command.
+3. **The recorder.** The runner gives the executor a dispatcher factory whose dispatchers hold its recording reporter, from which every `Then` sentence about events reads (proposal 0063). When a scenario says the executor uses its default dispatcher, the runner gives no factory, and the scenario's sentences read the reporters the workflow lists.
+4. **The `run-conformance` action** from [itinera-dev/actions](https://github.com/itinera-dev/actions) reads the manifest, downloads the cases at the pinned tag, builds the tag expression (the listed proposals, without capabilities the language does not claim and without its `impossible` tags), sets the three variables and runs the language's command. Before running, it fails if a scenario carrying an excluded tag has no entry in `impossible`, or if an entry names a scenario that does not exist at the pinned tag.
+5. **The report** is the Cucumber JSON and, next to it, an exclusions file the action writes from the manifest: for every excluded scenario, its feature, its name, its tag and its proof. The runner never writes it. Together they are the conformance report a release carries, and the compatibility table reads both, so it tells a scenario excluded with proof from one that was skipped or never run.
 
 ## When the cases run
 
