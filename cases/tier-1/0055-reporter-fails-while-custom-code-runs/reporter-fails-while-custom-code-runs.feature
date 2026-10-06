@@ -9,7 +9,7 @@ Feature: A reporter that fails while a step or hook runs
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
-    And the workflow lists the reporters "fragile", "audit"
+    And the workflow lists the reporters "audit", "fragile"
     And the executor uses its default dispatcher
 
   Scenario: A step ends at the emit call, and nothing it did afterwards counts
