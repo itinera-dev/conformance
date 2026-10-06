@@ -31,13 +31,15 @@ Every feature carries:
 
 A scenario added to settle a spec defect also carries `@spec-defect-NNNN`, the number of the defect issue in `spec`, so the correction can be traced. It lives with the cases of the proposal whose text it clarifies.
 
+A scenario added or changed by an amendment lives with the cases of the proposal it amends and also carries the amendment's `@proposal-NNNN`.
+
 A feature or scenario that needs a capability also carries:
 
 - `@capability-sync` or `@capability-async`: the execution mode it requires;
 - a tag for a rule a language may make impossible to express (proposal 0054): `@invalid-lifecycle`, `@role-not-provided`, `@mode-not-accepted`, `@non-value` or `@late-handle`;
 - other capability tags as later tiers add them.
 
-A language runs the cases of the proposals it lists in its manifest (see below), excluding capabilities it does not claim, and every one must pass. It claims tier N of a specification version once every proposal of tiers 1 to N is listed.
+A language runs every scenario whose proposals are all listed in its manifest (see below), excluding capabilities it does not claim, and every one must pass. When a language moves to cases holding a new amendment, everything else keeps running, and the amendment's scenarios wait until it is listed. Listing an amendment is how a language declares it implemented: from that pull request on, its scenarios run with everything already listed. It claims tier N of a specification version once every proposal of tiers 1 to N is listed.
 
 ## Values and types
 
@@ -106,7 +108,7 @@ Each language repository runs the cases as its conformance tests.
    - writes a Cucumber JSON report to the file named by `ITINERA_CONFORMANCE_REPORT`, holding only the scenarios that ran;
    - exits with a failure when any selected scenario fails.
 3. **The recorder.** The runner gives the executor a dispatcher factory whose dispatchers hold its recording reporter, from which every `Then` sentence about events reads (proposal 0063). When a scenario says the executor uses its default dispatcher, the runner gives no factory, and the scenario's sentences read the reporters the workflow lists.
-4. **The `run-conformance` action** from [itinera-dev/actions](https://github.com/itinera-dev/actions) reads the manifest, downloads the cases at the pinned tag, builds the tag expression (the listed proposals, without capabilities the language does not claim and without its `impossible` tags), sets the three variables and runs the language's command. Before running, it fails if a scenario carrying an excluded tag has no entry in `impossible`, or if an entry names a scenario that does not exist at the pinned tag.
+4. **The `run-conformance` action** from [itinera-dev/actions](https://github.com/itinera-dev/actions) reads the manifest, downloads the cases at the pinned tag, builds the tag expression (the scenarios whose proposals are all listed, without capabilities the language does not claim and without its `impossible` tags), sets the three variables and runs the language's command. Before running, it fails if a scenario carrying an excluded tag has no entry in `impossible`, or if an entry names a scenario that does not exist at the pinned tag.
 5. **The report** is the Cucumber JSON and, next to it, an exclusions file the action writes from the manifest: for every excluded scenario, its feature, its name, its tag and its proof. The runner never writes it. Together they are the conformance report a release carries, and the compatibility table reads both, so it tells a scenario excluded with proof from one that was skipped or never run.
 
 ## When the cases run
