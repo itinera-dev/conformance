@@ -4,6 +4,7 @@ Feature: What hooks read and write, and hooks that throw
   hooks can request the attempt number, the journey ID and data from the
   workflow; hooks write only through a contributor, committed when they return.
 
+  @proposal-0054
   Scenario: A hook that throws aborts the journey, and no hook runs afterwards
     Given a workflow "orders" with the steps:
       | step   |
@@ -17,7 +18,7 @@ Feature: What hooks read and write, and hooks that throw
     And a workflow policy "report" defines the hook "on workflow failure"
     And the workflow has the policies "report"
     When the workflow runs
-    Then the result names the step "charge" as where the journey was aborted, with the abort reason "hook threw"
+    Then the result names the step "charge" as where the journey was aborted, with the abort reason "hook failed"
     And the hook "on workflow failure" of policy "report" was not called
     And step "ship" ended as not executed after 0 attempts
     And the journey was aborted
@@ -48,7 +49,8 @@ Feature: What hooks read and write, and hooks that throw
     And the data bag contains:
       | key    | value |
       | amount | 42    |
-    And the workflow declares an input adapter for step "charge" and key "amount" that returns 7
+    And the workflow declares the input adapter "pricing" for the steps "charge"
+    And the input adapter "pricing" returns 7 for "amount"
     And step "charge" requests input "amount" of type integer
     And step "charge" succeeds
     And a step policy "audit" defines the hook "on step success"

@@ -34,6 +34,7 @@ A scenario added to settle a spec defect also carries `@spec-defect-NNNN`, the n
 A feature or scenario that needs a capability also carries:
 
 - `@capability-sync` or `@capability-async`: the execution mode it requires;
+- a tag for a rule a language may make impossible to express (proposal 0054): `@invalid-lifecycle`, `@role-not-provided`, `@mode-not-accepted`, `@non-value` or `@late-handle`;
 - other capability tags as later tiers add them.
 
 A language runs the cases of the proposals it lists in its manifest (see below), excluding capabilities it does not claim, and every one must pass. It claims tier N of a specification version once every proposal of tiers 1 to N is listed.
@@ -55,6 +56,7 @@ Event tables use one row per event. The column `event` is required; any of these
 - `code`: the reason code it carries, for events about a failure, a skip or an abort;
 - `retriable`: `true` or `false`, for `step_failed`;
 - `policy`, `hook`, `lifecycle`: for events from or about a hook; `lifecycle` is the lifecycle returned, or `none`;
+- `adapter`: the input adapter an event names;
 - `source`: who made a contribution: the step's name, or the policy and hook as `policy, hook`;
 - `cause`: the cause carried by a decision event, such as `retries exhausted`;
 - `decided by`: who took a decision: `default`, or the policy and hook as `policy, hook`;
@@ -82,7 +84,8 @@ Each language repository runs the cases as its conformance tests.
 1. **A manifest**, `conformance.json` at the root of the language repository, states:
    - `cases`: the tag of this repository it runs against, for example `v0.1.0`;
    - `proposals`: the numbers of the proposals it implements, for example `[2, 8]`. A proposal is listed by the pull request that completes it, which also closes the language's implementation issue for it; from then on its cases run on every pull request. The tier the language claims follows from this list;
-   - `capabilities`: the capabilities it claims, for example `["sync", "async"]`.
+   - `capabilities`: the capabilities it claims, for example `["sync", "async"]`;
+   - `impossible`: the tags of rules the language makes impossible to express, for example `["invalid-lifecycle"]`. Scenarios carrying them are excluded and reported as not applicable; for each, the language's own test suite MUST prove that the rule cannot be expressed (proposal 0054).
 2. **A runner** in the language repository holds the step definitions for every sentence in [STEPS.md](STEPS.md) and runs the cases with that language's Cucumber implementation. The runner builds each scenario's workflow programmatically, while the program runs, from the scenario's sentences and tables, using the language's public API for constructing workflows; scripted test steps declare their inputs, contributions and outcomes the same way. How a language's own declarative syntax, such as annotations or macros, maps onto that API is tested in the language's own test suite, not here. It is started by one command, documented in the language repository, and:
    - reads the cases from the directory named by the environment variable `ITINERA_CONFORMANCE_CASES`;
    - runs only the scenarios selected by the Cucumber tag expression in `ITINERA_CONFORMANCE_TAGS`;

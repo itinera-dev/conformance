@@ -90,6 +90,7 @@ Feature: The order of hooks, and the lifecycles they return
     And step "charge" ended as failed after 1 attempts
     And the journey failed
 
+  @invalid-lifecycle
   Scenario: A lifecycle a hook may not return aborts the journey
     Given a workflow "orders" with the steps:
       | step   |
