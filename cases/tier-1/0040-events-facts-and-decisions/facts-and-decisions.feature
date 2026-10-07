@@ -4,6 +4,8 @@ Feature: Events record facts and decisions
   happened; after every attempt that failed or terminated abnormally, one
   decision event says whether the step is retried or given up, emitted after the
   hooks that could change it, and every decision event says who decided.
+  Amended by proposal 0083: journey_failed carries the error's message when an
+  error ended the attempt.
 
   Scenario: A retried failure is a fact, then a decision to retry after the retry hook
     Given a workflow "orders" with the steps:
@@ -106,3 +108,20 @@ Feature: Events record facts and decisions
       | event             | step  | attempt | policy   | hook            | lifecycle      | decided by                |
       | hook_called       | check | 1       | shortcut | on step success | FinishWorkflow |                           |
       | journey_succeeded |       |         |          |                 |                | shortcut, on step success |
+
+  @proposal-0083
+  Scenario: A journey failed by an abnormal termination carries its cause and the error's message
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" attempts:
+      | attempt | outcome | message |
+      | 1       | error   | boom    |
+    When the workflow runs
+    Then the events include, in order:
+      | event          | step   | cause                | error | decided by |
+      | journey_failed | charge | abnormal termination | boom  | default    |
+    And the result's failure has the cause "abnormal termination"
+    And the result's failure carries the error "boom"
+    And the result's failure carries no reason
+    And the journey failed

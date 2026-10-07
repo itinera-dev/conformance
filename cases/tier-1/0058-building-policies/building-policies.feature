@@ -3,6 +3,8 @@ Feature: When policies are built
   Checks proposal 0058, which amends proposals 0002 and 0010: workflow policies
   are built once per journey, step policies for every attempt, and nothing a
   policy holds passes between steps, attempts or journeys.
+  Amended by proposal 0083: a refusal caused by a policy that fails carries its
+  error.
 
   Scenario: A step policy attached to two steps shares nothing between them
     Given a workflow "orders" with the steps:
@@ -81,3 +83,16 @@ Feature: When policies are built
       | attempt_started | ship   | 1       |        |                           |
       | journey_aborted | ship   |         | broken | policy could not be built |
     And step "ship" ended as aborted after 1 attempts
+
+  @proposal-0083
+  Scenario: A workflow policy that fails when it is built refuses the journey with its error
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" succeeds
+    And a workflow policy "notify" defines the hook "on workflow success"
+    And the policy "notify" fails with "no configuration" when it is built
+    And the workflow has the policies "notify"
+    When the workflow runs
+    Then run was refused with the message "no configuration"
+    And no event was emitted

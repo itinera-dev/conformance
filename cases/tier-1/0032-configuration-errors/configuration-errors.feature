@@ -4,6 +4,7 @@ Feature: Configuration errors
   an error in how a workflow is put together is refused before any journey, with
   no event; a configuration error found while the journey runs aborts it, the
   events already emitted remain, and journey_aborted is the last event.
+  Amended by proposal 0083: an abort no error caused carries no error.
 
   Scenario: A configuration error found partway through a journey ends the stream with journey_aborted
     Given a workflow "orders" with the steps:
@@ -41,3 +42,15 @@ Feature: Configuration errors
       | duplicate step name |
     And no event was emitted
     And no journey ID was produced
+
+  @proposal-0083
+  Scenario: An abort that no error caused carries no error
+    Given a workflow "orders" with the steps:
+      | step |
+      | ship |
+    And step "ship" requests input "address" of type string
+    And step "ship" succeeds
+    And the data bag is empty
+    When the workflow runs
+    Then the journey was aborted with the abort reason "required data missing"
+    And the result's abort carries no error
