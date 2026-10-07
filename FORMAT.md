@@ -63,6 +63,7 @@ Event tables use one row per event. The column `event` is required; any of these
 - `cause`: the cause carried by a decision event, such as `retries exhausted`;
 - `decided by`: who took a decision: `default`, or the policy and hook as `policy, hook`;
 - `message`, `data`: for events emitted by steps and hooks; `data` is JSON.
+- `error`: the message of the error a `journey_failed` or `journey_aborted` carries (proposal 0083). An error's message is the language's own text for it; for a failure scripted with a message, exactly that message.
 
 Two sentences compare them:
 
