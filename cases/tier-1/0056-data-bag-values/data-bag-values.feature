@@ -15,7 +15,7 @@ Feature: Everything in the data bag is a value
     And the events include, in order:
       | event           | step   | key      |
       | journey_aborted | charge | callback |
-    And the result's data bag has no key "callback"
+    And no contribution of "callback" was committed
 
   Scenario: Initial data holding a non-value is refused before any journey
     Given a workflow "orders" with the steps:

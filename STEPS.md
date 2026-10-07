@@ -86,6 +86,8 @@ Each sentence names the proposal that introduced it.
 - **`Then step "<step>" was built <n> times, each time as a new instance`** (0008)
 - **`Then the result's data bag contains:`** followed by a table with the columns `key` and `value`: the result's data bag has at least these keys with these values. (0008)
 - **`Then the result's data bag has no key "<key>"`** (0008)
+- **`Then the result carries no data bag`**: the result of an aborted journey offers no data bag at all. Where the language makes reading it impossible, the step definition checks that by construction. (0085)
+- **`Then no contribution of "<key>" was committed`**: no `contribution_committed` event names this key. (0085)
 - **`Then the second journey's data bag contains:`** followed by a table with the columns `key` and `value`, after "the same executor runs the workflow twice". (0058)
 - **`Then the result's journey ID is "<id>"`** (0065)
 - **`Then the result's failure reason has the code "<code>"`**: the result of a failed journey explains it with a reason of this code. (0065)
