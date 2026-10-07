@@ -23,7 +23,7 @@ Feature: A reporter that fails while a step or hook runs
     And the reporter "audit" received the event "step_info" 1 times
     And the reporter "audit" did not receive the event "step_succeeded"
     And step "charge" ended as aborted after 1 attempts
-    And the result's data bag has no key "receipt"
+    And no contribution of "receipt" was committed
     And the last event is "journey_aborted"
 
   Scenario: A step that ignores the failure of its emit call is still aborted
@@ -37,7 +37,7 @@ Feature: A reporter that fails while a step or hook runs
     Then the journey was aborted with the abort reason "reporter failed"
     And no event carries the message "second"
     And the reporter "audit" did not receive the event "step_succeeded"
-    And the result's data bag has no key "receipt"
+    And no contribution of "receipt" was committed
     And the last event is "journey_aborted"
 
   Scenario: A hook ends at the emit call, and nothing it did afterwards counts
@@ -50,4 +50,4 @@ Feature: A reporter that fails while a step or hook runs
     When the workflow runs
     Then the journey was aborted with the abort reason "reporter failed"
     And the reporter "audit" did not receive the event "hook_called"
-    And the result's data bag has no key "note"
+    And no contribution of "note" was committed
