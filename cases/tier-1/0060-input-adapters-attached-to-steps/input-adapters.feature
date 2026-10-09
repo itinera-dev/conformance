@@ -3,6 +3,8 @@ Feature: Input adapters attached to steps
   Checks proposal 0060, which amends proposal 0002: an input adapter is attached
   to steps, one per step; for an input it does not supply it returns nothing,
   and the input is read from the data bag.
+  Spec defect #87: wrong type and required data missing name the adapter only
+  when the adapter supplied the value.
 
   Scenario: An adapter returning nothing lets the data bag's value through
     Given a workflow "orders" with the steps:
@@ -75,3 +77,56 @@ Feature: Input adapters attached to steps
       | violation                       |
       | input adapter for unknown step  |
     And no event was emitted
+
+  @spec-defect-0087
+  Scenario: A value of the wrong type from an adapter names the adapter
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" requests input "amount" of type integer
+    And step "charge" succeeds
+    And the workflow declares the input adapter "pricing" for the steps "charge"
+    And the input adapter "pricing" returns "ten" for "amount"
+    When the workflow runs
+    Then the events include, in order:
+      | event                  | step   | key    | adapter | code       |
+      | input_adapter_supplied | charge | amount | pricing |            |
+      | journey_aborted        | charge | amount | pricing | wrong type |
+    And no step ran
+    And the journey was aborted with the abort reason "wrong type"
+
+  @spec-defect-0087
+  Scenario: A value of the wrong type from the data bag does not name the adapter that returned nothing
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" requests input "amount" of type integer
+    And step "charge" succeeds
+    And the data bag contains:
+      | key    | value |
+      | amount | "ten" |
+    And the workflow declares the input adapter "pricing" for the steps "charge"
+    And the input adapter "pricing" returns nothing for "amount"
+    When the workflow runs
+    Then the events include, in order:
+      | event           | step   | key    | code       |
+      | journey_aborted | charge | amount | wrong type |
+    And journey_aborted names no adapter
+    And the journey was aborted with the abort reason "wrong type"
+
+  @spec-defect-0087
+  Scenario: Required data missing from the data bag does not name the adapter that returned nothing
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" requests input "amount" of type integer
+    And step "charge" succeeds
+    And the data bag is empty
+    And the workflow declares the input adapter "pricing" for the steps "charge"
+    And the input adapter "pricing" returns nothing for "amount"
+    When the workflow runs
+    Then the events include, in order:
+      | event           | step   | key    | code                  |
+      | journey_aborted | charge | amount | required data missing |
+    And journey_aborted names no adapter
+    And the journey was aborted with the abort reason "required data missing"
