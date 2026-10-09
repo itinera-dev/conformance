@@ -68,6 +68,7 @@ Each sentence names the proposal that introduced it.
 
 - **`Then admission is refused with the violations:`** followed by a table with the column `violation`, using the violation names below: the workflow is refused when it is built, or when the instance is handed to the executor, before any journey exists. The order of rows does not matter. (0002, 0032, 0042)
 - **`Then the last event is "<event>"`** (0032)
+- **`Then journey_aborted names no adapter`**: the journey's `journey_aborted` names no input adapter. (spec#87)
 - **`Then no event was emitted`** (0032)
 - **`Then no journey ID was produced`**: no workflow instance was created, so no journey ID exists; used only when the workflow is refused as it is built. (0032, 0061)
 - **`Then no step ran`** (0002)
