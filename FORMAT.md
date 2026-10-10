@@ -55,7 +55,7 @@ A language runs every scenario whose proposals are all listed in its manifest (s
 Event tables use one row per event. The column `event` is required; any of these columns may be added, and **an empty cell is not compared**:
 
 - `step`, `attempt`: the step and attempt the event concerns;
-- `key`: the data key it concerns;
+- `key`: the data key it concerns; for a `journey_aborted` on a hook's request for the failure reason or the error, `failure reason` or `error` (spec#92);
 - `code`: the reason code it carries, for events about a failure, a skip or an abort;
 - `retriable`: `true` or `false`, for `step_failed`;
 - `policy`, `hook`, `lifecycle`: for events from or about a hook; `lifecycle` is the lifecycle returned, or `none`;

@@ -35,6 +35,8 @@ Each sentence names the proposal that introduced it.
 
 ## Input adapters
 
+An input adapter's own requests are declared in the order their sentences are written. (spec#92)
+
 - **`And the workflow declares the input adapter "<adapter>" for the steps "<step>", "<step>"`**: attaches the adapter to these steps, one or more. For every key the sentences below do not mention, it returns nothing. (0060)
 - **`And the input adapter "<adapter>" returns <value> for "<key>"`** (0002, 0060)
 - **`And the input adapter "<adapter>" returns nothing for "<key>"`**: the input is resolved from the data bag. (0060)
@@ -43,6 +45,8 @@ Each sentence names the proposal that introduced it.
 - **`And the input adapter "<adapter>" requests data from the workflow "<key>" of type <type>`**: a required request, read from the data bag. (0060)
 
 ## Policies
+
+A hook's requests, made by the sentences below and in "Hooks, lifecycles and roles", are declared in the order their sentences are written, whatever their kind. (spec#92)
 
 - **`And a step policy "<policy>" defines the hook "<hook>"`**: a step policy whose hook does nothing beyond what other sentences add, and returns no lifecycle. Repeated with another hook for the same policy, it adds that hook to the same policy. (0002)
 - **`And a workflow policy "<policy>" defines the hook "<hook>"`** (0002)
