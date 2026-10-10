@@ -130,3 +130,21 @@ Feature: Input adapters attached to steps
       | journey_aborted | charge | amount | required data missing |
     And journey_aborted names no adapter
     And the journey was aborted with the abort reason "required data missing"
+
+  @spec-defect-0092
+  Scenario: An adapter's own requests are resolved in the order it declares them
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" requests input "amount" of type integer
+    And step "charge" succeeds
+    And the data bag is empty
+    And the workflow declares the input adapter "pricing" for the steps "charge"
+    And the input adapter "pricing" requests data from the workflow "price" of type integer
+    And the input adapter "pricing" requests data from the workflow "quantity" of type integer
+    And the input adapter "pricing" returns 7 for "amount"
+    When the workflow runs
+    Then the events include, in order:
+      | event           | step   | key   | adapter | code                  |
+      | journey_aborted | charge | price | pricing | required data missing |
+    And no step ran
