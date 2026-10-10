@@ -43,6 +43,10 @@ An input adapter's own requests are declared in the order their sentences are wr
 - **`And the input adapter "<adapter>" fails with "<message>" for "<key>"`**: the adapter fails, by throwing or returning an error. (0002, 0060)
 - **`And the input adapter "<adapter>" returns a non-value for "<key>"`**: the adapter returns something that is not a value, such as a function, where the language can express it. (0056)
 - **`And the input adapter "<adapter>" requests data from the workflow "<key>" of type <type>`**: a required request, read from the data bag. (0060)
+- **`And the input adapter "<adapter>" requests the data bag`**: the adapter declares read access to the data bag. Reads through it emit nothing and abort nothing. (0091)
+- **`And the input adapter "<adapter>" returns "<key>" of type <type>, read from the data bag, for "<input>"`**: when called for that input, the adapter reads that key through its access, and returns the value if it found one of that type, or nothing otherwise. (0091)
+- **`And the input adapter "<adapter>" writes "<key>" = <value> through its data bag access`**: on every call, the adapter writes through its access, as far as the language allows, then goes on. (0091)
+- **`And the input adapter "<adapter>" keeps its data bag access when called for step "<step>", and returns "<key>" of type <type>, read through that kept access, for "<input>" when called for step "<step>"`**: the adapter keeps the access it was given for the first step's inputs, and later reads through that kept access, not the one it is given for the second step. (0091)- **`And the input adapter "<adapter>" returns "<key>" of type <type>, read from the data bag, for "<input>"`**: when called for that input, the adapter reads that key through its access, and returns the value if it found one of that type, or nothing otherwise. (0091)- **`And the input adapter "<adapter>" writes "<key>" = <value> through its data bag access`**: on every call, the adapter writes through its access, as far as the language allows, then goes on. (0091)- **`And the input adapter "<adapter>" keeps its data bag access when called for step "<step>", and returns "<key>" of type <type>, read through that kept access, for "<input>" when called for step "<step>"`**: the adapter keeps the access it was given for the first step's inputs, and later reads through that kept access, not the one it is given for the second step. (0091)
 
 ## Policies
 
@@ -108,6 +112,7 @@ A hook's requests, made by the sentences below and in "Hooks, lifecycles and rol
 - **`Then the hook "<hook>" of policy "<policy>" received no failure reason`**: its optional request for the failure reason was answered absent. (0083)
 - **`Then step "<step>" was built with input "<key>" = <value>`** (0002)
 - **`Then step "<step>" was built with input "<key>" absent`** (0002)
+- **`Then step "<step>" was built for attempt <n> with input "<key>" = <value>`**: the step built for that attempt received this value. (0091)
 - **`Then the hook "<hook>" of policy "<policy>" received step data "<key>" = <value>`** (0002)
 - **`Then the hook "<hook>" of policy "<policy>" received step data "<key>" absent`** (0002)
 - **`Then the hook "<hook>" of policy "<policy>" received the step name "<step>"`**: on at least one call, the hook received this step name. (0002)
