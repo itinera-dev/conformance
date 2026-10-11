@@ -74,7 +74,7 @@ Two sentences compare them:
 - "the events include, in order" checks that these events appear in this order, possibly with others in between;
 - "the events are exactly" checks the complete stream.
 
-Event names are those of the engine catalogue of proposal 0011 (Events), as amended by proposals 0040 and 0003, and the `step_*` and `journey_*` events steps and hooks emit.
+Event names are those of the engine catalogue of proposal 0011 (Events), as amended by proposals 0040, 0003 and 0095, and the `step_*` and `journey_*` events steps, hooks and service providers emit.
 
 ## Versions of the cases
 
