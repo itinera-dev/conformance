@@ -37,7 +37,7 @@ A scenario added or changed by an amendment lives with the cases of the proposal
 A feature or scenario that needs a capability also carries:
 
 - `@capability-sync` or `@capability-async`: the execution mode it requires;
-- a tag for a rule a language may make impossible to express (proposal 0054): `@invalid-lifecycle`, `@role-not-provided`, `@mode-not-accepted`, `@non-value`, `@late-handle` or `@bag-write` (proposal 0091);
+- a tag for a rule a language may make impossible to express (proposal 0054): `@invalid-lifecycle`, `@role-not-provided`, `@mode-not-accepted`, `@non-value`, `@late-handle`, `@bag-write` (proposal 0091) or `@rescue-skip` (proposal 0003);
 - other capability tags as later tiers add them.
 
 A language runs every scenario whose proposals are all listed in its manifest (see below), excluding capabilities it does not claim, and every one must pass. When a language moves to cases holding a new amendment, everything else keeps running, and the amendment's scenarios wait until it is listed. Listing an amendment is how a language declares it implemented: from that pull request on, its scenarios run with everything already listed. It claims tier N of a specification version once every proposal of tiers 1 to N is listed.
@@ -55,13 +55,14 @@ A language runs every scenario whose proposals are all listed in its manifest (s
 Event tables use one row per event. The column `event` is required; any of these columns may be added, and **an empty cell is not compared**:
 
 - `step`, `attempt`: the step and attempt the event concerns;
-- `key`: the data key it concerns; for a `journey_aborted` on a hook's request for the failure reason or the error, `failure reason` or `error` (spec#92);
+- `key`: the data key it concerns; for a `journey_aborted` on a hook's or a rescue step's request for the failure reason or the error, `failure reason` or `error` (spec#92, proposal 0003);
 - `code`: the reason code it carries, for events about a failure, a skip or an abort;
 - `retriable`: `true` or `false`, for `step_failed`;
 - `policy`, `hook`, `lifecycle`: for events from or about a hook; `lifecycle` is the lifecycle returned, or `none`;
 - `adapter`: the input adapter an event names;
 - `source`: who made a contribution: the step's name, or the policy and hook as `policy, hook`;
 - `cause`: the cause carried by a decision event, such as `retries exhausted`;
+- `rescue`: the rescue step a `step_rescuing` or `step_rescued` names (proposal 0003);
 - `decided by`: who took a decision: `default`, or the policy and hook as `policy, hook`;
 - `message`, `data`: for events emitted by steps and hooks; `data` is JSON.
 - `error`: the message of the error a `journey_failed` or `journey_aborted` carries (proposal 0083). An error's message is the language's own text for it; for a failure scripted with a message, exactly that message.
@@ -71,7 +72,7 @@ Two sentences compare them:
 - "the events include, in order" checks that these events appear in this order, possibly with others in between;
 - "the events are exactly" checks the complete stream.
 
-Event names are those of the engine catalogue of proposal 0011 (Events), as amended by proposal 0040, and the `step_*` and `journey_*` events steps and hooks emit.
+Event names are those of the engine catalogue of proposal 0011 (Events), as amended by proposals 0040 and 0003, and the `step_*` and `journey_*` events steps and hooks emit.
 
 ## Versions of the cases
 

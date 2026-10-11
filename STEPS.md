@@ -17,6 +17,9 @@ Each sentence names the proposal that introduced it.
 - **`And step "<step>" cannot be built because its constructor fails with "<message>"`**: building the step fails. (0008)
 - **`And the abnormal termination of step "<step>" is retriable`**: the step's descriptor sets `abnormal termination retriable`; without this sentence it is false. (0024)
 - **`And step "<step>" allows <n> retries`**: the step's retry budget: after the first attempt, at most `n` more. (0008, 0009)
+- **`And step "<step>" has a rescue step`**: the step's descriptor holds a rescue step, named `<step>_rescue`. The sentences about a step that a scripted step can follow (its inputs, contributions, outcomes, emits, and how it is built) script the rescue step under that name, as for any scripted step; it has no retry budget, policies or input adapter of its own. (0003)
+- **`And step "<step>" requests rescued step data "<key>" of type <type>`** and **`And step "<step>" requests optional rescued step data "<key>" of type <type>`**: the rescue step requests, required or optional, what the failed attempt of the step it rescues contributed under this key. (0003)
+- **`And step "<step>" requests the failure reason`** and **`And step "<step>" requests the error`**: the rescue step requests the failure reason or the error of the failed attempt of the step it rescues, as a hook does. A rescue step's requests are declared in the order their sentences are written. (0003)
 
 ## Data
 
@@ -85,8 +88,8 @@ A hook's requests, made by the sentences below and in "Hooks, lifecycles and rol
 - **`Then the journey was aborted with the abort reason "<reason>"`**: the result's abort reason, from the list below. (0049)
 - **`Then run was refused`** and **`Then run was refused with the message "<message>"`**: `run` reported a refusal to the developer instead of a journey result, carrying this message. (0049)
 - **`Then the journey failed`** (0008)
-- **`Then step "<step>" ended as <status> after <n> attempts`**: the step's final status, one of `succeeded`, `failed`, `skipped`, `not executed` or `aborted`, and how many attempts it took, both read from the event stream; an attempt counts from its `attempt_started`. The status is `aborted` when `journey_aborted` names the step and no `step_succeeded`, `step_skipped` or `step_given_up` of that step came before it: a step whose status was already final when the journey was aborted keeps it. (0008, spec#48, 0065, spec#89)
-- **`Then step "<step>" ended as aborted`**: the journey was aborted while this step was executing or about to be retried: `journey_aborted` names it, and no `step_succeeded`, `step_skipped` or `step_given_up` of that step came before it. (0009, 0065, spec#89)
+- **`Then step "<step>" ended as <status> after <n> attempts`**: the step's final status, one of `succeeded`, `failed`, `skipped`, `not executed`, `rescuing` or `aborted`, and how many attempts it took, both read from the event stream; an attempt counts from its `attempt_started`. The status is `aborted` when `journey_aborted` names the step and no `step_succeeded`, `step_skipped` or `step_given_up` of that step came before it: a step whose status was already final when the journey was aborted keeps it. A step whose last decision is `step_rescuing` or `step_rescued`, with no `attempt_started` of it after that decision, is `rescuing`, or `aborted` when the journey was aborted. (0008, spec#48, 0065, spec#89, 0003)
+- **`Then step "<step>" ended as aborted`**: the journey was aborted while this step was executing or about to be retried: `journey_aborted` names it, and no `step_succeeded`, `step_skipped` or `step_given_up` of that step came before it; or while it was being rescued: its last decision is `step_rescuing` or `step_rescued`, with no `attempt_started` of it after that decision, and the journey was aborted. (0009, 0065, spec#89, 0003)
 - **`Then the journey ID is a UUID v4`** (0009)
 - **`Then the journey ID is "<id>"`** (0009)
 - **`Then the journey_started event lists the initial keys "<key>", "<key>" without their values`**: one or more keys; the event carries exactly these keys and none of their values. (0009)
@@ -112,11 +115,13 @@ A hook's requests, made by the sentences below and in "Hooks, lifecycles and rol
 - **`Then the hook "<hook>" of policy "<policy>" received no failure reason`**: its optional request for the failure reason was answered absent. (0083)
 - **`Then step "<step>" was built with input "<key>" = <value>`** (0002)
 - **`Then step "<step>" was built with input "<key>" absent`** (0002)
+- **`Then step "<step>" was built with rescued step data "<key>" = <value>`** and **`Then step "<step>" was built with rescued step data "<key>" absent`**: what the rescue step received for its request of data from the step it rescues. (0003)
+- **`Then step "<step>" received the failure reason with code "<code>", message "<message>" and details <details>`** and **`Then step "<step>" received the error with the message "<message>"`**: what the rescue step received for its request of the failure reason or the error. (0003)
 - **`Then step "<step>" was built for attempt <n> with input "<key>" = <value>`**: the step built for that attempt received this value. (0091)
 - **`Then the hook "<hook>" of policy "<policy>" received step data "<key>" = <value>`** (0002)
 - **`Then the hook "<hook>" of policy "<policy>" received step data "<key>" absent`** (0002)
 - **`Then the hook "<hook>" of policy "<policy>" received the step name "<step>"`**: on at least one call, the hook received this step name. (0002)
-- **`Then the listing is:`** followed by a table with the columns `step`, `position`, `policies` and `adapter`, where `policies` lists the attached policies' names, separated by commas in declaration order, and `adapter` is the name of the step's input adapter; both are empty when there are none. (0002, 0060)
+- **`Then the listing is:`** followed by a table with the columns `step`, `position`, `policies` and `adapter`, where `policies` lists the attached policies' names, separated by commas in declaration order, and `adapter` is the name of the step's input adapter; both are empty when there are none. An optional column `rescue` holds the name of the step's rescue step, empty when it has none; when the column is absent, it is not compared. (0002, 0060, 0003)
 
 ## Events
 
@@ -196,11 +201,11 @@ The hook names of proposal 0010: `on step success`, `on step failure`, `on step 
 
 ## Event names
 
-The engine catalogue of proposal 0011 as amended by proposal 0040. Facts: `journey_started`, `attempt_started`, `input_adapter_supplied`, `input_adapter_failed`, `optional_input_absent`, `step_succeeded`, `step_failed`, `step_skipped`, `step_abnormal_termination`, `hook_called`, `contribution_committed`, `contributions_discarded`, `data_overwritten`, `journey_aborted`. Decisions: `step_retrying`, `step_given_up`, `journey_succeeded`, `journey_failed`; and the events steps and hooks emit: `step_info`, `step_warning`, `step_error`, `journey_info`, `journey_warning`, `journey_error`. (0011, 0040)
+The engine catalogue of proposal 0011 as amended by proposal 0040. Facts: `journey_started`, `attempt_started`, `input_adapter_supplied`, `input_adapter_failed`, `optional_input_absent`, `step_succeeded`, `step_failed`, `step_skipped`, `step_abnormal_termination`, `hook_called`, `contribution_committed`, `contributions_discarded`, `data_overwritten`, `journey_aborted`. Decisions: `step_retrying`, `step_given_up`, `step_rescuing`, `step_rescued`, `journey_succeeded`, `journey_failed`; and the events steps and hooks emit: `step_info`, `step_warning`, `step_error`, `journey_info`, `journey_warning`, `journey_error`. (0011, 0040, 0003)
 
 ## Abort reasons
 
-The abort reasons of a journey's result (0009, 0032, 0042, 0054, 0056, 0058): `step could not be built`, `required data missing`, `wrong type`, `invalid lifecycle`, `policy could not be built`, `not a value`, `hook failed`, `reporter failed`.
+The abort reasons of a journey's result (0009, 0032, 0042, 0054, 0056, 0058): `step could not be built`, `required data missing`, `wrong type`, `invalid lifecycle`, `policy could not be built`, `not a value`, `hook failed`, `reporter failed`, and `rescue skipped` (0003).
 
 ## Violation names
 
@@ -210,3 +215,4 @@ The abort reasons of a journey's result (0009, 0032, 0042, 0054, 0056, 0058): `s
 - **`mode not accepted`**: a step, hook or reporter runs in an execution mode the executor does not accept. (0012)
 - **`step adapted twice`**: two input adapters are attached to the same step. (0060)
 - **`input adapter for unknown step`**: an input adapter is attached to a step the workflow does not have. (0060)
+- **`rescued step retried`**: a step has both a rescue step and a retry budget greater than 0. (0003)
