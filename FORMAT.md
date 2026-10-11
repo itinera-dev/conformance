@@ -37,7 +37,7 @@ A scenario added or changed by an amendment lives with the cases of the proposal
 A feature or scenario that needs a capability also carries:
 
 - `@capability-sync` or `@capability-async`: the execution mode it requires;
-- a tag for a rule a language may make impossible to express (proposal 0054): `@invalid-lifecycle`, `@role-not-provided`, `@mode-not-accepted`, `@non-value`, `@late-handle`, `@bag-write` (proposal 0091) or `@rescue-skip` (proposal 0003);
+- a tag for a rule a language may make impossible to express (proposal 0054): `@invalid-lifecycle`, `@role-not-provided`, `@mode-not-accepted`, `@non-value`, `@late-handle`, `@bag-write` (proposal 0091), `@rescue-skip` (proposal 0003), `@journey-scope-request` or `@no-instance` (proposal 0095);
 - other capability tags as later tiers add them.
 
 A language runs every scenario whose proposals are all listed in its manifest (see below), excluding capabilities it does not claim, and every one must pass. When a language moves to cases holding a new amendment, everything else keeps running, and the amendment's scenarios wait until it is listed. Listing an amendment is how a language declares it implemented: from that pull request on, its scenarios run with everything already listed. It claims tier N of a specification version once every proposal of tiers 1 to N is listed.

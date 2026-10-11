@@ -73,7 +73,7 @@ A hook's requests, made by the sentences below and in "Hooks, lifecycles and rol
 
 Every instance a provider makes is labelled with the provider's name and how many instances that provider has made in the journey, counting from 1, such as `stock 1`, unless a sentence below labels it otherwise. A service of type `labeller` has one operation, which returns its instance's label. A provider's own requests are declared in the order their sentences are written. (0095)
 
-- **`And step "<step>" requests the service "<key>" of type <service type>`**: the step declares a service. When it runs, before the rest of its script, it calls the service's operation once, and the runner records the label it returned; an error from that operation escapes the step, which makes an abnormal termination. Repeated for another key, the services are declared in the order written. (0095)
+- **`And step "<step>" requests the service "<key>" of type <service type>`**: the step declares a service. When it runs, before the rest of its script, it calls the service's operation once, and the runner records the label it returned; an error from that operation escapes the step, which makes an abnormal termination. Repeated for another key, the services are declared in the order written; repeated for the same key, the step requests that key twice. (0095)
 - **`And the workflow declares the service provider "<provider>" for "<key>" of type <service type>, once per journey`**: a provider of journey scope, attached to no step unless the sentence below attaches it. (0095)
 - **`And the workflow declares the service provider "<provider>" for "<key>" of type <service type>, for each attempt`**: a provider of attempt scope, attached to no step unless the sentence below attaches it. (0095)
 - **`And the service provider "<provider>" serves only the steps "<step>", "<step>"`**: attaches the provider to these steps, one or more. (0095)
@@ -85,7 +85,9 @@ Every instance a provider makes is labelled with the provider's name and how man
 - **`And the service provider "<provider>" labels each instance with the value it received for "<key>"`**: instead of its name and count, each instance it makes is labelled with the string it received for that request. (0095)
 - **`And the service provider "<provider>" fails with "<message>"`**: on every call, the provider fails, by throwing or returning an error whose message is this text. (0095)
 - **`And the service provider "<provider>" fails with "<message>" when it receives "<value>" for "<key>"`**: the provider fails as above only on a call where it received this string for that request, and otherwise makes an instance. (0095)
-- **`And the service provider "<provider>" emits <kind> "<message>"`**: on every call, the provider emits a `journey_info`, `journey_warning` or `journey_error` event before returning. (0095)
+- **`And the service provider "<provider>" emits <kind> "<message>"`** and **`And the service provider "<provider>" emits <kind> "<message>" with data that is not a value`**: on every call, the provider emits a `journey_info`, `journey_warning` or `journey_error` event before returning. (0095)
+- **`And the service provider "<provider>" returns nothing`**: on every call, the provider returns neither an instance nor an error. Used only in scenarios tagged `@no-instance`. (0095)
+- **`And the service provider "<provider>" is asynchronous`** (0095)
 - **`And the services the provider "<provider>" makes fail with "<message>" when used`**: the operation of every instance this provider makes fails, by throwing or returning an error whose message is this text. (0095)
 - **`Then the service provider "<provider>" was called <n> times`**: counting every call, whether it made an instance or failed; a provider never called was called 0 times. (0095)
 - **`Then step "<step>" was given the service "<key>" labelled "<label>" for attempt <n>`**: the step built for that attempt received an instance with this label. (0095)
@@ -94,7 +96,7 @@ Every instance a provider makes is labelled with the provider's name and how man
 - **`Then the service provider "<provider>" received the journey ID "<id>"`** (0095)
 - **`Then the service provider "<provider>" received data from the workflow "<key>" absent`** (0095)
 
-Service types, used only in these sentences: `labeller`, described above, and `meter`, an unrelated type with the same operation, which a step requesting a `labeller` never accepts. (0095)
+Service types, used only in these sentences: `labeller`, described above, and `meter`, an unrelated type whose one operation returns an integer reading, which a step requesting a `labeller` never accepts. (0095)
 
 ## Actions
 
@@ -214,7 +216,7 @@ What happened:
 ## The executor
 
 - **`And step "<step>" is asynchronous`**: the scripted step runs asynchronously. (0012)
-- **`And the executor accepts only synchronous steps, hooks and reporters`**: the scenario uses a synchronous-only executor. (0012)
+- **`And the executor accepts only synchronous steps, hooks and reporters`**: the scenario uses a synchronous-only executor, which accepts only synchronous service providers too. (0012, 0095)
 - **`When the same executor runs the workflow twice, with a new instance each time`**: one executor runs two journeys, one after the other, each with a new workflow instance created the same way. (0012)
 - **`Then run returned a result instead of throwing`** (0012)
 - **`Then the two journeys have different journey IDs`** (0012)
@@ -241,11 +243,14 @@ The abort reasons of a journey's result (0009, 0032, 0042, 0054, 0056, 0058): `s
 - **`hook defined twice`**: two policies attached to the same step, or to the same workflow, define the same hook. (0002)
 - **`duplicate step name`**: two steps in one workflow have the same name. (0008)
 - **`role not provided`**: a policy attached to the workflow requests a role the workflow does not provide. (0010)
-- **`mode not accepted`**: a step, hook or reporter runs in an execution mode the executor does not accept. (0012)
+- **`mode not accepted`**: a step, hook, service provider or reporter runs in an execution mode the executor does not accept. (0012, 0095)
 - **`step adapted twice`**: two input adapters are attached to the same step. (0060)
 - **`input adapter for unknown step`**: an input adapter is attached to a step the workflow does not have. (0060)
 - **`rescued step retried`**: a step has both a rescue step and a retry budget greater than 0. (0003)
 - **`service not provided`**: a step requests a service that no provider serves for it. (0095)
-- **`service provided twice`**: two providers of one key serve the same step, both attached to it or both attached to no step. (0095)
+- **`service requested twice`**: a step requests the same key twice among its services. (0095)
+- **`service provided twice`**: two providers of one key are both attached to the same step, or both attached to no step. (0095)
+- **`duplicate provider name`**: two service providers of one workflow have the same name. (0095)
 - **`service provider for unknown step`**: a service provider is attached to a step the workflow does not have. (0095)
 - **`wrong service type`**: the provider serving a step supplies another type than the step requests for that key. (0095)
+- **`attempt request in journey scope`**: a service provider of journey scope requests the name of the step being built or the attempt number. (0095)

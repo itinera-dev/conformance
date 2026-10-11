@@ -96,3 +96,28 @@ Feature: Providers attached to steps
       | charge  | 2        |          |         | payments: payments, stock: fresh stock |
       | ship    | 3        |          |         |                                        |
     And no step ran
+
+  Scenario: A provider attached to a step that does not request its key is never called
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" succeeds
+    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
+    And the service provider "payments" serves only the steps "charge"
+    When the workflow runs
+    Then the service provider "payments" was called 0 times
+    And the journey succeeded
+
+  Scenario: A provider of another type that serves no step is not checked against one
+    Given a workflow "orders" with the steps:
+      | step    |
+      | reserve |
+    And step "reserve" requests the service "stock" of type labeller
+    And step "reserve" succeeds
+    And the workflow declares the service provider "stock" for "stock" of type meter, once per journey
+    And the workflow declares the service provider "warehouse" for "stock" of type labeller, once per journey
+    And the service provider "warehouse" serves only the steps "reserve"
+    When the workflow runs
+    Then step "reserve" was given the service "stock" labelled "warehouse 1" for attempt 1
+    And the service provider "stock" was called 0 times
+    And the journey succeeded

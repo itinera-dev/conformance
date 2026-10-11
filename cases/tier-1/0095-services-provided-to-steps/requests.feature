@@ -25,17 +25,21 @@ Feature: What a service provider requests
     And the service provider "payments" received the attempt number 1
     And the service provider "payments" received the attempt number 2
 
-  Scenario: A provider receives the journey ID
+  Scenario: A provider of either scope receives the journey ID
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
     And step "charge" requests the service "payments" of type labeller
     And step "charge" succeeds
+    And step "charge" requests the service "stock" of type labeller
     And the workflow's ID generator returns "order-1"
     And the workflow declares the service provider "payments" for "payments" of type labeller, once per journey
     And the service provider "payments" requests the journey ID
+    And the workflow declares the service provider "stock" for "stock" of type labeller, for each attempt
+    And the service provider "stock" requests the journey ID
     When the workflow runs
     Then the service provider "payments" received the journey ID "order-1"
+    And the service provider "stock" received the journey ID "order-1"
 
   Scenario: A provider chooses the instance from data a retry hook contributed
     Given a workflow "orders" with the steps:
@@ -77,6 +81,7 @@ Feature: What a service provider requests
       | attempt_started | charge | 1       |         |          |                       |
       | journey_aborted | charge |         | gateway | payments | required data missing |
     And the service provider "payments" was called 0 times
+    And no step ran
     And step "charge" ended as aborted after 1 attempts
 
   Scenario: A provider's data of the wrong type aborts the journey before it is called
@@ -95,6 +100,7 @@ Feature: What a service provider requests
       | event           | step   | key     | provider | code       |
       | journey_aborted | charge | gateway | payments | wrong type |
     And the service provider "payments" was called 0 times
+    And no step ran
 
   Scenario: A provider's absent optional data emits optional_input_absent naming the provider
     Given a workflow "orders" with the steps:
@@ -128,6 +134,25 @@ Feature: What a service provider requests
     When the workflow runs
     Then the result names the step "charge" as where the journey was aborted, with the abort reason "required data missing"
     And the service provider "payments" was called 0 times
+
+  Scenario: A step's input events come before its service events
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" requests optional input "note" of type string
+    And step "charge" requests the service "payments" of type labeller
+    And step "charge" succeeds
+    And the data bag is empty
+    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
+    When the workflow runs
+    Then the events are exactly:
+      | event                 | step   | attempt | key      | provider |
+      | journey_started       |        |         |          |          |
+      | attempt_started       | charge | 1       |          |          |
+      | optional_input_absent | charge | 1       | note     |          |
+      | service_provided      | charge | 1       | payments | payments |
+      | step_succeeded        | charge | 1       |          |          |
+      | journey_succeeded     |        |         |          |          |
 
   Scenario: Services are resolved in the order the step declares them
     Given a workflow "orders" with the steps:
