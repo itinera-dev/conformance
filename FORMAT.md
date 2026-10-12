@@ -62,7 +62,7 @@ Event tables use one row per event. The column `event` is required; any of these
 - `policy`, `hook`, `lifecycle`: for events from or about a hook; `lifecycle` is the lifecycle returned, or `none`;
 - `adapter`: the input adapter an event names;
 - `provider`: the service provider an event names, or that emitted a `journey_*` event (proposal 0095);
-- `source`: who made a contribution: the step's name, or the policy and hook as `policy, hook`;
+- `source`: who made a contribution, or set an entry of global metadata: the step's name, or the policy and hook as `policy, hook` (proposal 0102);
 - `cause`: the cause carried by a decision event, such as `retries exhausted`;
 - `rescue`: the rescue step a `step_rescuing` or `step_rescued` names (proposal 0003);
 - `decided by`: who took a decision: `default`, or the policy and hook as `policy, hook`;
@@ -74,7 +74,7 @@ Two sentences compare them:
 - "the events include, in order" checks that these events appear in this order, possibly with others in between;
 - "the events are exactly" checks the complete stream.
 
-Event names are those of the engine catalogue of proposal 0011 (Events), as amended by proposals 0040, 0003 and 0095, and the `step_*` and `journey_*` events steps, hooks and service providers emit.
+Event names are those of the engine catalogue of proposal 0011 (Events), as amended by proposals 0040, 0003, 0095 and 0102, and the `step_*` and `journey_*` events steps, hooks and service providers emit.
 
 ## Versions of the cases
 
@@ -112,7 +112,7 @@ Each language repository runs the cases as its conformance tests.
    - runs only the scenarios selected by the Cucumber tag expression in `ITINERA_CONFORMANCE_TAGS`;
    - writes a Cucumber JSON report to the file named by `ITINERA_CONFORMANCE_REPORT`, holding only the scenarios that ran;
    - exits with a failure when any selected scenario fails.
-3. **The recorder.** The runner gives the executor a dispatcher factory whose dispatchers hold its recording reporter, from which every `Then` sentence about events reads (proposal 0063). When a scenario says the executor uses its default dispatcher, the runner gives no factory, and the scenario's sentences read the reporters the workflow lists. A sentence about one reporter reads that reporter. A sentence about the event stream as a whole, such as an event table, "the last event is", "no event carries the message", "no contribution of ... was committed" or a step's status, reads the stream of the first reporter the workflow lists that never failed: a reporter that failed on any event, `journey_aborted` included, does not count, since it stops receiving events (proposal 0081). A reporter that never failed received every event of the journey. If every listed reporter failed, the scenario is an error in the case, which the runner reports as such, not as a failure of the implementation.
+3. **The recorder.** The runner gives the executor a dispatcher factory whose dispatchers hold its recording reporter, from which every `Then` sentence about events reads (proposal 0063). When a scenario says the executor uses its default dispatcher, the runner gives no factory, and the scenario's sentences read the reporters the workflow lists. A sentence about one reporter reads that reporter. A sentence about the event stream as a whole, such as an event table, "the last event is", "no event carries the message", "no contribution of ... was committed" or a step's status, reads the stream of the first reporter the workflow lists that never failed: a reporter that failed on any event, `journey_aborted` included, does not count, since it stops receiving events (proposal 0081). A reporter that never failed received every event of the journey. A recording reporter also records every entry of global metadata it receives, in order with the events (proposal 0102). If every listed reporter failed, the scenario is an error in the case, which the runner reports as such, not as a failure of the implementation.
 4. **The `run-conformance` action** from [itinera-dev/actions](https://github.com/itinera-dev/actions) reads the manifest, downloads the cases at the pinned tag, builds the tag expression (the scenarios whose proposals are all listed, without capabilities the language does not claim and without its `impossible` tags), sets the three variables and runs the language's command. Before running, it fails if a scenario carrying an excluded tag has no entry in `impossible`, or if an entry names a scenario that does not exist at the pinned tag.
 5. **The report** is the Cucumber JSON and, next to it, an exclusions file the action writes from the manifest: for every excluded scenario, its feature, its name, its tag and its proof. The runner never writes it. Together they are the conformance report a release carries, and the compatibility table reads both, so it tells a scenario excluded with proof from one that was skipped or never run.
 

@@ -214,6 +214,18 @@ What happened:
 - **`Then no engine event carries the value of "<key>"`**: no event of the engine catalogue contains the value of this key, anywhere. (0011)
 - **`Then no event carries the message "<message>"`** (0057, 0064)
 
+## Global metadata
+
+- **`And the workflow instance is created with the global metadata:`** followed by a table with the columns `key` and `value`: the workflow instance is created with this initial global metadata, its keys set in the order of the rows. (0102)
+- **`And the workflow instance is created with a non-value as global metadata "<key>"`**: the initial global metadata holds something that is not a value, such as a function, under this key. (0102)
+- **`And step "<step>" sets the global metadata "<key>" to <value>`** and **`And step "<step>" sets the global metadata "<key>" to a non-value`**: on every attempt, the step sets this entry through its step reporter; a non-value is, for example, a function. Setting, emits, contributions and the other actions of a step happen in the order written. (0102)
+- **`And the hook "<hook>" of policy "<policy>" sets the global metadata "<key>" to <value>`**: the hook sets this entry before returning. With the events the hook emits, it happens in the order written. (0102)
+- **`And the service provider "<provider>" sets the global metadata "<key>" to <value>`**: on every call, the provider sets this entry before returning. With the events the provider emits, it happens in the order written. (0102)
+- **`And the reporter "<reporter>" fails when it receives the global metadata "<key>"`**: the reporter fails, by throwing or returning an error, whenever it receives an entry of this key, and on no other entry and no event. (0102)
+- **`Then the reporter "<reporter>" received the global metadata:`** followed by a table with the columns `key`, `value` and `after`: the reporter received exactly these entries, in this order. `value` is JSON. `after` is the kind of the last event the reporter received before the entry, or `none` when the entry came before every event. An empty cell is not compared. (0102)
+- **`Then the reporters "<reporter>", "<reporter>" received the same global metadata`**: the same entries, in the same order. (0102)
+- **`Then no engine event carries the global metadata value of "<key>"`**: no event of the engine catalogue, `global_metadata_set` included, contains the value set for this key, anywhere. (0102)
+
 ## The executor
 
 - **`And step "<step>" is asynchronous`**: the scripted step runs asynchronously. (0012)
@@ -235,9 +247,11 @@ The engine catalogue of proposal 0011 as amended by proposal 0040. Facts: `journ
 
 Proposal 0095 adds the facts `service_provided` and `service_provider_failed`, and lets a service provider emit `journey_info`, `journey_warning` and `journey_error`. (0095)
 
+Proposal 0102 adds the fact `global_metadata_set`. (0102)
+
 ## Abort reasons
 
-The abort reasons of a journey's result (0009, 0032, 0042, 0054, 0056, 0058): `step could not be built`, `required data missing`, `wrong type`, `invalid lifecycle`, `policy could not be built`, `not a value`, `hook failed`, `reporter failed`, and `rescue skipped` (0003).
+The abort reasons of a journey's result (0009, 0032, 0042, 0054, 0056, 0058): `step could not be built`, `required data missing`, `wrong type`, `invalid lifecycle`, `policy could not be built`, `not a value`, `hook failed`, `reporter failed`, `rescue skipped` (0003), and `reserved metadata key` (0102).
 
 ## Violation names
 
