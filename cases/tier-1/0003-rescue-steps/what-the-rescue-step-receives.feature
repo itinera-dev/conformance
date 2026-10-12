@@ -4,6 +4,9 @@ Feature: What the rescue step receives
   bag, a rescue step may request from the step it rescues what a step hook may:
   the failed attempt's contributions, its failure reason and its error, each
   required or optional, under the same rules.
+  Proposal 0098 amends it: an input adapter attached to the rescue step's name,
+  `<step name>_rescue`, may supply its inputs, and only those the adapter leaves
+  are read from the data bag (input-adapters.feature).
 
   Scenario: The rescue step receives the failed attempt's contributions and failure reason
     Given a workflow "orders" with the steps:
@@ -37,7 +40,7 @@ Feature: What the rescue step receives
     Then step "charge_rescue" received the error with the message "unauthorised"
     And the journey succeeded
 
-  Scenario: The rescue step reads its inputs from the data bag
+  Scenario: A rescue step with no input adapter reads its inputs from the data bag
     Given a workflow "orders" with the steps:
       | step   |
       | charge |

@@ -17,7 +17,7 @@ Each sentence names the proposal that introduced it.
 - **`And step "<step>" cannot be built because its constructor fails with "<message>"`**: building the step fails. (0008)
 - **`And the abnormal termination of step "<step>" is retriable`**: the step's descriptor sets `abnormal termination retriable`; without this sentence it is false. (0024)
 - **`And step "<step>" allows <n> retries`**: the step's retry budget: after the first attempt, at most `n` more. (0008, 0009)
-- **`And step "<step>" has a rescue step`**: the step's descriptor holds a rescue step, named `<step>_rescue`. The sentences about a step that a scripted step can follow (its inputs, services, contributions, outcomes, emits, and how it is built) script the rescue step under that name, as for any scripted step; it has no retry budget, policies or input adapter of its own. (0003)
+- **`And step "<step>" has a rescue step`**: the step's descriptor holds a rescue step, named `<step>_rescue`. The sentences about a step that a scripted step can follow (its inputs, services, contributions, outcomes, emits, and how it is built) script the rescue step under that name, as for any scripted step; it has no retry budget or policies of its own. An input adapter or a service provider is attached to it by that name, as to a step. (0003, 0098)
 - **`And step "<step>" requests rescued step data "<key>" of type <type>`** and **`And step "<step>" requests optional rescued step data "<key>" of type <type>`**: the rescue step requests, required or optional, what the failed attempt of the step it rescues contributed under this key. (0003)
 - **`And step "<step>" requests the failure reason`** and **`And step "<step>" requests the error`**: the rescue step requests the failure reason or the error of the failed attempt of the step it rescues, as a hook does. A rescue step's requests are declared in the order their sentences are written. (0003)
 
@@ -40,12 +40,13 @@ Each sentence names the proposal that introduced it.
 
 An input adapter's own requests are declared in the order their sentences are written. (spec#92)
 
-- **`And the workflow declares the input adapter "<adapter>" for the steps "<step>", "<step>"`**: attaches the adapter to these steps, one or more. For every key the sentences below do not mention, it returns nothing. (0060)
+- **`And the workflow declares the input adapter "<adapter>" for the steps "<step>", "<step>"`**: attaches the adapter to these steps, one or more; a rescue step is named `<step>_rescue`. For every key the sentences below do not mention, it returns nothing. (0060, 0098)
 - **`And the input adapter "<adapter>" returns <value> for "<key>"`** (0002, 0060)
 - **`And the input adapter "<adapter>" returns nothing for "<key>"`**: the input is resolved from the data bag. (0060)
 - **`And the input adapter "<adapter>" fails with "<message>" for "<key>"`**: the adapter fails, by throwing or returning an error. (0002, 0060)
 - **`And the input adapter "<adapter>" returns a non-value for "<key>"`**: the adapter returns something that is not a value, such as a function, where the language can express it. (0056)
 - **`And the input adapter "<adapter>" requests data from the workflow "<key>" of type <type>`**: a required request, read from the data bag. (0060)
+- **`And the input adapter "<adapter>" requests the step name and returns it for "<key>"`**: the adapter requests the name of the step being built and, when called for that input, returns that name as a string. (0098)
 - **`And the input adapter "<adapter>" requests the data bag`**: the adapter declares read access to the data bag. Reads through it emit nothing and abort nothing. (0091)
 - **`And the input adapter "<adapter>" returns "<key>" of type <type>, read from the data bag, for "<input>"`**: when called for that input, the adapter reads that key through its access, and returns the value if it found one of that type, or nothing otherwise. (0091)
 - **`And the input adapter "<adapter>" writes "<key>" = <value> through its data bag access`**: on every call, the adapter writes through its access, as far as the language allows, then goes on. (0091)
@@ -76,7 +77,7 @@ Every instance a provider makes is labelled with the provider's name and how man
 - **`And step "<step>" requests the service "<key>" of type <service type>`**: the step declares a service. When it runs, before the rest of its script, it calls the service's operation once, and the runner records the label it returned; an error from that operation escapes the step, which makes an abnormal termination. Repeated for another key, the services are declared in the order written; repeated for the same key, the step requests that key twice. (0095)
 - **`And the workflow declares the service provider "<provider>" for "<key>" of type <service type>, once per journey`**: a provider of journey scope, attached to no step unless the sentence below attaches it. (0095)
 - **`And the workflow declares the service provider "<provider>" for "<key>" of type <service type>, for each attempt`**: a provider of attempt scope, attached to no step unless the sentence below attaches it. (0095)
-- **`And the service provider "<provider>" serves only the steps "<step>", "<step>"`**: attaches the provider to these steps, one or more. (0095)
+- **`And the service provider "<provider>" serves only the steps "<step>", "<step>"`**: attaches the provider to these steps, one or more; a rescue step is named `<step>_rescue`. (0095, 0098)
 - **`And the service provider "<provider>" requests the step name`** (0095)
 - **`And the service provider "<provider>" requests the attempt number`** (0095)
 - **`And the service provider "<provider>" requests the journey ID`** (0095)
@@ -150,7 +151,7 @@ Service types, used only in these sentences: `labeller`, described above, and `m
 - **`Then the hook "<hook>" of policy "<policy>" received step data "<key>" = <value>`** (0002)
 - **`Then the hook "<hook>" of policy "<policy>" received step data "<key>" absent`** (0002)
 - **`Then the hook "<hook>" of policy "<policy>" received the step name "<step>"`**: on at least one call, the hook received this step name. (0002)
-- **`Then the listing is:`** followed by a table with the columns `step`, `position`, `policies` and `adapter`, where `policies` lists the attached policies' names, separated by commas in declaration order, and `adapter` is the name of the step's input adapter; both are empty when there are none. An optional column `rescue` holds the name of the step's rescue step, empty when it has none. An optional column `services` lists each service the step requests as `<key>: <provider>`, with the name of the provider that serves it, separated by commas in the order the step declares them, empty when it requests none. An optional column that is absent is not compared. (0002, 0060, 0003, 0095)
+- **`Then the listing is:`** followed by a table with the columns `step`, `position`, `policies` and `adapter`, where `policies` lists the attached policies' names, separated by commas in declaration order, and `adapter` is the name of the step's input adapter; both are empty when there are none. An optional column `rescue` holds the name of the step's rescue step, empty when it has none. An optional column `services` lists each service the step requests as `<key>: <provider>`, with the name of the provider that serves it, separated by commas in the order the step declares them, empty when it requests none. Optional columns `rescue adapter` and `rescue services` show the rest of the step's rescue section: the name of the rescue step's input adapter, and the services the rescue step requests, written as in `services`; each is empty when the step has no rescue step or, respectively, when its rescue step has no input adapter or requests no services. An optional column that is absent is not compared. (0002, 0060, 0003, 0095, 0098)
 
 ## Events
 
