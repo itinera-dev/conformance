@@ -47,7 +47,7 @@ A language runs every scenario whose proposals are all listed in its manifest (s
 - **Keys** are strings, written in double quotes.
 - **Values** are written as JSON: `"text"`, `42`, `4.5`, `true`, `null`, `[1, 2]`, `{"a": 1}`.
 - **Types** use this neutral vocabulary: `string`, `integer`, `number`, `boolean`, `list`, `object`. A language maps each to its own types in its step definitions.
-- **Service types** are test interfaces defined in [STEPS.md](STEPS.md), "Services": `labeller` and `meter` (proposal 0095).
+- **Service types** are test interfaces defined in [STEPS.md](STEPS.md), "Services": `labeller` and `meter` (proposal 0095), with two implementations of `labeller`, `first labeller` and `second labeller` (proposal 0104).
 - **Numbers.** A JSON number written without a fraction or an exponent, such as `42`, is an `integer`. Any other JSON number, such as `4.5` or `4.0`, is a `number`.
 - **Cases MUST NOT depend on whether an `integer` is also a `number`.** No case requests `number` for an integer value, or `integer` for a non-integer value, and expects either success or `wrong type`: languages differ on it. A wrong-type scenario uses types that differ in every language, such as `string` against `integer`.
 
@@ -62,11 +62,12 @@ Event tables use one row per event. The column `event` is required; any of these
 - `policy`, `hook`, `lifecycle`: for events from or about a hook; `lifecycle` is the lifecycle returned, or `none`;
 - `adapter`: the input adapter an event names;
 - `provider`: the service provider an event names, or that emitted a `journey_*` event (proposal 0095);
+- `implementation`: the implementation a `service_provided` names, written as the name of an implementation in [STEPS.md](STEPS.md), "Services", such as `second labeller`; the runner compares the event's implementation with the name its language gives that implementation's type, since the format of that name is the language's own (proposal 0104);
 - `source`: who made a contribution, or set an entry of global metadata: the step's name, or the policy and hook as `policy, hook` (proposal 0102);
 - `cause`: the cause carried by a decision event, such as `retries exhausted`;
 - `rescue`: the rescue step a `step_rescuing` or `step_rescued` names (proposal 0003);
 - `decided by`: who took a decision: `default`, or the policy and hook as `policy, hook`;
-- `message`, `data`: for events emitted by steps, hooks and service providers; `data` is JSON.
+- `message`, `data`: for events emitted by steps, hooks and service providers; `data` is JSON, or `none` for an event that carries no data. `data` is also the data a `service_provided` carries (proposal 0104).
 - `error`: the message of the error a `journey_failed` or `journey_aborted` carries (proposal 0083). An error's message is the language's own text for it; for a failure scripted with a message, exactly that message.
 
 Two sentences compare them:

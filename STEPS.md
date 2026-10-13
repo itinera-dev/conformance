@@ -87,6 +87,8 @@ Every instance a provider makes is labelled with the provider's name and how man
 - **`And the service provider "<provider>" fails with "<message>"`**: on every call, the provider fails, by throwing or returning an error whose message is this text. (0095)
 - **`And the service provider "<provider>" fails with "<message>" when it receives "<value>" for "<key>"`**: the provider fails as above only on a call where it received this string for that request, and otherwise makes an instance. (0095)
 - **`And the service provider "<provider>" emits <kind> "<message>"`** and **`And the service provider "<provider>" emits <kind> "<message>" with data that is not a value`**: on every call, the provider emits a `journey_info`, `journey_warning` or `journey_error` event before returning. (0095)
+- **`And the service provider "<provider>" makes instances of <implementation>`**: every instance this provider makes is of this implementation of `labeller`: `first labeller` or `second labeller`. (0104)
+- **`And the service provider "<provider>" supplies the data <data> with each instance`** and **`And the service provider "<provider>" supplies data that is not a value with each instance`**: on every call that makes an instance, the provider supplies this data with it, as JSON; data that is not a value is, for example, a function. (0104)
 - **`And the service provider "<provider>" returns nothing`**: on every call, the provider returns neither an instance nor an error. Used only in scenarios tagged `@no-instance`. (0095)
 - **`And the service provider "<provider>" is asynchronous`** (0095)
 - **`And the services the provider "<provider>" makes fail with "<message>" when used`**: the operation of every instance this provider makes fails, by throwing or returning an error whose message is this text. (0095)
@@ -98,6 +100,8 @@ Every instance a provider makes is labelled with the provider's name and how man
 - **`Then the service provider "<provider>" received data from the workflow "<key>" absent`** (0095)
 
 Service types, used only in these sentences: `labeller`, described above, and `meter`, an unrelated type whose one operation returns an integer reading, which a step requesting a `labeller` never accepts. (0095)
+
+Implementations of `labeller`, used only in these sentences: `first labeller`, which every provider of a `labeller` makes unless a sentence says otherwise, and `second labeller`. They are two types of the runner's own, which label their instances in the same way, each with a name of its own as the language reports it at run time. (0104)
 
 ## Actions
 
@@ -245,7 +249,7 @@ The hook names of proposal 0010: `on step success`, `on step failure`, `on step 
 
 The engine catalogue of proposal 0011 as amended by proposal 0040. Facts: `journey_started`, `attempt_started`, `input_adapter_supplied`, `input_adapter_failed`, `optional_input_absent`, `step_succeeded`, `step_failed`, `step_skipped`, `step_abnormal_termination`, `hook_called`, `contribution_committed`, `contributions_discarded`, `data_overwritten`, `journey_aborted`. Decisions: `step_retrying`, `step_given_up`, `step_rescuing`, `step_rescued`, `journey_succeeded`, `journey_failed`; and the events steps and hooks emit: `step_info`, `step_warning`, `step_error`, `journey_info`, `journey_warning`, `journey_error`. (0011, 0040, 0003)
 
-Proposal 0095 adds the facts `service_provided` and `service_provider_failed`, and lets a service provider emit `journey_info`, `journey_warning` and `journey_error`. (0095)
+Proposal 0095 adds the facts `service_provided` and `service_provider_failed`, and lets a service provider emit `journey_info`, `journey_warning` and `journey_error`. Proposal 0104 makes `service_provided` carry the implementation the provider made and the data it supplied. (0095, 0104)
 
 Proposal 0102 adds the fact `global_metadata_set`. (0102)
 
