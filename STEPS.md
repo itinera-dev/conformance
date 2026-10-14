@@ -241,6 +241,64 @@ What happened:
 - **`Then each instance's reporter "<reporter>" received only its own journey's events`**: the reporter is created with each workflow instance. (0012)
 - **`Then the reporter "<reporter>" was made with the journey ID "<id>"`**: the reporter received this journey ID when the workflow instance made it, before any event. (0061)
 
+## Test support
+
+Sentences for the capability test support (proposal 0108), used only in scenarios tagged `@capability-testing`. The runner reaches each part through its language's own test support, never through its own recording or scripting. A **mistake in a test** is reported as the language's test support reports it, which may happen while the sentence that makes the mistake runs or during the `When` sentence; the runner captures it from either and checks it with "the test stopped before the journey". The names of mistakes are listed under "Test mistakes" below. In these scenarios a scripted test step declares a contributor and a step reporter, unless "declares no contributor and no reporter" says otherwise. (0108)
+
+The recording reporter and the path:
+
+- **`And the instance has the recording reporter of test support`**: the runner adds its language's recording reporter to the workflow instance, after the reporters the workflow lists. It is not one of the reporters a scenario names, and the sentences about the event stream as a whole do not read it. (0108)
+- **`Then the path is:`** followed by a table with the column `line`: the path read from that recording reporter is exactly these lines, in this order. (0108)
+- **`Then the path is empty`** (0108)
+- **`Then the recording reporter of test support kept the same events as the reporter "<reporter>"`**: the same events, in the same order. (0108)
+- **`Then the recording reporter of test support kept the global metadata:`** followed by a table with the columns `key` and `value`: that recording reporter holds exactly these keys, each with the latest value it received; `value` is JSON, and the order of rows does not matter. (0108)
+
+Fake providers:
+
+- **`And the test replaces the service provider "<provider>" with a fake that makes instances of <implementation>`**: through its language's test support, the runner replaces this provider of the instance with a fake, a function that makes an instance of this implementation of `labeller`, labelled `fake <n>`, where `n` counts the fake's calls in the journey from 1. Whatever other sentences say the provider itself does no longer happens, while its requests, its scope and its attachment stay as declared. (0108)
+- **`And the test replaces the service provider "<provider>" with a fake that makes instances of <implementation> and supplies the data <data>`**: the same, and the fake supplies this data, as JSON, with each instance. (0108)
+- **`And the test replaces the service provider "<provider>" with a fake that fails with "<message>"`**: the same, but the fake fails on every call, by throwing or returning an error whose message is this text. (0108)
+- **`And the test replaces the service provider "<provider>" with a fake that makes meters`**: the same, but the fake makes services of type `meter`, another service than a provider of a `labeller` makes. (0108)
+- **`Then the fake of "<provider>" was called <n> times`**: counting every call, whether it made an instance or failed. (0108)
+
+Scripted runs:
+
+- **`And the script says:`** followed by a table with the columns `step` and `attempt`, and optionally `contributes`, `emits`, `emit message`, `sets global metadata`, `ending`, `code` and `message`. Each row says what the attempts it chooses do, in the language's own words for the script of proposal 0108. The rows are written in the order given, and each row whose step differs from the row before names that step, with `step` for the first and `and step` for each next one, so a step whose rows another step's interrupt is named again; a rescue step is named `<step>_rescue`. `attempt` chooses the attempts: a number, `every` for every attempt, or `remaining` for every attempt not yet described, which never starts a step's rows; the first row of a step written with `1` may be written without saying it. `contributes` is a JSON object, contributed in the order its keys are written, which the runner keeps when it reads it. `emits` is `step_info`, `step_warning` or `step_error`, emitted with `emit message`. `sets global metadata` is a JSON object, set in the order its keys are written. `ending` is `success`, `failure` (with `code`), `skipped` (with a `code` when the skip has a reason), `abnormal termination` (with its error's `message`, the only ending that uses `message`) or `real run`, which plays nothing and runs the real step; a row with `real run` has no other column filled. (0108)
+- **`And the script ensures every step is scripted`** (0108)
+- **`When the workflow runs with the script`**: the runner writes the script through its language's test support and runs the instance with it, on the local executor of the workflow's mode. That executor has no dispatcher factory from the runner, so the runner adds its own recording reporter to the instance as its first reporter, before the reporters the workflow lists, and every sentence about the event stream as a whole reads that reporter; the sentences in which the executor is given a dispatcher or a dispatcher factory are not used with this one. A mistake in writing the script is reported as it is written, so during this sentence. (0108)
+- **`And step "<step>" declares no contributor and no reporter`**: the scripted test step neither contributes, nor emits, nor sets global metadata, and declares neither a contributor nor a step reporter. Used only in scenarios tagged `@undeclared-handles`. (0108)
+- **`Then the test stopped before the journey, naming:`** followed by a table with the column `mistake`, and optionally `step`, `attempt` and `provider`: the test support stopped the test before any journey started, as the language reports a misuse in a declaration, and what it reported names, for each row, the step, the attempt number and the provider given in that row. `mistake` is one of the test mistakes below; the runner checks that each row's mistake is reported, as the language words it, and that nothing else is; the order of rows does not matter. (0108)
+- **`Then the scripted run's record of step "<step>" holds the attempts <n>, <n>`**: one or more numbers, in order: the attempts handed to the construction of this step, scripted or real. (0108)
+- **`Then the scripted run's record of step "<step>" holds no attempt`** (0108)
+- **`Then attempt <n> of step "<step>" in the scripted run's record read the input "<key>" = <value>`** and **`Then attempt <n> of step "<step>" in the scripted run's record read the rescued step data "<key>" = <value>`**: what that attempt's step was built with, read through the record. (0108)
+
+Recorders:
+
+- **`When step "<step>" runs alone`**: the runner builds the scripted test step outside any journey, as a test does, and calls its run itself, with a contributor lent by the contributions recorder and a step reporter lent by the step event reporter of its language's test support. The step does what the step's sentences say for attempt 1, and carries on after any call that is interrupted, recording which calls were. (0108)
+- **`When the hook "<hook>" of policy "<policy>" runs alone`**: the same for the hook, with a contributor lent by the contributions recorder and a hook reporter lent by the hook event reporter, acting on attempt 1 of the step the policy is attached to. (0108)
+- **`When the input adapter "<adapter>" is called alone for the input "<input>" of step "<step>", with a data bag holding:`** followed by a table with the columns `key` and `value`: the runner builds a data bag of these values with its language's test support, and calls the adapter itself with the read access that data bag lends. (0108)
+- **`And the step event reporter is failing`** and **`And the hook event reporter is failing`**: that recorder is made failing. (0108)
+- **`Then the contributions recorder holds:`** followed by a table with the columns `key` and `value`, read with `read` by key, and exactly these keys, read with `keys`. (0108)
+- **`Then the step event reporter kept the events:`** and **`Then the hook event reporter kept the events:`** followed by a table with the columns `level` (`info`, `warning` or `error`) and `message`, and optionally `data`, as JSON or `none` for an event without data: exactly these, in this order. (0108)
+- **`Then the step event reporter kept nothing`** and **`Then the hook event reporter kept nothing`**: no event and no global metadata. (0108)
+- **`Then the step event reporter kept the global metadata:`** followed by a table with the columns `key` and `value`: exactly these entries, in the order they were set; `value` is JSON. (0108)
+- **`Then every call step "<step>" made to its step reporter was interrupted`** and **`Then every call the hook "<hook>" of policy "<policy>" made to its hook reporter was interrupted`** (0108)
+- **`Then the call step "<step>" made setting "journey_id", and every call after it, was interrupted, and no call before it`** (0108)
+- **`Then the input adapter returned <value>`** (0108)
+
+Test mistakes, the values of `mistake` (0108):
+
+- **`attempt left out`**: a scripted step does not describe an attempt it can have, named by its step and attempt.
+- **`rescue step left out`**: a scripted step can fail on attempt 1 and its rescue step is not scripted, named by the rescue step.
+- **`step left out`**: with `ensure all scripted`, a step is not scripted, named by its step.
+- **`unknown step`**: the script names a step the workflow does not have.
+- **`step scripted twice`**: the script names a step a second time.
+- **`gap in the attempts`**: the script describes an attempt of a step before describing every attempt before it, named by its step and attempt.
+- **`rescue step skips`**: the script makes a rescue step skip.
+- **`no contributor`** and **`no reporter`**: the script contributes for a step that declares no contributor, or emits or sets global metadata for one that declares no reporter.
+- **`unknown provider`**: a fake is named after a provider the workflow does not have, named by its provider.
+- **`another service`**: a fake makes another service than its provider makes, named by its provider. Used only in scenarios tagged `@fake-service-type`.
+
 ## Hook names
 
 The hook names of proposal 0010: `on step success`, `on step failure`, `on step retry`, `on step abnormal termination`, `on workflow success`, `on workflow failure`. (0002; defined by 0010)
