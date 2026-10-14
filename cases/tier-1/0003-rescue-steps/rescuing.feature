@@ -59,6 +59,29 @@ Feature: A step that fails is rescued, then runs again
     And step "charge" ended as succeeded after 2 attempts
     And the journey succeeded
 
+  @proposal-0106
+  Scenario: An abnormal termination is rescued when the step does not retry abnormal terminations
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" has a rescue step
+    And step "charge" does not retry abnormal terminations
+    And step "charge" attempts:
+      | attempt | outcome | message |
+      | 1       | error   | timeout |
+      | 2       | success |         |
+    And step "charge_rescue" succeeds
+    When the workflow runs
+    Then the events include, in order:
+      | event                     | step          | attempt | cause                | rescue        |
+      | step_abnormal_termination | charge        | 1       |                      |               |
+      | step_rescuing             | charge        | 1       | abnormal termination | charge_rescue |
+      | step_succeeded            | charge_rescue | 1       |                      |               |
+      | step_rescued              | charge        | 1       |                      | charge_rescue |
+      | step_succeeded            | charge        | 2       |                      |               |
+    And step "charge" ended as succeeded after 2 attempts
+    And the journey succeeded
+
   @proposal-0091
   Scenario: The rescue step's contributions reach the step's second attempt
     Given a workflow "orders" with the steps:

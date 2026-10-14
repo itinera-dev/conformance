@@ -7,7 +7,7 @@ Feature: Abnormal terminations are retried only when the step allows it
   written and an error when one ended the attempt.
   Amended by proposal 0106: the setting is `retry on abnormal termination`, on
   by default, so an abnormal termination is retried while the retry budget
-  lasts, like a failure, unless the step turns it off.
+  lasts, like a failure, unless the step's descriptor turns it off.
 
   @proposal-0106
   Scenario: By default an abnormal termination is retried while the budget lasts, after its own hook
