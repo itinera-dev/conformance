@@ -37,10 +37,11 @@ A scenario added or changed by an amendment lives with the cases of the proposal
 A feature or scenario that needs a capability also carries:
 
 - `@capability-sync` or `@capability-async`: the execution mode it requires;
-- a tag for a rule a language may make impossible to express (proposal 0054): `@invalid-lifecycle`, `@role-not-provided`, `@mode-not-accepted`, `@non-value`, `@late-handle`, `@bag-write` (proposal 0091), `@rescue-skip` (proposal 0003), `@journey-scope-request` or `@no-instance` (proposal 0095);
+- `@capability-testing`: test support (proposal 0108), which a language claims as the capability `testing`;
+- a tag for a rule a language may make impossible to express (proposal 0054): `@invalid-lifecycle`, `@role-not-provided`, `@mode-not-accepted`, `@non-value`, `@late-handle`, `@bag-write` (proposal 0091), `@rescue-skip` (proposal 0003), `@journey-scope-request` or `@no-instance` (proposal 0095), `@undeclared-handles` or `@fake-service-type` (proposal 0108);
 - other capability tags as later tiers add them.
 
-A language runs every scenario whose proposals are all listed in its manifest (see below), excluding capabilities it does not claim, and every one must pass. When a language moves to cases holding a new amendment, everything else keeps running, and the amendment's scenarios wait until it is listed. Listing an amendment is how a language declares it implemented: from that pull request on, its scenarios run with everything already listed. It claims tier N of a specification version once every proposal of tiers 1 to N is listed.
+A language runs every scenario whose proposals are all listed in its manifest (see below), excluding capabilities it does not claim, and every one must pass. When a language moves to cases holding a new amendment, everything else keeps running, and the amendment's scenarios wait until it is listed. Listing an amendment is how a language declares it implemented: from that pull request on, its scenarios run with everything already listed. It claims tier N of a specification version once every proposal of tiers 1 to N is listed, except a proposal whose every scenario needs a capability it does not claim, such as proposal 0108 (test support) for a language that does not claim `testing`: such a proposal is listed only by a language that claims its capability.
 
 ## Values and types
 
@@ -91,7 +92,7 @@ Each language repository runs the cases as its conformance tests.
 1. **A manifest**, `conformance.json` at the root of the language repository, states:
    - `cases`: the tag of this repository it runs against, for example `v0.1.0`;
    - `proposals`: the numbers of the proposals it implements, for example `[2, 8]`. A proposal is listed by the pull request that completes it, which also closes the language's implementation issue for it; from then on its cases run on every pull request. The tier the language claims follows from this list;
-   - `capabilities`: the capabilities it claims, for example `["sync", "async"]`;
+   - `capabilities`: the capabilities it claims, for example `["sync", "async", "testing"]`;
    - `impossible`: the rules the language makes impossible to express (proposal 0054), as a map from each excluded tag to the scenarios it excludes, each with the test in the language's own suite that proves the rule cannot be expressed:
 
      ```json
@@ -113,6 +114,8 @@ Each language repository runs the cases as its conformance tests.
    - writes a Cucumber JSON report to the file named by `ITINERA_CONFORMANCE_REPORT`, holding only the scenarios that ran;
    - exits with a failure when any selected scenario fails.
 3. **The recorder.** The runner gives the executor a dispatcher factory whose dispatchers hold its recording reporter, from which every `Then` sentence about events reads (proposal 0063). When a scenario says the executor uses its default dispatcher, the runner gives no factory, and the scenario's sentences read the reporters the workflow lists. A sentence about one reporter reads that reporter. A sentence about the event stream as a whole, such as an event table, "the last event is", "no event carries the message", "no contribution of ... was committed" or a step's status, reads the stream of the first reporter the workflow lists that never failed: a reporter that failed on any event, `journey_aborted` included, does not count, since it stops receiving events (proposal 0081). A reporter that never failed received every event of the journey. A recording reporter also records every entry of global metadata it receives, in order with the events (proposal 0102). If every listed reporter failed, the scenario is an error in the case, which the runner reports as such, not as a failure of the implementation.
+
+   A scenario tagged `@capability-testing` also reaches its language's test support (proposal 0108): its recording reporter, its fake providers, its scripted runs and its recorders, through the sentences of the "Test support" section of [STEPS.md](STEPS.md). Those sentences read only what the test support kept, and every other sentence keeps the meaning above.
 4. **The `run-conformance` action** from [itinera-dev/actions](https://github.com/itinera-dev/actions) reads the manifest, downloads the cases at the pinned tag, builds the tag expression (the scenarios whose proposals are all listed, without capabilities the language does not claim and without its `impossible` tags), sets the three variables and runs the language's command. Before running, it fails if a scenario carrying an excluded tag has no entry in `impossible`, or if an entry names a scenario that does not exist at the pinned tag.
 5. **The report** is the Cucumber JSON and, next to it, an exclusions file the action writes from the manifest: for every excluded scenario, its feature, its name, its tag and its proof. The runner never writes it. Together they are the conformance report a release carries, and the compatibility table reads both, so it tells a scenario excluded with proof from one that was skipped or never run.
 
