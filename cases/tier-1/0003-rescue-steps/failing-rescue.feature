@@ -64,23 +64,6 @@ Feature: A rescue step that does not succeed
     And step "charge" ended as rescuing after 1 attempts
     And the journey failed
 
-  @proposal-0083
-  Scenario: A rescue step's retriable failure is not retried
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
-    And step "charge" attempts:
-      | attempt | outcome | code    |
-      | 1       | failure | expired |
-    And step "charge_rescue" attempts:
-      | attempt | outcome           | code |
-      | 1       | retriable failure | busy |
-    When the workflow runs
-    Then the result's failure has the cause "retries exhausted"
-    And the result names the failed step "charge_rescue" with the code "busy"
-    And step "charge_rescue" ended as failed after 1 attempts
-
   @rescue-skip
   Scenario: A rescue step that skips aborts the journey
     Given a workflow "orders" with the steps:

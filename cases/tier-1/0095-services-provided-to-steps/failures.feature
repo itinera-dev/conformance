@@ -25,6 +25,7 @@ Feature: Providers and services that fail, and a provider's events
     And step "charge" ended as aborted after 1 attempts
     And the result's abort carries the error "gateway down"
 
+  @proposal-0106
   Scenario: A provider that fails on a retry aborts the journey, and the attempt counts
     Given a workflow "orders" with the steps:
       | step   |
@@ -32,9 +33,9 @@ Feature: Providers and services that fail, and a provider's events
     And step "charge" requests the service "payments" of type labeller
     And step "charge" allows 2 retries
     And step "charge" attempts:
-      | attempt | outcome           | code        |
-      | 1       | retriable failure | unreachable |
-      | 2       | success           |             |
+      | attempt | outcome | code        |
+      | 1       | failure | unreachable |
+      | 2       | success |             |
     And the data bag contains:
       | key     | value  |
       | gateway | "main" |

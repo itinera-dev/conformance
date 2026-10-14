@@ -1,9 +1,10 @@
 @tier-1 @proposal-0003
 Feature: A step that fails is rescued, then runs again
   Checks proposal 0003 (Rescue steps): when a step that has a rescue step fails,
-  by a failure, retriable or not, or by an abnormal termination, the executor
-  inserts its rescue step just before it; once the rescue step succeeds, the
-  step runs once more, as its next attempt.
+  by a failure or by an abnormal termination, the executor inserts its rescue
+  step just before it; once the rescue step succeeds, the step runs once more,
+  as its next attempt. Amended by proposal 0106: an abnormal termination is
+  rescued although abnormal terminations are retried by default.
 
   Scenario: A step that reports a failure is rescued and runs again
     Given a workflow "orders" with the steps:
@@ -36,32 +37,35 @@ Feature: A step that fails is rescued, then runs again
     And step "charge_rescue" ended as succeeded after 1 attempts
     And the journey succeeded
 
-  Scenario: A retriable failure is rescued, not retried
+  @proposal-0106
+  Scenario: An abnormal termination is rescued, not retried
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
     And step "charge" has a rescue step
     And step "charge" attempts:
-      | attempt | outcome           | code |
-      | 1       | retriable failure | busy |
-      | 2       | success           |      |
+      | attempt | outcome | message |
+      | 1       | error   | timeout |
+      | 2       | success |         |
     And step "charge_rescue" succeeds
     When the workflow runs
     Then the events include, in order:
-      | event          | step          | attempt | cause             | rescue        |
-      | step_failed    | charge        | 1       |                   |               |
-      | step_rescuing  | charge        | 1       | retriable failure | charge_rescue |
-      | step_succeeded | charge_rescue | 1       |                   |               |
-      | step_rescued   | charge        | 1       |                   | charge_rescue |
-      | step_succeeded | charge        | 2       |                   |               |
+      | event                     | step          | attempt | cause                | rescue        |
+      | step_abnormal_termination | charge        | 1       |                      |               |
+      | step_rescuing             | charge        | 1       | abnormal termination | charge_rescue |
+      | step_succeeded            | charge_rescue | 1       |                      |               |
+      | step_rescued              | charge        | 1       |                      | charge_rescue |
+      | step_succeeded            | charge        | 2       |                      |               |
+    And step "charge" ended as succeeded after 2 attempts
     And the journey succeeded
 
-  Scenario: An abnormal termination is rescued, even when the step marks it retriable
+  @proposal-0106
+  Scenario: An abnormal termination is rescued when the step does not retry abnormal terminations
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
     And step "charge" has a rescue step
-    And the abnormal termination of step "charge" is retriable
+    And step "charge" does not retry abnormal terminations
     And step "charge" attempts:
       | attempt | outcome | message |
       | 1       | error   | timeout |

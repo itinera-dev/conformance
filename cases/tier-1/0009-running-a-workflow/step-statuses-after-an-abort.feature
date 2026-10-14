@@ -45,16 +45,16 @@ Feature: The status of a step when the journey is aborted
     Then the journey was aborted with the abort reason "hook failed"
     And step "charge" ended as failed after 1 attempts
 
-  @spec-defect-0089
+  @spec-defect-0089 @proposal-0106
   Scenario: A step whose retry hook fails is aborted
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
     And step "charge" allows 1 retries
     And step "charge" attempts:
-      | attempt | outcome           | code        |
-      | 1       | retriable failure | unreachable |
-      | 2       | success           |             |
+      | attempt | outcome | code        |
+      | 1       | failure | unreachable |
+      | 2       | success |             |
     And a step policy "broken" defines the hook "on step retry"
     And the hook "on step retry" of policy "broken" throws
     And step "charge" has the policies "broken"
@@ -62,16 +62,16 @@ Feature: The status of a step when the journey is aborted
     Then the journey was aborted with the abort reason "hook failed"
     And step "charge" ended as aborted after 1 attempts
 
-  @spec-defect-0089
+  @spec-defect-0089 @proposal-0106
   Scenario: A step about to be retried is aborted when a reporter fails on its retry decision
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
     And step "charge" allows 1 retries
     And step "charge" attempts:
-      | attempt | outcome           | code        |
-      | 1       | retriable failure | unreachable |
-      | 2       | success           |             |
+      | attempt | outcome | code        |
+      | 1       | failure | unreachable |
+      | 2       | success |             |
     And the workflow lists the reporters "audit", "fragile"
     And the reporter "fragile" throws on "step_retrying"
     And the executor uses its default dispatcher
