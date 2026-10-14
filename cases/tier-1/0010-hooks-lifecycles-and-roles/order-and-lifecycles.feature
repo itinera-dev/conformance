@@ -3,14 +3,15 @@ Feature: The order of hooks, and the lifecycles they return
   Checks points 2 to 5 of proposal 0010: which hooks run for each outcome and in
   what order, and what each step hook may return.
 
+  @proposal-0106
   Scenario: The retry hook runs only while a retry is possible; then only the failure hook runs
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
     And step "charge" allows 1 retries
     And step "charge" attempts:
-      | attempt | outcome           | code        |
-      | 1       | retriable failure | unreachable |
+      | attempt | outcome | code        |
+      | 1       | failure | unreachable |
     And a step policy "policy" defines the hook "on step retry"
     And a step policy "alarm" defines the hook "on step failure"
     And the hook "on step failure" of policy "alarm" requests the failure cause
@@ -73,14 +74,15 @@ Feature: The order of hooks, and the lifecycles they return
     And the result names the step "charge" whose hook failed the journey, with the code "over limit"
     And the journey failed
 
+  @proposal-0106
   Scenario: FailWorkflow from a retry hook gives up at once, without the failure hook
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
     And step "charge" allows 3 retries
     And step "charge" attempts:
-      | attempt | outcome           | code        |
-      | 1       | retriable failure | unreachable |
+      | attempt | outcome | code        |
+      | 1       | failure | unreachable |
     And a step policy "policy" defines the hook "on step retry"
     And the hook "on step retry" of policy "policy" returns FailWorkflow with code "give up"
     And a step policy "alarm" defines the hook "on step failure"

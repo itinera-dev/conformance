@@ -22,15 +22,16 @@ Feature: When policies are built
       | key   | value |
       | calls | 1     |
 
+  @proposal-0106
   Scenario: Each attempt gets new step policy instances
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
     And step "charge" allows 1 retries
     And step "charge" attempts:
-      | attempt | outcome           | code        |
-      | 1       | retriable failure | unreachable |
-      | 2       | success           |             |
+      | attempt | outcome | code        |
+      | 1       | failure | unreachable |
+      | 2       | success |             |
     And a step policy "count" defines the hook "on step retry"
     And a step policy "count" defines the hook "on step success"
     And the hook "on step retry" of policy "count" counts its calls and contributes the count as "calls"

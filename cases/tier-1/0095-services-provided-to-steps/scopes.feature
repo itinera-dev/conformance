@@ -30,6 +30,7 @@ Feature: The scope of a service provider
       | step_succeeded    | ship    | 1       |       |          |
       | journey_succeeded |         |         |       |          |
 
+  @proposal-0106
   Scenario: A journey-scoped service serves every attempt of a retried step
     Given a workflow "orders" with the steps:
       | step   |
@@ -37,9 +38,9 @@ Feature: The scope of a service provider
     And step "charge" requests the service "payments" of type labeller
     And step "charge" allows 1 retries
     And step "charge" attempts:
-      | attempt | outcome           | code        |
-      | 1       | retriable failure | unreachable |
-      | 2       | success           |             |
+      | attempt | outcome | code        |
+      | 1       | failure | unreachable |
+      | 2       | success |             |
     And the workflow declares the service provider "payments" for "payments" of type labeller, once per journey
     When the workflow runs
     Then the service provider "payments" was called 1 times
@@ -56,6 +57,7 @@ Feature: The scope of a service provider
       | step_succeeded    | charge | 2       |          |          |
       | journey_succeeded |        |         |          |          |
 
+  @proposal-0106
   Scenario: An attempt-scoped service is provided for every attempt
     Given a workflow "orders" with the steps:
       | step   |
@@ -63,9 +65,9 @@ Feature: The scope of a service provider
     And step "charge" requests the service "payments" of type labeller
     And step "charge" allows 1 retries
     And step "charge" attempts:
-      | attempt | outcome           | code        |
-      | 1       | retriable failure | unreachable |
-      | 2       | success           |             |
+      | attempt | outcome | code        |
+      | 1       | failure | unreachable |
+      | 2       | success |             |
     And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
     When the workflow runs
     Then the service provider "payments" was called 2 times

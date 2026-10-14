@@ -67,7 +67,7 @@ Feature: Input adapters that read the data bag
     Then step "charge" was built with input "amount" = 42
     And the journey succeeded
 
-  @proposal-0091
+  @proposal-0091 @proposal-0106
   Scenario: An adapter sees what an earlier attempt's retry hook contributed
     Given a workflow "orders" with the steps:
       | step   |
@@ -75,9 +75,9 @@ Feature: Input adapters that read the data bag
     And step "charge" requests input "amount" of type integer
     And step "charge" allows 1 retries
     And step "charge" attempts:
-      | attempt | outcome           | code        |
-      | 1       | retriable failure | unreachable |
-      | 2       | success           |             |
+      | attempt | outcome | code        |
+      | 1       | failure | unreachable |
+      | 2       | success |             |
     And the data bag contains:
       | key    | value |
       | amount | 42    |
@@ -92,7 +92,7 @@ Feature: Input adapters that read the data bag
     And step "charge" was built for attempt 2 with input "amount" = 5
     And the journey succeeded
 
-  @proposal-0091
+  @proposal-0091 @proposal-0106
   Scenario: An adapter does not see what a failed earlier attempt contributed
     Given a workflow "orders" with the steps:
       | step   |
@@ -100,9 +100,9 @@ Feature: Input adapters that read the data bag
     And step "charge" requests input "amount" of type integer
     And step "charge" allows 1 retries
     And step "charge" attempts:
-      | attempt | outcome           | code        | contributes           |
-      | 1       | retriable failure | unreachable | {"price.charge": 1}   |
-      | 2       | success           |             |                       |
+      | attempt | outcome | code        | contributes         |
+      | 1       | failure | unreachable | {"price.charge": 1} |
+      | 2       | success |             |                     |
     And the data bag contains:
       | key    | value |
       | amount | 42    |

@@ -5,30 +5,34 @@ Feature: Events record facts and decisions
   decision event says whether the step is retried or given up, emitted after the
   hooks that could change it, and every decision event says who decided.
   Amended by proposal 0083: journey_failed carries the error's message when an
-  error ended the attempt.
+  error ended the attempt. Amended by proposal 0106: step_failed carries no
+  retriable flag, and the cause of a retry is `failure` or `abnormal
+  termination`.
 
+  @proposal-0106
   Scenario: A retried failure is a fact, then a decision to retry after the retry hook
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
     And step "charge" allows 1 retries
     And step "charge" attempts:
-      | attempt | outcome           | code        |
-      | 1       | retriable failure | unreachable |
-      | 2       | success           |             |
+      | attempt | outcome | code        |
+      | 1       | failure | unreachable |
+      | 2       | success |             |
     And a step policy "watch" defines the hook "on step retry"
     And step "charge" has the policies "watch"
     When the workflow runs
     Then the events include, in order:
-      | event             | step   | attempt | retriable | code        | policy | hook          | lifecycle | cause             | decided by |
-      | step_failed       | charge | 1       | true      | unreachable |        |               |           |                   |            |
-      | hook_called       | charge | 1       |           |             | watch  | on step retry | none      |                   |            |
-      | step_retrying     | charge | 1       |           |             |        |               |           | retriable failure | default    |
-      | attempt_started   | charge | 2       |           |             |        |               |           |                   |            |
-      | step_succeeded    | charge | 2       |           |             |        |               |           |                   |            |
-      | journey_succeeded |        |         |           |             |        |               |           |                   | default    |
+      | event             | step   | attempt | code        | policy | hook          | lifecycle | cause   | decided by |
+      | step_failed       | charge | 1       | unreachable |        |               |           |         |            |
+      | hook_called       | charge | 1       |             | watch  | on step retry | none      |         |            |
+      | step_retrying     | charge | 1       |             |        |               |           | failure | default    |
+      | attempt_started   | charge | 2       |             |        |               |           |         |            |
+      | step_succeeded    | charge | 2       |             |        |               |           |         |            |
+      | journey_succeeded |        |         |             |        |               |           |         | default    |
 
-  Scenario: A failure that is not retriable is a fact, then a decision to give the step up
+  @proposal-0106
+  Scenario: A failure without a retry budget is a fact, then a decision to give the step up
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
@@ -37,20 +41,21 @@ Feature: Events record facts and decisions
       | 1       | failure | declined |
     When the workflow runs
     Then the events include, in order:
-      | event          | step   | attempt | retriable | code     | cause   | decided by |
-      | step_failed    | charge | 1       | false     | declined |         |            |
-      | step_given_up  | charge | 1       |           |          | failure | default    |
-      | journey_failed | charge |         |           | declined |         | default    |
+      | event          | step   | attempt | code     | cause   | decided by |
+      | step_failed    | charge | 1       | declined |         |            |
+      | step_given_up  | charge | 1       |          | failure | default    |
+      | journey_failed | charge |         | declined |         | default    |
 
+  @proposal-0106
   Scenario: Retries exhausted give the step up before the failure hook is called
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
     And step "charge" allows 1 retries
     And step "charge" attempts:
-      | attempt | outcome           | code        |
-      | 1       | retriable failure | unreachable |
-      | 2       | retriable failure | unreachable |
+      | attempt | outcome | code        |
+      | 1       | failure | unreachable |
+      | 2       | failure | unreachable |
     And a step policy "alarm" defines the hook "on step failure"
     And step "charge" has the policies "alarm"
     When the workflow runs
@@ -61,7 +66,8 @@ Feature: Events record facts and decisions
       | hook_called    | charge | 2       | alarm  | on step failure |                   |            |
       | journey_failed | charge |         |        |                 |                   | default    |
 
-  Scenario: An abnormal termination that is not retriable is a fact, then a decision to give the step up
+  @proposal-0106
+  Scenario: An abnormal termination without a retry budget is a fact, then a decision to give the step up
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
@@ -75,14 +81,15 @@ Feature: Events record facts and decisions
       | step_given_up             | charge | 1       | abnormal termination | default    |
       | journey_failed            | charge |         |                      | default    |
 
+  @proposal-0106
   Scenario: FailWorkflow from a retry hook gives the step up and fails the journey, both decided by the hook
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
     And step "charge" allows 3 retries
     And step "charge" attempts:
-      | attempt | outcome           | code        |
-      | 1       | retriable failure | unreachable |
+      | attempt | outcome | code        |
+      | 1       | failure | unreachable |
     And a step policy "stop" defines the hook "on step retry"
     And the hook "on step retry" of policy "stop" returns FailWorkflow with code "give up"
     And step "charge" has the policies "stop"

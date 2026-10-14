@@ -7,6 +7,7 @@ Feature: What a service provider requests
   are resolved before it is called, with the rules for a hook's data from the
   workflow.
 
+  @proposal-0106
   Scenario: An attempt-scoped provider receives the step's name and the attempt number
     Given a workflow "orders" with the steps:
       | step   |
@@ -14,9 +15,9 @@ Feature: What a service provider requests
     And step "charge" requests the service "payments" of type labeller
     And step "charge" allows 1 retries
     And step "charge" attempts:
-      | attempt | outcome           | code        |
-      | 1       | retriable failure | unreachable |
-      | 2       | success           |             |
+      | attempt | outcome | code        |
+      | 1       | failure | unreachable |
+      | 2       | success |             |
     And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
     And the service provider "payments" requests the step name
     And the service provider "payments" requests the attempt number
@@ -41,6 +42,7 @@ Feature: What a service provider requests
     Then the service provider "payments" received the journey ID "order-1"
     And the service provider "stock" received the journey ID "order-1"
 
+  @proposal-0106
   Scenario: A provider chooses the instance from data a retry hook contributed
     Given a workflow "orders" with the steps:
       | step   |
@@ -48,9 +50,9 @@ Feature: What a service provider requests
     And step "charge" requests the service "payments" of type labeller
     And step "charge" allows 1 retries
     And step "charge" attempts:
-      | attempt | outcome           | code        |
-      | 1       | retriable failure | unreachable |
-      | 2       | success           |             |
+      | attempt | outcome | code        |
+      | 1       | failure | unreachable |
+      | 2       | success |             |
     And the data bag contains:
       | key     | value  |
       | gateway | "main" |

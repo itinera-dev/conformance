@@ -23,6 +23,7 @@ Feature: What hooks read and write, and hooks that throw
     And step "ship" ended as not executed after 0 attempts
     And the journey was aborted
 
+  @proposal-0106
   Scenario: Hooks can request the attempt number and the journey ID
     Given a workflow "orders" with the steps:
       | step   |
@@ -30,9 +31,9 @@ Feature: What hooks read and write, and hooks that throw
     And the workflow's ID generator returns "order-1"
     And step "charge" allows 1 retries
     And step "charge" attempts:
-      | attempt | outcome           | code        |
-      | 1       | retriable failure | unreachable |
-      | 2       | success           |             |
+      | attempt | outcome | code        |
+      | 1       | failure | unreachable |
+      | 2       | success |             |
     And a step policy "audit" defines the hook "on step success"
     And the hook "on step success" of policy "audit" requests the attempt number
     And the hook "on step success" of policy "audit" requests the journey ID

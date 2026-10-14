@@ -2,7 +2,8 @@
 Feature: The event stream and the engine catalogue
   Checks points 10 to 19 of proposal 0011 (Events): the fixed fields, the order
   of events, the catalogue's events and what they carry, and that engine events
-  never carry data values.
+  never carry data values. Amended by proposal 0106: step_failed carries no
+  retriable flag.
 
   Scenario: Every event carries the journey ID and the workflow name, with increasing sequence numbers
     Given a workflow "orders" with the steps:
@@ -31,22 +32,23 @@ Feature: The event stream and the engine catalogue
       | hook_called            | charge |         | 1       | audit  | on step success | none      |        |
       | journey_succeeded      |        |         |         |        |                 |           |        |
 
-  Scenario: The events of a failed attempt remain, and step_failed carries the retriable flag and the reason
+  @proposal-0106
+  Scenario: The events of a failed attempt remain, and step_failed carries the reason
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
     And step "charge" allows 1 retries
     And step "charge" attempts:
-      | attempt | outcome           | code        |
-      | 1       | retriable failure | unreachable |
-      | 2       | success           |             |
+      | attempt | outcome | code        |
+      | 1       | failure | unreachable |
+      | 2       | success |             |
     When the workflow runs
     Then the events include, in order:
-      | event           | step   | attempt | retriable | code        |
-      | attempt_started | charge | 1       |           |             |
-      | step_failed     | charge | 1       | true      | unreachable |
-      | attempt_started | charge | 2       |           |             |
-      | step_succeeded  | charge | 2       |           |             |
+      | event           | step   | attempt | code        |
+      | attempt_started | charge | 1       |             |
+      | step_failed     | charge | 1       | unreachable |
+      | attempt_started | charge | 2       |             |
+      | step_succeeded  | charge | 2       |             |
 
   Scenario: hook_called records the lifecycle returned, and journey_failed names the step and the reason
     Given a workflow "orders" with the steps:

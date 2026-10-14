@@ -5,15 +5,16 @@ Feature: Contributions
   after an abnormal termination, the last value wins within an attempt, and
   overwriting the data bag is allowed and recorded.
 
+  @proposal-0106
   Scenario: Only a successful attempt's contributions are committed
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
     And step "charge" allows 1 retries
     And step "charge" attempts:
-      | attempt | outcome           | code        | contributes          |
-      | 1       | retriable failure | unreachable | {"draft": "D-1"}     |
-      | 2       | success           |             | {"receipt": "R-1"}   |
+      | attempt | outcome | code        | contributes        |
+      | 1       | failure | unreachable | {"draft": "D-1"}   |
+      | 2       | success |             | {"receipt": "R-1"} |
     When the workflow runs
     Then the result's data bag contains:
       | key     | value |

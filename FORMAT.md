@@ -58,7 +58,6 @@ Event tables use one row per event. The column `event` is required; any of these
 - `step`, `attempt`: the step and attempt the event concerns;
 - `key`: the data key it concerns; for a `journey_aborted` on a hook's or a rescue step's request for the failure reason or the error, `failure reason` or `error` (spec#92, proposal 0003);
 - `code`: the reason code it carries, for events about a failure, a skip or an abort;
-- `retriable`: `true` or `false`, for `step_failed`;
 - `policy`, `hook`, `lifecycle`: for events from or about a hook; `lifecycle` is the lifecycle returned, or `none`;
 - `adapter`: the input adapter an event names;
 - `provider`: the service provider an event names, or that emitted a `journey_*` event (proposal 0095);
