@@ -111,6 +111,7 @@ Feature: Input adapters attached to steps
     And the workflow declares the service provider "pricing" for "payments" of type labeller, once per journey
     When the workflow runs
     Then step "charge" was built with input "amount" = 7
+    And the service provider "pricing" was called 1 times
     And the journey succeeded
 
   @proposal-0116

@@ -108,7 +108,7 @@ Feature: Input adapters for rescue steps
       | step adapted twice |
     And no event was emitted
 
-  @proposal-0116 @proposal-0098
+  @proposal-0116 @proposal-0098 @proposal-0042
   Scenario: An adapter that names one rescue step twice is refused
     Given a workflow "orders" with the steps:
       | step   |
