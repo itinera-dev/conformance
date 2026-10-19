@@ -5,6 +5,10 @@ Feature: Input adapters attached to steps
   and the input is read from the data bag.
   Spec defect #87: wrong type and required data missing name the adapter only
   when the adapter supplied the value.
+  Proposal 0116, which amends proposals 0060 and 0095: two adapters with the
+  same name are "duplicate adapter name", an adapter may share its name with a
+  service provider, and an adapter naming one step twice in its list is
+  attached to it twice, which is "step adapted twice".
 
   Scenario: An adapter returning nothing lets the data bag's value through
     Given a workflow "orders" with the steps:
@@ -76,6 +80,50 @@ Feature: Input adapters attached to steps
     Then admission is refused with the violations:
       | violation                       |
       | input adapter for unknown step  |
+    And no event was emitted
+
+  @proposal-0116
+  Scenario: Two adapters with the same name are refused, even on different steps
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+      | refund |
+    And step "charge" succeeds
+    And step "refund" succeeds
+    And the workflow declares the input adapter "pricing" for the steps "charge"
+    And the workflow declares the input adapter "pricing" for the steps "refund"
+    When the workflow runs
+    Then admission is refused with the violations:
+      | violation              |
+      | duplicate adapter name |
+    And no event was emitted
+
+  @proposal-0116 @proposal-0095
+  Scenario: An adapter and a service provider may have the same name
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" requests input "amount" of type integer
+    And step "charge" requests the service "payments" of type labeller
+    And step "charge" succeeds
+    And the workflow declares the input adapter "pricing" for the steps "charge"
+    And the input adapter "pricing" returns 7 for "amount"
+    And the workflow declares the service provider "pricing" for "payments" of type labeller, once per journey
+    When the workflow runs
+    Then step "charge" was built with input "amount" = 7
+    And the journey succeeded
+
+  @proposal-0116
+  Scenario: An adapter that names one step twice is refused
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" succeeds
+    And the workflow declares the input adapter "pricing" for the steps "charge", "charge"
+    When the workflow runs
+    Then admission is refused with the violations:
+      | violation          |
+      | step adapted twice |
     And no event was emitted
 
   @spec-defect-0087

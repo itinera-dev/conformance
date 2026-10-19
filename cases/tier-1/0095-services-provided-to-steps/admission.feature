@@ -7,6 +7,8 @@ Feature: Services checked at admission
   requests, a provider of journey scope requesting the attempt number, and a
   provider in a mode the executor does not accept are refused before any
   journey.
+  Proposal 0116 adds that a provider naming one step twice in its list is
+  attached to it twice, which is "service provided twice".
 
   Scenario: A step requesting a service no provider serves is refused
     Given a workflow "orders" with the steps:
@@ -152,6 +154,21 @@ Feature: Services checked at admission
     Then admission is refused with the violations:
       | violation               |
       | duplicate provider name |
+    And no event was emitted
+
+  @proposal-0116
+  Scenario: A provider that names one step twice is refused
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" requests the service "payments" of type labeller
+    And step "charge" succeeds
+    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
+    And the service provider "payments" serves only the steps "charge", "charge"
+    When the workflow runs
+    Then admission is refused with the violations:
+      | violation              |
+      | service provided twice |
     And no event was emitted
 
   @journey-scope-request

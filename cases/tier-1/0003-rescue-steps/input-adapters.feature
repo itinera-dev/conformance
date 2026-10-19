@@ -6,6 +6,8 @@ Feature: Input adapters for rescue steps
   step. The rescue step's inputs are resolved through it as for any adapted
   step. An adapter attached to a step never serves its rescue step, and data
   from the rescued step is never asked of an adapter.
+  Proposal 0116 adds that an adapter naming a rescue step twice in its list
+  is attached to it twice, which is "step adapted twice".
 
   @proposal-0098
   Scenario: An adapter that returns nothing for a rescue step's input leaves it to the data bag
@@ -100,6 +102,21 @@ Feature: Input adapters for rescue steps
     And step "charge_rescue" succeeds
     And the workflow declares the input adapter "credentials" for the steps "charge_rescue"
     And the workflow declares the input adapter "accounts" for the steps "charge_rescue"
+    When the workflow is admitted
+    Then admission is refused with the violations:
+      | violation          |
+      | step adapted twice |
+    And no event was emitted
+
+  @proposal-0116 @proposal-0098
+  Scenario: An adapter that names one rescue step twice is refused
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" has a rescue step
+    And step "charge" succeeds
+    And step "charge_rescue" succeeds
+    And the workflow declares the input adapter "credentials" for the steps "charge_rescue", "charge_rescue"
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation          |
