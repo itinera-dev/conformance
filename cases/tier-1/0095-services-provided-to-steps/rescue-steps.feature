@@ -5,6 +5,8 @@ Feature: Services for rescue steps
   rescues. Proposal 0098 amends it: a provider may be attached to a rescue step
   by its name, "<step name>_rescue", as to a step, and then serves it instead of
   the provider of the same key attached to no step.
+  Proposal 0116 adds that a provider naming a rescue step twice in its list is
+  attached to it twice, which is "service provided twice".
 
   Scenario: A rescue step is served by the provider attached to no step
     Given a workflow "orders" with the steps:
@@ -174,6 +176,23 @@ Feature: Services for rescue steps
     And the service provider "main" serves only the steps "charge_rescue"
     And the workflow declares the service provider "backup" for "payments" of type labeller, for each attempt
     And the service provider "backup" serves only the steps "charge_rescue"
+    When the workflow runs
+    Then admission is refused with the violations:
+      | violation              |
+      | service provided twice |
+    And no event was emitted
+
+  @proposal-0116 @proposal-0098 @proposal-0042
+  Scenario: A provider that names one rescue step twice is refused
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" has a rescue step
+    And step "charge" succeeds
+    And step "charge_rescue" requests the service "payments" of type labeller
+    And step "charge_rescue" succeeds
+    And the workflow declares the service provider "main" for "payments" of type labeller, for each attempt
+    And the service provider "main" serves only the steps "charge_rescue", "charge_rescue"
     When the workflow runs
     Then admission is refused with the violations:
       | violation              |
