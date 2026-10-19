@@ -38,10 +38,11 @@ A feature or scenario that needs a capability also carries:
 
 - `@capability-sync` or `@capability-async`: the execution mode it requires;
 - `@capability-testing`: test support (proposal 0108), which a language claims as the capability `testing`;
+- `@capability-value-conversions`: value conversions (proposal 0113), which a language claims as the capability `value-conversions` when its executor calls, while a journey runs, code the application supplies or customises to turn its objects into values, or values into its types, or to check them; any other language does not claim it;
 - a tag for a rule a language may make impossible to express (proposal 0054): `@invalid-lifecycle`, `@role-not-provided`, `@mode-not-accepted`, `@non-value`, `@late-handle`, `@bag-write` (proposal 0091), `@rescue-skip` (proposal 0003), `@journey-scope-request` or `@no-instance` (proposal 0095), `@undeclared-handles` or `@fake-service-type` (proposal 0108);
 - other capability tags as later tiers add them.
 
-A language runs every scenario whose proposals are all listed in its manifest (see below), excluding capabilities it does not claim, and every one must pass. When a language moves to cases holding a new amendment, everything else keeps running, and the amendment's scenarios wait until it is listed. Listing an amendment is how a language declares it implemented: from that pull request on, its scenarios run with everything already listed. It claims tier N of a specification version once every proposal of tiers 1 to N is listed, except a proposal whose every scenario needs a capability it does not claim, such as proposal 0108 (test support) for a language that does not claim `testing`: such a proposal is listed only by a language that claims its capability.
+A language runs every scenario whose proposals are all listed in its manifest (see below), excluding capabilities it does not claim, and every one must pass. When a language moves to cases holding a new amendment, everything else keeps running, and the amendment's scenarios wait until it is listed. Listing an amendment is how a language declares it implemented: from that pull request on, its scenarios run with everything already listed. It claims tier N of a specification version once every proposal of tiers 1 to N is listed, except a proposal whose every scenario needs a capability it does not claim, such as proposal 0108 (test support) for a language that does not claim `testing`, or proposal 0113 (value conversions) for one that does not claim `value-conversions`: such a proposal is listed only by a language that claims its capability.
 
 ## Values and types
 
@@ -49,6 +50,7 @@ A language runs every scenario whose proposals are all listed in its manifest (s
 - **Values** are written as JSON: `"text"`, `42`, `4.5`, `true`, `null`, `[1, 2]`, `{"a": 1}`.
 - **Types** use this neutral vocabulary: `string`, `integer`, `number`, `boolean`, `list`, `object`. A language maps each to its own types in its step definitions.
 - **Service types** are test interfaces defined in [STEPS.md](STEPS.md), "Services": `labeller` and `meter` (proposal 0095), with two implementations of `labeller`, `first labeller` and `second labeller` (proposal 0104).
+- **Converted types** are types of the runner's own whose value conversions are scripted, defined in [STEPS.md](STEPS.md), "Value conversions": `throwing record` and `rejected record` (proposal 0113). They are written where a type is, and only in scenarios tagged `@capability-value-conversions`.
 - **Numbers.** A JSON number written without a fraction or an exponent, such as `42`, is an `integer`. Any other JSON number, such as `4.5` or `4.0`, is a `number`.
 - **Cases MUST NOT depend on whether an `integer` is also a `number`.** No case requests `number` for an integer value, or `integer` for a non-integer value, and expects either success or `wrong type`: languages differ on it. A wrong-type scenario uses types that differ in every language, such as `string` against `integer`.
 

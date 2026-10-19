@@ -241,6 +241,31 @@ What happened:
 - **`Then each instance's reporter "<reporter>" received only its own journey's events`**: the reporter is created with each workflow instance. (0012)
 - **`Then the reporter "<reporter>" was made with the journey ID "<id>"`**: the reporter received this journey ID when the workflow instance made it, before any event. (0061)
 
+## Value conversions
+
+Sentences and types for the capability value conversions (proposal 0113), used only in scenarios tagged `@capability-value-conversions`. A **converted type** is a type of the runner's own, standing for one of an application's classes, that the runner gives the value conversions its language uses: code that turns an object of the type into a value when the object is captured, and that turns a value into the type, or checks that a value is of the type, when a request reads it. A converted type is written wherever a sentence takes a `<type>`, so a step, a hook, a rescue step, an input adapter or a service provider can request one, and an input adapter can read one through its access to the data bag. (0113)
+
+Converted types, used only in these scenarios (0113):
+
+- **`throwing record`**: both its conversions fail on every call, by throwing or returning an error whose message is `conversion failed`: turning an object of the type into a value, and turning any value into the type.
+- **`rejected record`**: when a request reads a value as this type, the conversion or check reports that the value is not of the type, whatever the value, as its language lets a conversion or a check say so, without throwing or returning an error.
+
+Capturing an object of a converted type:
+
+- **`And step "<step>" contributes a throwing record as "<key>"`**: on every attempt, the step contributes an object of `throwing record` under this key. (0113)
+- **`And step "<step>" emits <kind> "<message>" with a throwing record as data`**: the step emits a `step_info`, `step_warning` or `step_error` event whose data is an object of `throwing record`. Emits, contributions and the other actions of a step happen in the order written. (0113)
+- **`And step "<step>" sets the global metadata "<key>" to a throwing record`**: on every attempt, the step sets this entry, through its step reporter, to an object of `throwing record`. (0113)
+- **`And step "<step>" fails with code "<code>" and a throwing record as details`**: every attempt ends with a failure of this code whose details are an object of `throwing record`. (0113)
+- **`And the input adapter "<adapter>" returns a throwing record for "<key>"`**: when called for this input, the adapter returns an object of `throwing record`. (0113)
+- **`And the service provider "<provider>" supplies a throwing record as data with each instance`**: on every call that makes an instance, the provider supplies an object of `throwing record` as its data. (0113)
+- **`And the data bag contains a throwing record as "<key>"`**: the workflow instance is created with initial data holding an object of `throwing record` under this key. (0113)
+- **`And the workflow instance is created with a throwing record as global metadata "<key>"`**: the initial global metadata holds an object of `throwing record` under this key. (0113)
+
+What `run` refused:
+
+- **`Then the refusal lists the key "<key>"`**: the refusal `run` reported lists this key among the keys of initial data or initial global metadata it concerns, as its language reports them. (0113)
+- **`Then the refusal carries no error`**: the refusal `run` reported carries no error from custom code, so neither the error of a conversion nor its message. (0113)
+
 ## Test support
 
 Sentences for the capability test support (proposal 0108), used only in scenarios tagged `@capability-testing`. The runner reaches each part through its language's own test support, never through its own recording or scripting. A **mistake in a test** is reported as the language's test support reports it, which may happen while the sentence that makes the mistake runs or during the `When` sentence; the runner captures it from either and checks it with "the test stopped before the journey". The names of mistakes are listed under "Test mistakes" below. In these scenarios a scripted test step declares a contributor and a step reporter, unless "declares no contributor and no reporter" says otherwise. (0108)
