@@ -4,13 +4,15 @@ Feature: A value conversion that fails while a value is read
   applications supply value conversions, a conversion that fails, or a check
   that refuses a value, while a request reads it means the value has the wrong
   type. The journey is aborted with "wrong type", naming whom a value of the
-  wrong type names, and the abort carries no error. A read through an input
+  wrong type names. An abort caused by a check that refuses a value carries
+  no error; one caused by a conversion that throws or returns an error may
+  carry it, which these cases do not check. A read through an input
   adapter's access to the data bag is reported to the adapter as another type,
   and nothing is emitted. Only a language that claims the capability
   value-conversions runs these cases.
 
   @proposal-0113
-  Scenario: A step input whose conversion fails aborts the journey with "wrong type" and no error
+  Scenario: A step input whose conversion fails aborts the journey with "wrong type"
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
@@ -25,8 +27,6 @@ Feature: A value conversion that fails while a value is read
       | event           | step   | key   | code       |
       | attempt_started | charge |       |            |
       | journey_aborted | charge | order | wrong type |
-    And the result's abort carries no error
-    And no event carries the message "conversion failed"
     And no step ran
     And step "charge" ended as aborted after 1 attempts
 
@@ -64,8 +64,6 @@ Feature: A value conversion that fails while a value is read
       | event                  | step   | key   | adapter | code       |
       | input_adapter_supplied | charge | order | pricing |            |
       | journey_aborted        | charge | order | pricing | wrong type |
-    And the result's abort carries no error
-    And no event carries the message "conversion failed"
     And no step ran
 
   @proposal-0113
@@ -87,8 +85,6 @@ Feature: A value conversion that fails while a value is read
       | step_succeeded  | charge |       |        |                 |            |
       | journey_aborted | charge | order | audit  | on step success | wrong type |
     And the hook "on step success" of policy "audit" was called 0 times
-    And the result's abort carries no error
-    And no event carries the message "conversion failed"
 
   @proposal-0113
   Scenario: A hook's data from the step whose check refuses the value aborts the journey before the hook runs
@@ -148,8 +144,6 @@ Feature: A value conversion that fails while a value is read
     And the events include, in order:
       | event           | step   | key   | adapter | code       |
       | journey_aborted | charge | order | pricing | wrong type |
-    And the result's abort carries no error
-    And no event carries the message "conversion failed"
     And no step ran
 
   @proposal-0113

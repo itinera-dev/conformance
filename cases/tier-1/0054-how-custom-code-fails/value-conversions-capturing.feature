@@ -6,12 +6,12 @@ Feature: A value conversion that fails while a value is captured
   not a value. A contribution, event data, global metadata, a reason's details
   or a service provider's data abort the journey with "not a value", and an
   input adapter's supply aborts it with "step could not be built", naming whom
-  they name for something that is not a value. Neither abort carries the
-  conversion's error. Only a language that claims the capability
-  value-conversions runs these cases.
+  they name for something that is not a value. Either abort may carry the
+  conversion's error, which these cases do not check. Only a language that
+  claims the capability value-conversions runs these cases.
 
   @proposal-0113
-  Scenario: A contribution whose conversion fails aborts the journey with "not a value" and no error
+  Scenario: A contribution whose conversion fails aborts the journey with "not a value"
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
@@ -23,8 +23,6 @@ Feature: A value conversion that fails while a value is captured
       | event           | step   | key   | code        |
       | journey_aborted | charge | order | not a value |
     And no contribution of "order" was committed
-    And the result's abort carries no error
-    And no event carries the message "conversion failed"
 
   @proposal-0113
   Scenario: Event data whose conversion fails aborts the journey, and the event is not delivered
@@ -36,8 +34,6 @@ Feature: A value conversion that fails while a value is captured
     When the workflow runs
     Then the journey was aborted with the abort reason "not a value"
     And no event carries the message "order checked"
-    And no event carries the message "conversion failed"
-    And the result's abort carries no error
 
   @proposal-0113
   Scenario: Global metadata whose conversion fails aborts the journey and reaches no reporter
@@ -59,18 +55,15 @@ Feature: A value conversion that fails while a value is captured
       | attempt_started | lookup | 1       |          |             |
       | journey_aborted | lookup |         | customer | not a value |
     And the reporter "audit" did not receive the event "global_metadata_set"
-    And the result's abort carries no error
 
   @proposal-0113
-  Scenario: A reason whose details fail to convert aborts the journey with "not a value" and no error
+  Scenario: A reason whose details fail to convert aborts the journey with "not a value"
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
     And step "charge" fails with code "declined" and a throwing record as details
     When the workflow runs
     Then the journey was aborted with the abort reason "not a value"
-    And the result's abort carries no error
-    And no event carries the message "conversion failed"
 
   @proposal-0113
   Scenario: A service provider's data whose conversion fails aborts the journey, and no service event follows
@@ -88,11 +81,10 @@ Feature: A value conversion that fails while a value is captured
       | journey_started |        |         |          |             |
       | attempt_started | charge | 1       |          |             |
       | journey_aborted | charge |         | payments | not a value |
-    And the result's abort carries no error
     And no step ran
 
   @proposal-0113
-  Scenario: An input adapter's supply whose conversion fails aborts with "step could not be built" and no error
+  Scenario: An input adapter's supply whose conversion fails aborts with "step could not be built"
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
@@ -106,6 +98,4 @@ Feature: A value conversion that fails while a value is captured
       | event                | step   | key   | adapter | code                    |
       | input_adapter_failed | charge | order | pricing |                         |
       | journey_aborted      | charge |       |         | step could not be built |
-    And the result's abort carries no error
-    And no event carries the message "conversion failed"
     And no step ran

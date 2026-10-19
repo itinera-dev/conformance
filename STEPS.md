@@ -264,7 +264,6 @@ Capturing an object of a converted type:
 What `run` refused:
 
 - **`Then the refusal lists the key "<key>"`**: the refusal `run` reported lists this key among the keys of initial data or initial global metadata it concerns, as its language reports them. (0113)
-- **`Then the refusal carries no error`**: the refusal `run` reported carries no error from custom code, so neither the error of a conversion nor its message. (0113)
 
 ## Test support
 

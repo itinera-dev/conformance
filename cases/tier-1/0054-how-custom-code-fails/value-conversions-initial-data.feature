@@ -3,8 +3,9 @@ Feature: A value conversion that fails in the instance's initial data
   Checks proposal 0113, which amends proposal 0054: in a language that converts
   the initial data or the initial global metadata of a workflow instance, a
   conversion that fails makes that key not a value, so run refuses the
-  instance, listing the key, and the refusal carries no error. Only a language
-  that claims the capability value-conversions runs these cases.
+  instance, listing the key. The refusal may carry the conversion's error,
+  which these cases do not check. Only a language that claims the capability
+  value-conversions runs these cases.
 
   @proposal-0113
   Scenario: Initial data whose conversion fails is refused by run, listing the key
@@ -16,7 +17,6 @@ Feature: A value conversion that fails in the instance's initial data
     When the workflow runs
     Then run was refused
     And the refusal lists the key "order"
-    And the refusal carries no error
     And no event was emitted
 
   @proposal-0113
@@ -31,5 +31,4 @@ Feature: A value conversion that fails in the instance's initial data
     When the workflow runs
     Then run was refused
     And the refusal lists the key "customer"
-    And the refusal carries no error
     And no event was emitted
