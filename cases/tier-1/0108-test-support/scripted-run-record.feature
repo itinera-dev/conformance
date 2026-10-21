@@ -4,6 +4,9 @@ Feature: A scripted run records each attempt handed to its step
   result with a record of every step and rescue step of the workflow, holding
   in order each attempt handed to the construction of its step, scripted or
   real, and what that attempt's step was built with.
+  Proposal 0119, which amends proposal 0108: reading the record of a step the
+  workflow does not have stops the test as "unknown step", and reading an
+  attempt a step's record does not hold reads nothing.
 
   Scenario: The record holds every attempt, scripted or real, with its inputs
     Given a workflow "orders" with the steps:
@@ -98,3 +101,42 @@ Feature: A scripted run records each attempt handed to its step
     When the workflow runs with the script
     Then the scripted run's record of step "charge_rescue" holds the attempts 1
     And attempt 1 of step "charge_rescue" in the scripted run's record read the rescued step data "card" = "expired"
+
+  @proposal-0119
+  Scenario: Reading the record of a step the workflow does not have stops the test
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" succeeds
+    And the script says:
+      | step   | attempt | ending  |
+      | charge | 1       | success |
+    When the workflow runs with the script
+    Then the journey succeeded
+    And reading the scripted run's record of step "refund" stops the test as the mistake "unknown step"
+
+  @proposal-0119
+  Scenario: Reading an attempt the record does not hold reads nothing
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" allows 1 retries
+    And step "charge" succeeds
+    And the script says:
+      | step   | attempt | ending  |
+      | charge | 1       | success |
+    When the workflow runs with the script
+    Then the scripted run's record of step "charge" holds the attempts 1
+    And reading attempt 2 of step "charge" in the scripted run's record reads nothing
+
+  @proposal-0119 @attempt-zero
+  Scenario: Reading attempt 0 of a step's record reads nothing
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" succeeds
+    And the script says:
+      | step   | attempt | ending  |
+      | charge | 1       | success |
+    When the workflow runs with the script
+    Then reading attempt 0 of step "charge" in the scripted run's record reads nothing
