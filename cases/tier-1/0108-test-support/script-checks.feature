@@ -6,6 +6,10 @@ Feature: A script is checked before the journey
   the test asks for every step, a step; and a mistake in writing the script
   stops the test where it is written. Either way the report names each
   problem, and no journey starts.
+  Proposal 0119, which amends proposal 0108: choosing an attempt the script
+  has already described is "attempt scripted twice", and one the step can
+  never have is "no such attempt", which is named rather than "attempt
+  scripted twice" or "gap in the attempts" when a choice is both.
 
   Scenario: Describing every attempt the retry budget allows is enough
     Given a workflow "orders" with the steps:
@@ -198,4 +202,244 @@ Feature: A script is checked before the journey
     Then the test stopped before the journey, naming:
       | mistake     | step   |
       | no reporter | charge |
+    And no event was emitted
+
+  @proposal-0119
+  Scenario: A script that describes an attempt twice stops the test
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" allows 1 retries
+    And step "charge" succeeds
+    And the script says:
+      | step   | attempt | ending  | code     |
+      | charge | 1       | failure | declined |
+      | charge | 1       | success |          |
+    When the workflow runs with the script
+    Then the test stopped before the journey, naming:
+      | mistake                | step   | attempt |
+      | attempt scripted twice | charge | 1       |
+    And no event was emitted
+
+  @proposal-0119
+  Scenario: Every attempt chosen after a numbered one describes attempt 1 again
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" allows 1 retries
+    And step "charge" succeeds
+    And the script says:
+      | step   | attempt | ending  | code     |
+      | charge | 1       | failure | declined |
+      | charge | every   | success |          |
+    When the workflow runs with the script
+    Then the test stopped before the journey, naming:
+      | mistake                | step   | attempt |
+      | attempt scripted twice | charge | 1       |
+    And no event was emitted
+
+  @proposal-0119
+  Scenario: A numbered attempt chosen after every attempt describes it again
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" allows 1 retries
+    And step "charge" succeeds
+    And the script says:
+      | step   | attempt | ending  | code     |
+      | charge | every   | failure | declined |
+      | charge | 2       | success |          |
+    When the workflow runs with the script
+    Then the test stopped before the journey, naming:
+      | mistake                | step   | attempt |
+      | attempt scripted twice | charge | 2       |
+    And no event was emitted
+
+  @proposal-0119
+  Scenario: The remaining attempts chosen twice describe the first of them again
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" allows 2 retries
+    And step "charge" succeeds
+    And the script says:
+      | step   | attempt   | ending  | code     |
+      | charge | 1         | failure | declined |
+      | charge | remaining | failure | declined |
+      | charge | remaining | success |          |
+    When the workflow runs with the script
+    Then the test stopped before the journey, naming:
+      | mistake                | step   | attempt |
+      | attempt scripted twice | charge | 2       |
+    And no event was emitted
+
+  @proposal-0119 @attempt-zero
+  Scenario: A script that describes attempt 0 stops the test
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" succeeds
+    And the script says:
+      | step   | attempt | ending  |
+      | charge | 0       | success |
+    When the workflow runs with the script
+    Then the test stopped before the journey, naming:
+      | mistake         | step   | attempt |
+      | no such attempt | charge | 0       |
+    And no event was emitted
+
+  @proposal-0119 @attempt-negative
+  Scenario: A script that describes a negative attempt stops the test
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" succeeds
+    And the script says:
+      | step   | attempt | ending  |
+      | charge | -1      | success |
+    When the workflow runs with the script
+    Then the test stopped before the journey, naming:
+      | mistake         | step   | attempt |
+      | no such attempt | charge | -1      |
+    And no event was emitted
+
+  @proposal-0119 @attempt-fraction
+  Scenario: A script that describes a fraction of an attempt stops the test
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" succeeds
+    And the script says:
+      | step   | attempt | ending  |
+      | charge | 1.5     | success |
+    When the workflow runs with the script
+    Then the test stopped before the journey, naming:
+      | mistake         | step   | attempt |
+      | no such attempt | charge | 1.5     |
+    And no event was emitted
+
+  @proposal-0119
+  Scenario: A script that describes an attempt past the retry budget stops the test
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" allows 1 retries
+    And step "charge" succeeds
+    And the script says:
+      | step   | attempt | ending  | code     |
+      | charge | 1       | failure | declined |
+      | charge | 2       | failure | declined |
+      | charge | 3       | success |          |
+    When the workflow runs with the script
+    Then the test stopped before the journey, naming:
+      | mistake         | step   | attempt |
+      | no such attempt | charge | 3       |
+    And no event was emitted
+
+  @proposal-0119
+  Scenario: A step with a rescue step can have no third attempt
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" has a rescue step
+    And step "charge" succeeds
+    And step "charge_rescue" succeeds
+    And the script says:
+      | step   | attempt | ending  | code     |
+      | charge | 1       | failure | expired  |
+      | charge | 2       | failure | declined |
+      | charge | 3       | success |          |
+    When the workflow runs with the script
+    Then the test stopped before the journey, naming:
+      | mistake         | step   | attempt |
+      | no such attempt | charge | 3       |
+    And no event was emitted
+
+  @proposal-0119
+  Scenario: A rescue step can have no second attempt
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" has a rescue step
+    And step "charge" succeeds
+    And step "charge_rescue" succeeds
+    And the script says:
+      | step          | attempt | ending  | code    |
+      | charge        | 1       | failure | expired |
+      | charge        | 2       | success |         |
+      | charge_rescue | 1       | failure | broken  |
+      | charge_rescue | 2       | success |         |
+    When the workflow runs with the script
+    Then the test stopped before the journey, naming:
+      | mistake         | step          | attempt |
+      | no such attempt | charge_rescue | 2       |
+    And no event was emitted
+
+  @proposal-0119
+  Scenario: The remaining attempts of a step whose every attempt is described stop the test
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" allows 1 retries
+    And step "charge" succeeds
+    And the script says:
+      | step   | attempt   | ending  | code     |
+      | charge | 1         | failure | declined |
+      | charge | 2         | failure | declined |
+      | charge | remaining | success |          |
+    When the workflow runs with the script
+    Then the test stopped before the journey, naming:
+      | mistake         | step   | attempt |
+      | no such attempt | charge | 3       |
+    And no event was emitted
+
+  @proposal-0119
+  Scenario: An attempt the step can never have is named rather than a gap before it
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" allows 1 retries
+    And step "charge" succeeds
+    And the script says:
+      | step   | attempt | ending  |
+      | charge | 5       | success |
+    When the workflow runs with the script
+    Then the test stopped before the journey, naming:
+      | mistake         | step   | attempt |
+      | no such attempt | charge | 5       |
+    And no event was emitted
+
+  @proposal-0119
+  Scenario: An attempt the step can never have is named rather than one described already
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" allows 1 retries
+    And step "charge" succeeds
+    And the script says:
+      | step   | attempt | ending  | code     |
+      | charge | every   | failure | declined |
+      | charge | 5       | success |          |
+    When the workflow runs with the script
+    Then the test stopped before the journey, naming:
+      | mistake         | step   | attempt |
+      | no such attempt | charge | 5       |
+    And no event was emitted
+
+  @proposal-0119
+  Scenario: A numbered attempt chosen after the remaining attempts describes it again
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" allows 2 retries
+    And step "charge" succeeds
+    And the script says:
+      | step   | attempt   | ending  | code     |
+      | charge | 1         | failure | declined |
+      | charge | remaining | failure | declined |
+      | charge | 3         | success |          |
+    When the workflow runs with the script
+    Then the test stopped before the journey, naming:
+      | mistake                | step   | attempt |
+      | attempt scripted twice | charge | 3       |
     And no event was emitted
