@@ -4,6 +4,8 @@ The only sentences a conformance case may use, with their exact meaning. Rules f
 
 Each sentence names the proposal that introduced it.
 
+A **null-like value** is what a language has for no value at all, such as `null` in Java, or `null` or `undefined` in JavaScript. Where a language uses a null-like value as its form of the value null, as JavaScript does with `null`, that value is still a value wherever a value is expected. The sentences that use a null-like value appear only in scenarios tagged `@unexpected-result` or `@non-string-journey-id`, so a language without one claims those tags as impossible. (0122)
+
 ## Building a workflow
 
 - **`Given a workflow "<workflow>" with the steps:`** followed by a table with the column `step`, one row per step in declaration order. Declares a workflow whose steps are scripted test steps. (0002)
@@ -15,6 +17,8 @@ Each sentence names the proposal that introduced it.
 - **`And step "<step>" contributes "<key>" = <value> and then changes it to <value>`**: the step contributes the first value, then changes that same object in place to the second content before ending, as far as the language allows. (0027)
 - **`And step "<step>" attempts:`** followed by a table scripting each attempt, with the columns `attempt` (the attempt number) and `outcome` (`success`, `failure`, `skipped` or `error`), and optionally `code`, `message`, `details` (JSON) for the reason, and `contributes` (a JSON object of keys and values contributed before ending). `error` means a recoverable failure escapes the running step (a throw, or an error returned through its signature), an abnormal termination; for `error`, the `message` column is the error's message. Attempts after the last row repeat the last row. (0008, 0054, 0083, 0106)
 - **`And step "<step>" cannot be built because its constructor fails with "<message>"`**: building the step fails. (0008)
+- **`And step "<step>" returns no outcome`**: every attempt of the step ends by returning a null-like value instead of an outcome; for an asynchronous step, by resolving to one. (0122)
+- **`And step "<step>" is built as a null-like value`**: building the step gives a null-like value instead of a step. (0122)
 - **`And step "<step>" does not retry abnormal terminations`**: the step's descriptor turns `retry on abnormal termination` off; without this sentence it is on. (0024, 0106)
 - **`And step "<step>" allows <n> retries`**: the step's retry budget: after the first attempt, at most `n` more. (0008, 0009)
 - **`And step "<step>" has a rescue step`**: the step's descriptor holds a rescue step, named `<step>_rescue`. The sentences about a step that a scripted step can follow (its inputs, services, contributions, outcomes, emits, and how it is built) script the rescue step under that name, as for any scripted step; it has no retry budget or policies of its own. An input adapter or a service provider is attached to it by that name, as to a step. (0003, 0098)
@@ -34,7 +38,8 @@ Each sentence names the proposal that introduced it.
 ## Journey IDs
 
 - **`And the workflow has no ID generator`**: the workflow instance is created with the default journey ID, a UUID v4. (0009, 0061)
-- **`And the workflow's ID generator returns "<id>"`**: the workflow instance is created with this journey ID. (0009, 0061)
+- **`And the workflow's ID generator returns "<id>"`**: the ID generator produces this journey ID, with which the workflow instance is created. (0009, 0061)
+- **`And the workflow's ID generator returns something that is not a string`**: such as a null-like value or a number. Used only in scenarios tagged `@non-string-journey-id`. (0122)
 
 ## Input adapters
 
@@ -44,6 +49,7 @@ An input adapter's own requests are declared in the order their sentences are wr
 - **`And the input adapter "<adapter>" returns <value> for "<key>"`** (0002, 0060)
 - **`And the input adapter "<adapter>" returns nothing for "<key>"`**: the input is resolved from the data bag. (0060)
 - **`And the input adapter "<adapter>" fails with "<message>" for "<key>"`**: the adapter fails, by throwing or returning an error. (0002, 0060)
+- **`And the input adapter "<adapter>" returns no result for "<key>"`**: the adapter returns a null-like value that is neither the language's form of nothing nor its form of the value null, such as `undefined` in JavaScript. A language that has no such value cannot express it, and claims `@unexpected-result` as impossible for that scenario. (0122)
 - **`And the input adapter "<adapter>" returns a non-value for "<key>"`**: the adapter returns something that is not a value, such as a function, where the language can express it. (0056)
 - **`And the input adapter "<adapter>" requests data from the workflow "<key>" of type <type>`**: a required request, read from the data bag. (0060)
 - **`And the input adapter "<adapter>" requests the step name and returns it for "<key>"`**: the adapter requests the name of the step being built and, when called for that input, returns that name as a string. (0098)
@@ -90,6 +96,7 @@ Every instance a provider makes is labelled with the provider's name and how man
 - **`And the service provider "<provider>" makes instances of <implementation>`**: every instance this provider makes is of this implementation of `labeller`: `first labeller` or `second labeller`. (0104)
 - **`And the service provider "<provider>" supplies the data <data> with each instance`** and **`And the service provider "<provider>" supplies data that is not a value with each instance`**: on every call that makes an instance, the provider supplies this data with it, as JSON; data that is not a value is, for example, a function. (0104)
 - **`And the service provider "<provider>" returns nothing`**: on every call, the provider returns neither an instance nor an error. Used only in scenarios tagged `@no-instance`. (0095)
+- **`And the service provider "<provider>" returns a null-like value`**: on every call, the provider returns a null-like value, not the language's form of nothing. (0122)
 - **`And the service provider "<provider>" is asynchronous`** (0095)
 - **`And the services the provider "<provider>" makes fail with "<message>" when used`**: the operation of every instance this provider makes fails, by throwing or returning an error whose message is this text. (0095)
 - **`Then the service provider "<provider>" was called <n> times`**: counting every call, whether it made an instance or failed; a provider never called was called 0 times. (0095)
@@ -115,6 +122,7 @@ Implementations of `labeller`, used only in these sentences: `first labeller`, w
 - **`Then the last event is "<event>"`** (0032)
 - **`Then journey_aborted names no adapter`**: the journey's `journey_aborted` names no input adapter. (spec#87)
 - **`Then no event was emitted`** (0032)
+- **`Then creating the workflow instance failed`**: the application's own code creating the workflow instance reported a failure, as the language's own error, so no journey ran. (0122)
 - **`Then no journey ID was produced`**: no workflow instance was created, so no journey ID exists; used only when the workflow is refused as it is built. (0032, 0061)
 - **`Then no step ran`** (0002)
 - **`Then the journey succeeded`** (0002)
@@ -168,6 +176,9 @@ What a hook does:
 
 - **`And the hook "<hook>" of policy "<policy>" returns FinishWorkflow`** (0010)
 - **`And the hook "<hook>" of policy "<policy>" returns FailWorkflow with code "<code>"`** (0010)
+- **`And the hook "<hook>" of policy "<policy>" returns something that is not a lifecycle`**: the hook returns a value that is neither the language's form of nothing nor a lifecycle, such as a string. Used only in scenarios tagged `@unexpected-result`. (0122)
+- **`And the hook "<hook>" of policy "<policy>" returns a null-like value`**: the hook returns a null-like value, not the language's form of nothing. (0122)
+- **`And the hook "<hook>" of policy "<policy>" returns a value`**: used only for a workflow hook: it returns a value, such as a string, as far as the language allows; in a language where it cannot, it returns nothing. (0122)
 - **`And the hook "<hook>" of policy "<policy>" throws`**: the hook fails: it throws, or returns an error, as the language expresses a recoverable failure. (0010, 0054)
 - **`And the hook "<hook>" of policy "<policy>" fails with "<message>"`**: the hook fails as above, with an error whose message is this text. (0083)
 - **`And the hook "<hook>" of policy "<policy>" requests data from the workflow "<key>" of type <type>`**: a required request for data from the workflow, read from the data bag; input adapters are never used for a hook's request. (0010, 0041)
@@ -178,6 +189,7 @@ What a hook does:
 - **`And the hook "<hook>" of policy "<policy>" counts its calls and contributes the count as "<key>"`**: the policy instance holds a counter starting at 0; each call of this hook adds 1 to it and contributes it. (0058)
 - **`And the policy "<policy>" fails when it is built`**: building an instance of the policy fails, by throwing or returning an error. (0058)
 - **`And the policy "<policy>" fails with "<message>" when it is built`**: the same, with an error whose message is this text. (0083)
+- **`And the policy "<policy>" is built as a null-like value`**: building an instance of the policy gives a null-like value instead of a policy. (0122)
 - **`And the hook "<hook>" of policy "<policy>" uses the kept contributor and step reporter of step "<step>" to contribute "<key>" = <value> and emit step_info "<message>"`**: the calls are made on handles whose attempt has ended. (0057)
 - **`And the workflow provides the role "<role>" with the operation "<operation>"`**: the workflow implements this role; the operation records each call. (0010)
 - **`And the hook "<hook>" of policy "<policy>" requests the role "<role>" and calls its operation "<operation>"`**: the hook declares the role as a parameter and calls the operation once. (0010)
@@ -233,6 +245,7 @@ What happened:
 ## The executor
 
 - **`And step "<step>" is asynchronous`**: the scripted step runs asynchronously. (0012)
+- **`And the hook "<hook>" of policy "<policy>" is asynchronous`**: the hook runs asynchronously, and what it does, including how it fails or what it returns, happens when its future or promise completes. (0122)
 - **`And the executor accepts only synchronous steps, hooks and reporters`**: the scenario uses a synchronous-only executor, which accepts only synchronous service providers too. (0012, 0095)
 - **`When the same executor runs the workflow twice, with a new instance each time`**: one executor runs two journeys, one after the other, each with a new workflow instance created the same way. (0012)
 - **`Then run returned a result instead of throwing`** (0012)
@@ -341,7 +354,7 @@ Proposal 0102 adds the fact `global_metadata_set`. (0102)
 
 ## Abort reasons
 
-The abort reasons of a journey's result (0009, 0032, 0042, 0054, 0056, 0058): `step could not be built`, `required data missing`, `wrong type`, `invalid lifecycle`, `policy could not be built`, `not a value`, `hook failed`, `reporter failed`, `rescue skipped` (0003), and `reserved metadata key` (0102).
+The abort reasons of a journey's result (0009, 0032, 0042, 0054, 0056, 0058): `step could not be built`, `required data missing`, `wrong type`, `invalid lifecycle`, `policy could not be built`, `not a value`, `hook failed`, `reporter failed`, `rescue skipped` (0003), `reserved metadata key` (0102), and `unexpected result` (0122).
 
 ## Violation names
 
