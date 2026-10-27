@@ -80,14 +80,14 @@ Feature: Custom code that returns an unexpected result
     And the journey was aborted with the abort reason "unexpected result"
 
   @proposal-0122 @unexpected-result
-  Scenario: An input adapter that returns a null-like value aborts the journey
+  Scenario: An input adapter that returns no result aborts the journey
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
     And step "charge" requests optional input "amount" of type integer
     And step "charge" succeeds
     And the workflow declares the input adapter "pricing" for the steps "charge"
-    And the input adapter "pricing" returns a null-like value for "amount"
+    And the input adapter "pricing" returns no result for "amount"
     When the workflow runs
     Then the events include, in order:
       | event           | step   | adapter | key    | code              |

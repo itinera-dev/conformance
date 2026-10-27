@@ -49,7 +49,7 @@ An input adapter's own requests are declared in the order their sentences are wr
 - **`And the input adapter "<adapter>" returns <value> for "<key>"`** (0002, 0060)
 - **`And the input adapter "<adapter>" returns nothing for "<key>"`**: the input is resolved from the data bag. (0060)
 - **`And the input adapter "<adapter>" fails with "<message>" for "<key>"`**: the adapter fails, by throwing or returning an error. (0002, 0060)
-- **`And the input adapter "<adapter>" returns a null-like value for "<key>"`**: the adapter returns a null-like value, not the language's form of nothing. (0122)
+- **`And the input adapter "<adapter>" returns no result for "<key>"`**: the adapter returns something that is neither the language's form of nothing nor a value, such as `undefined` in JavaScript; a null-like value the language uses as the value null is not this. Used only in scenarios tagged `@unexpected-result`. (0122)
 - **`And the input adapter "<adapter>" returns a non-value for "<key>"`**: the adapter returns something that is not a value, such as a function, where the language can express it. (0056)
 - **`And the input adapter "<adapter>" requests data from the workflow "<key>" of type <type>`**: a required request, read from the data bag. (0060)
 - **`And the input adapter "<adapter>" requests the step name and returns it for "<key>"`**: the adapter requests the name of the step being built and, when called for that input, returns that name as a string. (0098)
