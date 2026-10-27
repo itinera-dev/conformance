@@ -49,7 +49,7 @@ An input adapter's own requests are declared in the order their sentences are wr
 - **`And the input adapter "<adapter>" returns <value> for "<key>"`** (0002, 0060)
 - **`And the input adapter "<adapter>" returns nothing for "<key>"`**: the input is resolved from the data bag. (0060)
 - **`And the input adapter "<adapter>" fails with "<message>" for "<key>"`**: the adapter fails, by throwing or returning an error. (0002, 0060)
-- **`And the input adapter "<adapter>" returns no result for "<key>"`**: the adapter returns a null-like value that is neither the language's form of nothing nor its form of the value null, such as `undefined` in JavaScript. A language that has no such value cannot express it, and claims `@unexpected-result` as impossible for that scenario. (0122)
+- **`And the input adapter "<adapter>" returns no result for "<key>"`**: the adapter returns a null-like value that is neither the language's form of nothing nor its form of the value null, such as `undefined` in JavaScript. (0122)
 - **`And the input adapter "<adapter>" returns a non-value for "<key>"`**: the adapter returns something that is not a value, such as a function, where the language can express it. (0056)
 - **`And the input adapter "<adapter>" requests data from the workflow "<key>" of type <type>`**: a required request, read from the data bag. (0060)
 - **`And the input adapter "<adapter>" requests the step name and returns it for "<key>"`**: the adapter requests the name of the step being built and, when called for that input, returns that name as a string. (0098)
@@ -176,7 +176,7 @@ What a hook does:
 
 - **`And the hook "<hook>" of policy "<policy>" returns FinishWorkflow`** (0010)
 - **`And the hook "<hook>" of policy "<policy>" returns FailWorkflow with code "<code>"`** (0010)
-- **`And the hook "<hook>" of policy "<policy>" returns something that is not a lifecycle`**: the hook returns a value that is neither the language's form of nothing nor a lifecycle, such as a string. Used only in scenarios tagged `@unexpected-result`. (0122)
+- **`And the hook "<hook>" of policy "<policy>" returns something that is not a lifecycle`**: the hook returns a value that is neither the language's form of nothing nor a lifecycle, such as a string, as far as the language allows; in a language where it cannot, it returns a null-like value. Used only in scenarios tagged `@unexpected-result`. (0122)
 - **`And the hook "<hook>" of policy "<policy>" returns a null-like value`**: the hook returns a null-like value, not the language's form of nothing. (0122)
 - **`And the hook "<hook>" of policy "<policy>" returns a value`**: used only for a workflow hook: it returns a value, such as a string, as far as the language allows; in a language where it cannot, it returns nothing. (0122)
 - **`And the hook "<hook>" of policy "<policy>" throws`**: the hook fails: it throws, or returns an error, as the language expresses a recoverable failure. (0010, 0054)
