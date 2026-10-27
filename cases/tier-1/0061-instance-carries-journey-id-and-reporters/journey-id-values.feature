@@ -5,7 +5,7 @@ Feature: A journey ID is a string that is not empty
   anything else, such as a null-like value, a number or an empty string, makes
   creating the workflow instance fail, so there is no journey and no event.
 
-  @proposal-0122 @unexpected-result
+  @proposal-0122 @non-string-journey-id
   Scenario: An ID generator that returns something that is not a string fails the instance
     Given a workflow "orders" with the steps:
       | step   |

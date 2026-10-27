@@ -24,6 +24,7 @@ Feature: Custom code that returns an unexpected result
       | event           | step   | code              |
       | attempt_started | charge |                   |
       | journey_aborted | charge | unexpected result |
+    And the last event is "journey_aborted"
     And step "charge" ended as aborted after 1 attempts
     And step "ship" ended as not executed after 0 attempts
     And the result names the step "charge" as where the journey was aborted, with the abort reason "unexpected result"
@@ -36,12 +37,15 @@ Feature: Custom code that returns an unexpected result
     And step "charge" attempts:
       | attempt | outcome | code     |
       | 1       | failure | declined |
-      | 2       | success |          |
     And step "charge" has a rescue step
     And step "charge_rescue" returns no outcome
     When the workflow runs
-    Then the journey was aborted with the abort reason "unexpected result"
+    Then the events include, in order:
+      | event           | step          | code              |
+      | journey_aborted | charge_rescue | unexpected result |
+    And the journey was aborted with the abort reason "unexpected result"
     And step "charge" ended as aborted
+    And step "charge_rescue" ended as aborted
 
   @proposal-0122 @unexpected-result
   Scenario: A step hook that returns something that is not a lifecycle aborts the journey
@@ -141,6 +145,7 @@ Feature: Custom code that returns an unexpected result
       | charge |
     And step "charge" succeeds
     And a workflow policy "closing" defines the hook "on workflow success"
+    And the workflow has the policies "closing"
     And the policy "closing" is built as a null-like value
     When the workflow runs
     Then run was refused
@@ -154,6 +159,7 @@ Feature: Custom code that returns an unexpected result
       | charge |
     And step "charge" succeeds
     And a workflow policy "closing" defines the hook "on workflow success"
+    And the workflow has the policies "closing"
     And the hook "on workflow success" of policy "closing" returns a value
     When the workflow runs
     Then the hook "on workflow success" of policy "closing" was called 1 times
@@ -179,6 +185,7 @@ Feature: Custom code that returns an unexpected result
       | charge |
     And step "charge" succeeds
     And a workflow policy "closing" defines the hook "on workflow success"
+    And the workflow has the policies "closing"
     And the hook "on workflow success" of policy "closing" is asynchronous
     And the hook "on workflow success" of policy "closing" fails with "ledger closed"
     When the workflow runs
@@ -192,6 +199,7 @@ Feature: Custom code that returns an unexpected result
       | charge |
     And step "charge" succeeds
     And a workflow policy "closing" defines the hook "on workflow success"
+    And the workflow has the policies "closing"
     And the hook "on workflow success" of policy "closing" is asynchronous
     And the hook "on workflow success" of policy "closing" returns a value
     When the workflow runs

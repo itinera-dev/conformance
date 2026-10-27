@@ -38,8 +38,8 @@ A **null-like value** is what a language has for no value at all, such as `null`
 ## Journey IDs
 
 - **`And the workflow has no ID generator`**: the workflow instance is created with the default journey ID, a UUID v4. (0009, 0061)
-- **`And the workflow's ID generator returns "<id>"`**: the workflow instance is created with this journey ID. (0009, 0061)
-- **`And the workflow's ID generator returns something that is not a string`**: such as a null-like value or a number. Used only in scenarios tagged `@unexpected-result`. (0122)
+- **`And the workflow's ID generator returns "<id>"`**: the ID generator produces this journey ID, with which the workflow instance is created. (0009, 0061)
+- **`And the workflow's ID generator returns something that is not a string`**: such as a null-like value or a number. Used only in scenarios tagged `@non-string-journey-id`. (0122)
 
 ## Input adapters
 
@@ -178,7 +178,7 @@ What a hook does:
 - **`And the hook "<hook>" of policy "<policy>" returns FailWorkflow with code "<code>"`** (0010)
 - **`And the hook "<hook>" of policy "<policy>" returns something that is not a lifecycle`**: the hook returns a value that is neither the language's form of nothing nor a lifecycle, such as a string. Used only in scenarios tagged `@unexpected-result`. (0122)
 - **`And the hook "<hook>" of policy "<policy>" returns a null-like value`**: the hook returns a null-like value, not the language's form of nothing. (0122)
-- **`And the hook "<hook>" of policy "<policy>" returns a value`**: the workflow hook returns a value, such as a string, as far as the language allows; in a language where it cannot, it returns nothing. (0122)
+- **`And the hook "<hook>" of policy "<policy>" returns a value`**: used only for a workflow hook: it returns a value, such as a string, as far as the language allows; in a language where it cannot, it returns nothing. (0122)
 - **`And the hook "<hook>" of policy "<policy>" throws`**: the hook fails: it throws, or returns an error, as the language expresses a recoverable failure. (0010, 0054)
 - **`And the hook "<hook>" of policy "<policy>" fails with "<message>"`**: the hook fails as above, with an error whose message is this text. (0083)
 - **`And the hook "<hook>" of policy "<policy>" requests data from the workflow "<key>" of type <type>`**: a required request for data from the workflow, read from the data bag; input adapters are never used for a hook's request. (0010, 0041)
