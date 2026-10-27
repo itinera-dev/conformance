@@ -17,7 +17,7 @@ A **null-like value** is what a language has for no value at all, such as `null`
 - **`And step "<step>" contributes "<key>" = <value> and then changes it to <value>`**: the step contributes the first value, then changes that same object in place to the second content before ending, as far as the language allows. (0027)
 - **`And step "<step>" attempts:`** followed by a table scripting each attempt, with the columns `attempt` (the attempt number) and `outcome` (`success`, `failure`, `skipped` or `error`), and optionally `code`, `message`, `details` (JSON) for the reason, and `contributes` (a JSON object of keys and values contributed before ending). `error` means a recoverable failure escapes the running step (a throw, or an error returned through its signature), an abnormal termination; for `error`, the `message` column is the error's message. Attempts after the last row repeat the last row. (0008, 0054, 0083, 0106)
 - **`And step "<step>" cannot be built because its constructor fails with "<message>"`**: building the step fails. (0008)
-- **`And step "<step>" returns no outcome`**: every attempt of the step ends by returning a null-like value instead of an outcome. (0122)
+- **`And step "<step>" returns no outcome`**: every attempt of the step ends by returning a null-like value instead of an outcome; for an asynchronous step, by resolving to one. (0122)
 - **`And step "<step>" is built as a null-like value`**: building the step gives a null-like value instead of a step. (0122)
 - **`And step "<step>" does not retry abnormal terminations`**: the step's descriptor turns `retry on abnormal termination` off; without this sentence it is on. (0024, 0106)
 - **`And step "<step>" allows <n> retries`**: the step's retry budget: after the first attempt, at most `n` more. (0008, 0009)
@@ -245,6 +245,7 @@ What happened:
 ## The executor
 
 - **`And step "<step>" is asynchronous`**: the scripted step runs asynchronously. (0012)
+- **`And the hook "<hook>" of policy "<policy>" is asynchronous`**: the hook runs asynchronously, and what it does, including how it fails or what it returns, happens when its future or promise completes. (0122)
 - **`And the executor accepts only synchronous steps, hooks and reporters`**: the scenario uses a synchronous-only executor, which accepts only synchronous service providers too. (0012, 0095)
 - **`When the same executor runs the workflow twice, with a new instance each time`**: one executor runs two journeys, one after the other, each with a new workflow instance created the same way. (0012)
 - **`Then run returned a result instead of throwing`** (0012)

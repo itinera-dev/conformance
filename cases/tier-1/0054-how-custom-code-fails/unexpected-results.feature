@@ -5,7 +5,8 @@ Feature: Custom code that returns an unexpected result
   of the results its call can return, such as a null-like value, the journey is
   aborted with "unexpected result", naming the code, and nothing is retried.
   Before a journey, run is refused. A call whose result is always nothing, such
-  as a workflow hook, is void: what it returns is never read. A language whose
+  as a workflow hook, is void: what it returns is never read. An asynchronous
+  call is awaited, and its result is what it resolves to. A language whose
   types rule out an unexpected result makes it impossible to express, and
   claims the tag unexpected-result as impossible.
 
@@ -153,6 +154,45 @@ Feature: Custom code that returns an unexpected result
       | charge |
     And step "charge" succeeds
     And a workflow policy "closing" defines the hook "on workflow success"
+    And the hook "on workflow success" of policy "closing" returns a value
+    When the workflow runs
+    Then the hook "on workflow success" of policy "closing" was called 1 times
+    And the journey succeeded
+
+  @proposal-0122 @capability-async @unexpected-result
+  Scenario: An asynchronous step that resolves to no outcome aborts the journey
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" is asynchronous
+    And step "charge" returns no outcome
+    When the workflow runs
+    Then the events include, in order:
+      | event           | step   | code              |
+      | journey_aborted | charge | unexpected result |
+    And the journey was aborted with the abort reason "unexpected result"
+
+  @proposal-0122 @capability-async
+  Scenario: An asynchronous workflow hook is awaited, and its failure aborts the journey
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" succeeds
+    And a workflow policy "closing" defines the hook "on workflow success"
+    And the hook "on workflow success" of policy "closing" is asynchronous
+    And the hook "on workflow success" of policy "closing" fails with "ledger closed"
+    When the workflow runs
+    Then the journey was aborted with the abort reason "hook failed"
+    And the result's abort carries the error "ledger closed"
+
+  @proposal-0122 @capability-async
+  Scenario: What an asynchronous workflow hook resolves to is never read
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" succeeds
+    And a workflow policy "closing" defines the hook "on workflow success"
+    And the hook "on workflow success" of policy "closing" is asynchronous
     And the hook "on workflow success" of policy "closing" returns a value
     When the workflow runs
     Then the hook "on workflow success" of policy "closing" was called 1 times
