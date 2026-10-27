@@ -89,11 +89,29 @@ Feature: Custom code that returns an unexpected result
     And the workflow declares the input adapter "pricing" for the steps "charge"
     And the input adapter "pricing" returns no result for "amount"
     When the workflow runs
-    Then the events include, in order:
-      | event           | step   | adapter | key    | code              |
-      | journey_aborted | charge | pricing | amount | unexpected result |
+    Then the events are exactly:
+      | event           | step   | attempt | adapter | key    | code              |
+      | journey_started |        |         |         |        |                   |
+      | attempt_started | charge | 1       |         |        |                   |
+      | journey_aborted | charge |         | pricing | amount | unexpected result |
     And step "charge" ended as aborted
     And the journey was aborted with the abort reason "unexpected result"
+
+  @proposal-0122
+  Scenario: An input adapter that returns the value null supplies it, and it is checked against the input's type
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" requests input "amount" of type integer
+    And step "charge" succeeds
+    And the workflow declares the input adapter "pricing" for the steps "charge"
+    And the input adapter "pricing" returns null for "amount"
+    When the workflow runs
+    Then the events include, in order:
+      | event                  | step   | adapter | key    | code       |
+      | input_adapter_supplied | charge | pricing |        |            |
+      | journey_aborted        | charge | pricing | amount | wrong type |
+    And the journey was aborted with the abort reason "wrong type"
 
   @proposal-0122 @unexpected-result
   Scenario: A service provider that returns a null-like value aborts the journey
@@ -105,9 +123,11 @@ Feature: Custom code that returns an unexpected result
     And the workflow declares the service provider "warehouse" for "stock" of type labeller, for each attempt
     And the service provider "warehouse" returns a null-like value
     When the workflow runs
-    Then the events include, in order:
-      | event           | step   | provider  | key   | code              |
-      | journey_aborted | charge | warehouse | stock | unexpected result |
+    Then the events are exactly:
+      | event           | step   | attempt | provider  | key   | code              |
+      | journey_started |        |         |           |       |                   |
+      | attempt_started | charge | 1       |           |       |                   |
+      | journey_aborted | charge |         | warehouse | stock | unexpected result |
     And step "charge" ended as aborted
     And the journey was aborted with the abort reason "unexpected result"
 
