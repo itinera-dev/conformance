@@ -59,3 +59,20 @@ Feature: The local executor
       | violation         |
       | mode not accepted |
     And no event was emitted
+
+  @capability-sync @proposal-0060 @mode-not-accepted @spec-defect-0125
+  Scenario: A synchronous-only executor refuses an asynchronous input adapter before the journey starts
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" requests input "amount" of type integer
+    And step "charge" succeeds
+    And the workflow declares the input adapter "pricing" for the steps "charge"
+    And the input adapter "pricing" returns 42 for "amount"
+    And the input adapter "pricing" is asynchronous
+    And the executor accepts only synchronous steps, hooks and reporters
+    When the workflow runs
+    Then admission is refused with the violations:
+      | violation         |
+      | mode not accepted |
+    And no event was emitted
