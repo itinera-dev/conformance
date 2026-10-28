@@ -9,7 +9,7 @@ Every case of tier 1, specification 0.1.0, is here. Until a first implementation
 ## How it works
 
 - **The cases** are Gherkin features under [cases/](cases/), one folder per proposal: `cases/tier-N/NNNN-short-name/`. Each scenario builds a workflow, scripts what its steps and hooks do, and checks the result and the event stream.
-- **The format** is in [FORMAT.md](FORMAT.md): tags, values and types, event tables, versions, and how a language runs the cases through its `conformance.json` manifest.
+- **The format** is in [FORMAT.md](FORMAT.md): tags, values and types, event tables, versions, and how a language runs the cases through its manifest, `conformance.json`, or one named for the language in a repository holding several.
 - **The sentences** a case may use form a closed catalogue, [STEPS.md](STEPS.md). Each language implements every sentence once, in its runner.
 - **Tags** give each case's tier, proposal and required capabilities. A language claims a tier only when every case of that tier and the tiers before it passes.
 - **Each language** implements a small runner that loads the cases, runs them and produces a report.
