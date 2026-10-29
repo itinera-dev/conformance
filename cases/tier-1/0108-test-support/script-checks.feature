@@ -145,6 +145,25 @@ Feature: A script is checked before the journey
       | attempt left out | charge | 2       |
     And no event was emitted
 
+  @spec-defect-0127
+  Scenario: No attempt is needed after a real run that fails and a rescue step that fails
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" has a rescue step
+    And step "charge" attempts:
+      | attempt | outcome | code    |
+      | 1       | failure | expired |
+    And step "charge_rescue" succeeds
+    And the script says:
+      | step          | attempt | ending   | code       |
+      | charge        | 1       | real run |            |
+      | charge_rescue | 1       | failure  | no-refresh |
+    When the workflow runs with the script
+    Then the journey failed
+    And the scripted run's record of step "charge" holds the attempts 1
+    And the scripted run's record of step "charge_rescue" holds the attempts 1
+
   Scenario: A script that leaves out an attempt or a rescue step stops the test, naming each
     Given a workflow "orders" with the steps:
       | step   |
