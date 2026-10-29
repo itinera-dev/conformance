@@ -11,6 +11,9 @@ Feature: A script is checked before the journey
   has already described is "attempt scripted twice", and one the step can
   never have is "no such attempt", which is named rather than "attempt
   scripted twice" or "gap in the attempts" when a choice is both.
+  Spec defect #127: how the script says a rescue step ends is part of how
+  its step's attempt 1 ends, so no attempt is needed after a rescue step
+  scripted to fail or to end in an abnormal termination.
 
   Scenario: Describing every attempt the retry budget allows is enough
     Given a workflow "orders" with the steps:
@@ -87,6 +90,7 @@ Feature: A script is checked before the journey
     When the workflow runs with the script
     Then the journey failed
     And the scripted run's record of step "charge" holds the attempts 1
+    And the scripted run's record of step "charge_rescue" holds the attempts 1
 
   @spec-defect-0127
   Scenario: An attempt described after a rescue step that fails never runs
@@ -117,6 +121,24 @@ Feature: A script is checked before the journey
       | step          | attempt | ending  | code    |
       | charge        | 1       | failure | expired |
       | charge_rescue | 1       | success |         |
+    When the workflow runs with the script
+    Then the test stopped before the journey, naming:
+      | mistake          | step   | attempt |
+      | attempt left out | charge | 2       |
+    And no event was emitted
+
+  @spec-defect-0127
+  Scenario: The attempt after a rescue step that runs for real is still needed
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" has a rescue step
+    And step "charge" succeeds
+    And step "charge_rescue" succeeds
+    And the script says:
+      | step          | attempt | ending   | code    |
+      | charge        | 1       | failure  | expired |
+      | charge_rescue | 1       | real run |         |
     When the workflow runs with the script
     Then the test stopped before the journey, naming:
       | mistake          | step   | attempt |
