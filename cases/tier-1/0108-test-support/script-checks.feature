@@ -2,10 +2,11 @@
 Feature: A script is checked before the journey
   Checks proposal 0108 (Test support): before the journey starts, a scripted
   run stops the test when the script leaves out an attempt a scripted step can
-  have, the rescue step of a scripted step that can fail on attempt 1, or, when
-  the test asks for every step, a step; and a mistake in writing the script
-  stops the test where it is written. Either way the report names each
-  problem, and no journey starts.
+  have, given how its earlier attempts and its rescue step end, the rescue
+  step of a scripted step that can fail on attempt 1, or, when the test asks
+  for every step, a step; and a mistake in writing the script stops the test
+  where it is written. Either way the report names each problem, and no
+  journey starts.
   Proposal 0119, which amends proposal 0108: choosing an attempt the script
   has already described is "attempt scripted twice", and one the step can
   never have is "no such attempt", which is named rather than "attempt
@@ -49,6 +50,78 @@ Feature: A script is checked before the journey
       | ship   | 1       | success              |         |
     When the workflow runs with the script
     Then step "charge" ended as failed after 1 attempts
+
+  @spec-defect-0127
+  Scenario: No attempt is needed after a rescue step that fails
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+      | ship   |
+    And step "charge" has a rescue step
+    And step "charge" succeeds
+    And step "charge_rescue" succeeds
+    And step "ship" succeeds
+    And the script says:
+      | step          | attempt | ending  | code       |
+      | charge        | 1       | failure | expired    |
+      | charge_rescue | 1       | failure | no-refresh |
+    When the workflow runs with the script
+    Then the journey failed
+    And step "charge" ended as rescuing after 1 attempts
+    And the scripted run's record of step "charge" holds the attempts 1
+    And the scripted run's record of step "charge_rescue" holds the attempts 1
+    And step "ship" ended as not executed after 0 attempts
+
+  @spec-defect-0127
+  Scenario: No attempt is needed after a rescue step that ends in an abnormal termination
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" has a rescue step
+    And step "charge" succeeds
+    And step "charge_rescue" succeeds
+    And the script says:
+      | step          | attempt | ending               | message      |
+      | charge        | 1       | abnormal termination | timeout      |
+      | charge_rescue | 1       | abnormal termination | refresh down |
+    When the workflow runs with the script
+    Then the journey failed
+    And the scripted run's record of step "charge" holds the attempts 1
+
+  @spec-defect-0127
+  Scenario: An attempt described after a rescue step that fails never runs
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" has a rescue step
+    And step "charge" succeeds
+    And step "charge_rescue" succeeds
+    And the script says:
+      | step          | attempt | ending  | code       |
+      | charge        | 1       | failure | expired    |
+      | charge        | 2       | success |            |
+      | charge_rescue | 1       | failure | no-refresh |
+    When the workflow runs with the script
+    Then the journey failed
+    And the scripted run's record of step "charge" holds the attempts 1
+
+  @spec-defect-0127
+  Scenario: The attempt after a rescue step that succeeds is still needed
+    Given a workflow "orders" with the steps:
+      | step   |
+      | charge |
+    And step "charge" has a rescue step
+    And step "charge" succeeds
+    And step "charge_rescue" succeeds
+    And the script says:
+      | step          | attempt | ending  | code    |
+      | charge        | 1       | failure | expired |
+      | charge_rescue | 1       | success |         |
+    When the workflow runs with the script
+    Then the test stopped before the journey, naming:
+      | mistake          | step   | attempt |
+      | attempt left out | charge | 2       |
+    And no event was emitted
 
   Scenario: A script that leaves out an attempt or a rescue step stops the test, naming each
     Given a workflow "orders" with the steps:
