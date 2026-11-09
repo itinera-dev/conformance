@@ -59,7 +59,7 @@ Feature: The pending budget, the pending deadline and on step pending
     And step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
-    And the step policies define the hooks:
+    And its step policies and their hooks are:
       | policy | hook            |
       | pace   | on step pending |
       | pace   | on step failure |
@@ -108,7 +108,7 @@ Feature: The pending budget, the pending deadline and on step pending
     And step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
-    And the step policies define the hooks:
+    And its step policies and their hooks are:
       | policy | hook            | returns      | code     |
       | pace   | on step pending | FailWorkflow | too slow |
       | pace   | on step failure |              |          |
