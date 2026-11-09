@@ -9,10 +9,9 @@ Feature: Declaring timeouts
 
   Scenario: An attempt timeout of 0 is refused
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" has an attempt timeout of 0 ms
-    And step "charge" succeeds
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation       |
@@ -20,10 +19,9 @@ Feature: Declaring timeouts
 
   Scenario: A negative attempt timeout is refused
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" has an attempt timeout of -1000 ms
-    And step "charge" succeeds
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation       |
@@ -31,10 +29,9 @@ Feature: Declaring timeouts
 
   Scenario: A journey timeout of 0 is refused
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And the workflow has a journey timeout of 0 ms
-    And step "charge" succeeds
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation       |
@@ -43,10 +40,9 @@ Feature: Declaring timeouts
   @fractional-duration
   Scenario: A timeout with a fraction of a millisecond is refused, not rounded
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" has an attempt timeout of 1000.5 ms
-    And step "charge" succeeds
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation       |
@@ -54,13 +50,11 @@ Feature: Declaring timeouts
 
   Scenario: The listing shows the attempt timeouts and the journey timeout
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
+      | step   | outcome |
+      | charge | success |
+      | ship   | success |
     And the workflow has a journey timeout of 86400000 ms
     And step "charge" has an attempt timeout of 5000 ms
-    And step "charge" succeeds
-    And step "ship" succeeds
     When the workflow is listed
     Then the listing has the journey timeout 86400000
     And the listing is:

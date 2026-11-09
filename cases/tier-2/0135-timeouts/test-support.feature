@@ -13,8 +13,8 @@ Feature: Timeouts in test support
       | charge |
     And step "charge" has an attempt timeout of 1000 ms
     And step "charge" attempts:
-      | attempt | outcome | takes   |
-      | 1       | success | 2000 ms |
+      | attempt | outcome | duration |
+      | 1       | success | 2000 ms  |
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:
@@ -30,8 +30,8 @@ Feature: Timeouts in test support
       | charge |
     And the workflow has a journey timeout of 1000 ms
     And step "charge" attempts:
-      | attempt | outcome | takes   |
-      | 1       | success | 2000 ms |
+      | attempt | outcome | duration |
+      | 1       | success | 2000 ms  |
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:
@@ -43,13 +43,12 @@ Feature: Timeouts in test support
 
   Scenario: A scripted attempt that takes longer than its timeout
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" has an attempt timeout of 1000 ms
-    And step "charge" succeeds
     And the script says:
-      | step   | attempt | ending  | takes   |
-      | charge | 1       | success | 1500 ms |
+      | step   | attempt | ending  | duration |
+      | charge | 1       | success | 1500 ms  |
     When the workflow runs with the script
     Then the events include, in order:
       | event             | step   | attempt | taken |

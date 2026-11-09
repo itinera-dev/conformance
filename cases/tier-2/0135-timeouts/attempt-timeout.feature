@@ -19,8 +19,8 @@ Feature: The attempt timeout
     And the workflow lists the reporters "trace"
     And step "charge" has an attempt timeout of 1000 ms
     And step "charge" attempts:
-      | attempt | outcome | takes   |
-      | 1       | success | 1000 ms |
+      | attempt | outcome | duration |
+      | 1       | success | 1000 ms  |
     When the workflow runs
     Then the reporter "trace" did not receive the event "attempt_timed_out"
     And the journey succeeded
@@ -28,18 +28,22 @@ Feature: The attempt timeout
   @proposal-0133
   Scenario: An attempt that succeeds just over its timeout fails the step, and nothing is committed
     Given the step policies and their hooks:
-      | policy | hook            | requests |
-      | tx     | after attempt   | ending   |
-      | tx     | after step      | ending   |
-      | tx     | on step success |          |
-      | tx     | on step failure |          |
+      | policy | hook            |
+      | tx     | after attempt   |
+      | tx     | after step      |
+      | tx     | on step success |
+      | tx     | on step failure |
+    And the hooks request:
+      | policy | hook          | request |
+      | tx     | after attempt | ending  |
+      | tx     | after step    | ending  |
     And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" has an attempt timeout of 1000 ms
     And step "charge" attempts:
-      | attempt | outcome | takes   | contributes        |
-      | 1       | success | 1001 ms | {"receipt": "R-1"} |
+      | attempt | outcome | duration | contributes        |
+      | 1       | success | 1001 ms  | {"receipt": "R-1"} |
     When the workflow runs
     Then the events include, in order:
       | event                   | step   | attempt | policy | hook            | timeout | taken | cause             | decided by |
@@ -72,8 +76,8 @@ Feature: The attempt timeout
     And step "charge" has an attempt timeout of 1000 ms
     And step "charge" allows 2 retries
     And step "charge" attempts:
-      | attempt | outcome | code        | takes   |
-      | 1       | failure | unreachable | 2000 ms |
+      | attempt | outcome | code        | duration |
+      | 1       | failure | unreachable | 2000 ms  |
     When the workflow runs
     Then the events include, in order:
       | event             | step   | attempt | cause             |
@@ -92,8 +96,8 @@ Feature: The attempt timeout
     And step "charge" has an attempt timeout of 1000 ms
     And step "charge" has a rescue step
     And step "charge" attempts:
-      | attempt | outcome | code    | takes   |
-      | 1       | failure | expired | 2000 ms |
+      | attempt | outcome | code    | duration |
+      | 1       | failure | expired | 2000 ms  |
     And step "charge_rescue" succeeds
     When the workflow runs
     Then the reporter "trace" did not receive the event "step_rescuing"
@@ -110,8 +114,8 @@ Feature: The attempt timeout
     And step "payment" may be pending, with a pending budget of 3
     And step "payment" has an attempt timeout of 1000 ms
     And step "payment" attempts:
-      | attempt | outcome | takes   |
-      | 1       | pending | 2000 ms |
+      | attempt | outcome | duration |
+      | 1       | pending | 2000 ms  |
     When the workflow runs
     Then the events include, in order:
       | event             | step    | attempt | cause             |
@@ -121,18 +125,16 @@ Feature: The attempt timeout
     And the reporter "trace" did not receive the event "step_deferred"
 
   Scenario: The time input adapters and service providers take counts against the attempt
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And the workflow declares the input adapter "prices" for the steps "charge"
-    And the input adapter "prices" returns 42 for "amount"
-    And the input adapter "prices" takes 600 ms for "amount"
-    And the workflow declares the service provider "stock" for "labels" of type labeller, for each attempt
-    And the service provider "stock" takes 600 ms
+    Given the input adapters:
+      | adapter | step   | key    | returns | duration |
+      | prices  | charge | amount | 42      | 600 ms   |
+    And the service providers:
+      | provider | key    | type     | scope            | duration |
+      | stock    | labels | labeller | for each attempt | 600 ms   |
+    And a workflow "orders" with the steps:
+      | step   | inputs          | services         | outcome |
+      | charge | amount: integer | labels: labeller | success |
     And step "charge" has an attempt timeout of 1000 ms
-    And step "charge" requests input "amount" of type integer
-    And step "charge" requests the service "labels" of type labeller
-    And step "charge" succeeds
     When the workflow runs
     Then the events include, in order:
       | event             | step   | attempt | timeout | taken |
@@ -143,16 +145,16 @@ Feature: The attempt timeout
   @proposal-0133
   Scenario: The time before attempt hooks take does not count against the attempt
     Given the step policies and their hooks:
-      | policy | hook           | takes   |
-      | tx     | before attempt | 2000 ms |
+      | policy | hook           | duration |
+      | tx     | before attempt | 2000 ms  |
     And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And the workflow lists the reporters "trace"
     And step "charge" has an attempt timeout of 1000 ms
     And step "charge" attempts:
-      | attempt | outcome | takes  |
-      | 1       | success | 500 ms |
+      | attempt | outcome | duration |
+      | 1       | success | 500 ms   |
     When the workflow runs
     Then the reporter "trace" did not receive the event "attempt_timed_out"
     And the journey succeeded
@@ -169,8 +171,8 @@ Feature: The attempt timeout
       | 1       | failure | expired |
       | 2       | success |         |
     And step "charge_rescue" attempts:
-      | attempt | outcome | takes   |
-      | 1       | success | 5000 ms |
+      | attempt | outcome | duration |
+      | 1       | success | 5000 ms  |
     When the workflow runs
     Then the reporter "trace" did not receive the event "attempt_timed_out"
     And the journey succeeded
@@ -184,8 +186,8 @@ Feature: The attempt timeout
       | charge | tx       |
     And step "charge" has an attempt timeout of 1000 ms
     And step "charge" attempts:
-      | attempt | outcome | takes   |
-      | 1       | success | 2000 ms |
+      | attempt | outcome | duration |
+      | 1       | success | 2000 ms  |
     When the workflow runs
     Then the events include, in order:
       | event          | step   | cause             | decided by          |

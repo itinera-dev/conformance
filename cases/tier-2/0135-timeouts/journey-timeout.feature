@@ -15,24 +15,27 @@ Feature: The journey timeout
   @proposal-0133
   Scenario: A journey timeout found after a step returns gives the step up with no outcome hook
     Given the step policies and their hooks:
-      | policy | hook            | requests |
-      | tx     | after attempt   | ending   |
-      | tx     | after step      | ending   |
-      | tx     | on step success |          |
-      | tx     | on step failure |          |
+      | policy | hook            |
+      | tx     | after attempt   |
+      | tx     | after step      |
+      | tx     | on step success |
+      | tx     | on step failure |
     And the workflow policies and their hooks:
       | policy | hook                |
       | audit  | after journey       |
       | audit  | on workflow failure |
+    And the hooks request:
+      | policy | hook          | request |
+      | tx     | after attempt | ending  |
+      | tx     | after step    | ending  |
     And a workflow "orders" with the policies "audit" and the steps:
-      | step   | policies |
-      | charge | tx       |
-      | ship   |          |
+      | step   | policies | outcome |
+      | charge | tx       |         |
+      | ship   |          | success |
     And the workflow has a journey timeout of 5000 ms
     And step "charge" attempts:
-      | attempt | outcome | takes   | contributes        |
-      | 1       | success | 6000 ms | {"receipt": "R-1"} |
-    And step "ship" succeeds
+      | attempt | outcome | duration | contributes        |
+      | 1       | success | 6000 ms  | {"receipt": "R-1"} |
     When the workflow runs
     Then the events include, in order:
       | event             | step   | attempt | policy | hook                | timeout | checkpoint             | cause             | decided by |
@@ -60,8 +63,8 @@ Feature: The journey timeout
 
   Scenario: A journey timeout found between attempts gives the step up, naming its last attempt
     Given the step policies and their hooks:
-      | policy | hook          | takes   |
-      | tx     | on step retry | 2000 ms |
+      | policy | hook          | duration |
+      | tx     | on step retry | 2000 ms  |
     And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
@@ -69,8 +72,8 @@ Feature: The journey timeout
     And the workflow lists the reporters "trace"
     And step "charge" allows 2 retries
     And step "charge" attempts:
-      | attempt | outcome | code        | takes   |
-      | 1       | failure | unreachable | 4000 ms |
+      | attempt | outcome | code        | duration |
+      | 1       | failure | unreachable | 4000 ms  |
     When the workflow runs
     Then the events include, in order:
       | event             | step   | attempt | checkpoint     | cause             |
@@ -119,8 +122,8 @@ Feature: The journey timeout
       | attempt | outcome | code    |
       | 1       | failure | expired |
     And step "charge_rescue" attempts:
-      | attempt | outcome | takes   |
-      | 1       | success | 6000 ms |
+      | attempt | outcome | duration |
+      | 1       | success | 6000 ms  |
     When the workflow runs
     Then the events include, in order:
       | event             | step          | attempt | checkpoint             | cause             |
@@ -140,8 +143,8 @@ Feature: The journey timeout
     And the workflow lists the reporters "trace"
     And step "charge" has an attempt timeout of 1000 ms
     And step "charge" attempts:
-      | attempt | outcome | takes   |
-      | 1       | success | 6000 ms |
+      | attempt | outcome | duration |
+      | 1       | success | 6000 ms  |
     When the workflow runs
     Then the reporter "trace" received the event "journey_timed_out" 1 times
     And the reporter "trace" did not receive the event "attempt_timed_out"
@@ -156,8 +159,8 @@ Feature: The journey timeout
     And the workflow lists the reporters "trace"
     And step "charge" has an attempt timeout of 1000 ms
     And step "charge" attempts:
-      | attempt | outcome | takes   |
-      | 1       | success | 6000 ms |
+      | attempt | outcome | duration |
+      | 1       | success | 6000 ms  |
     And the caller cancels the journey on "step_succeeded" of "charge"
     When the workflow runs
     Then the reporter "trace" did not receive the event "journey_timed_out"
@@ -168,14 +171,13 @@ Feature: The journey timeout
   @proposal-0133
   Scenario: A journey timeout that passes once after journey has started changes nothing
     Given the workflow policies and their hooks:
-      | policy | hook          | takes    |
+      | policy | hook          | duration |
       | audit  | after journey | 10000 ms |
     And a workflow "orders" with the policies "audit" and the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And the workflow has a journey timeout of 5000 ms
     And the workflow lists the reporters "trace"
-    And step "charge" succeeds
     When the workflow runs
     Then the reporter "trace" did not receive the event "journey_timed_out"
     And the journey succeeded
@@ -188,11 +190,11 @@ Feature: The journey timeout
     And the workflow has a journey timeout of 5000 ms
     And the workflow lists the reporters "trace"
     And step "charge" attempts:
-      | attempt | outcome | takes   |
-      | 1       | success | 2000 ms |
+      | attempt | outcome | duration |
+      | 1       | success | 2000 ms  |
     And step "ship" attempts:
-      | attempt | outcome | takes   |
-      | 1       | success | 2000 ms |
+      | attempt | outcome | duration |
+      | 1       | success | 2000 ms  |
     When the workflow runs
     Then the reporter "trace" did not receive the event "journey_timed_out"
     And the journey succeeded

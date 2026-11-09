@@ -27,9 +27,9 @@ Feature: Choosing pending steps while attempts take time
       | 2       | success |
     And step "audit" may be pending, with a pending budget of 3
     And step "audit" attempts:
-      | attempt | outcome | takes   |
-      | 1       | pending |         |
-      | 2       | success | 3000 ms |
+      | attempt | outcome | duration |
+      | 1       | pending |          |
+      | 2       | success | 3000 ms  |
     When the workflow runs
     Then the events include, in order:
       | event          | step    | attempt | over    | timestamp                |
@@ -55,9 +55,9 @@ Feature: Choosing pending steps while attempts take time
     And step "audit" may be pending, with a pending budget of 3
     And step "audit" has a default weight of 10
     And step "audit" attempts:
-      | attempt | outcome | takes   |
-      | 1       | pending |         |
-      | 2       | success | 5000 ms |
+      | attempt | outcome | duration |
+      | 1       | pending |          |
+      | 2       | success | 5000 ms  |
     When the workflow runs
     Then the events include, in order:
       | event          | step    | attempt | timestamp                |
