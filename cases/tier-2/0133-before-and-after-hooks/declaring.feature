@@ -21,9 +21,8 @@ Feature: Declaring before and after hooks
       | audit  | after journey |
       | trace  | after journey |
     And a workflow "orders" with the policies "audit", "trace" and the steps:
-      | step   | policies |
-      | charge | tx, lock |
-    And step "charge" succeeds
+      | step   | policies | outcome |
+      | charge | tx, lock | success |
     When the workflow runs
     Then the journey succeeded
 
@@ -35,9 +34,8 @@ Feature: Declaring before and after hooks
       | lock   | after step      |
       | lock   | on step success |
     And a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | tx, lock |
-    And step "charge" succeeds
+      | step   | policies | outcome |
+      | charge | tx, lock | success |
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation          |
@@ -47,9 +45,8 @@ Feature: Declaring before and after hooks
     Given a step policy "tx" defines the hook "after attempt"
     And the hook "after attempt" of policy "tx" requests step data "receipt" of type string
     And a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | tx       |
-    And step "charge" succeeds
+      | step   | policies | outcome |
+      | charge | tx       | success |
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation                      |
@@ -60,9 +57,8 @@ Feature: Declaring before and after hooks
     Given a workflow policy "audit" defines the hook "after journey"
     And the hook "after journey" of policy "audit" requests data from the workflow "order" of type string
     And a workflow "orders" with the policies "audit" and the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation                      |
@@ -70,12 +66,12 @@ Feature: Declaring before and after hooks
 
   Scenario: A required request for the failure reason in after step is refused
     Given the step policies and their hooks:
-      | policy | hook       | requests       |
-      | tx     | after step | failure reason |
+      | policy | hook       |
+      | tx     | after step |
+    And the hook "after step" of policy "tx" requests the failure reason
     And a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | tx       |
-    And step "charge" succeeds
+      | step   | policies | outcome |
+      | charge | tx       | success |
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation                      |
@@ -83,13 +79,19 @@ Feature: Declaring before and after hooks
 
   Scenario: After hooks may require what always exists
     Given the step policies and their hooks:
-      | policy | hook          | requests                                      |
-      | tx     | after attempt | step name, attempt number, ending, journey ID |
-      | tx     | after step    | number of attempts                            |
+      | policy | hook          |
+      | tx     | after attempt |
+      | tx     | after step    |
+    And the hooks request:
+      | policy | hook          | request            |
+      | tx     | after attempt | step name          |
+      | tx     | after attempt | attempt number     |
+      | tx     | after attempt | ending             |
+      | tx     | after attempt | journey ID         |
+      | tx     | after step    | number of attempts |
     And a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | tx       |
-    And step "charge" succeeds
+      | step   | policies | outcome |
+      | charge | tx       | success |
     And the workflow's ID generator returns "J-1"
     When the workflow runs
     Then the hooks received:
@@ -105,9 +107,8 @@ Feature: Declaring before and after hooks
       | tx     | after attempt  |
     And the hook "before attempt" of policy "tx" requests data from the workflow "order" of type string
     And a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | tx       |
-    And step "charge" succeeds
+      | step   | policies | outcome |
+      | charge | tx       | success |
     And the data bag is empty
     When the workflow runs
     Then the events include, in order:
