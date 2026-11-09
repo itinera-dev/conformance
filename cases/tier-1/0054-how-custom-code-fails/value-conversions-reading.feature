@@ -14,10 +14,8 @@ Feature: A value conversion that fails while a value is read
   @proposal-0113
   Scenario: A step input whose conversion fails aborts the journey with "wrong type"
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests input "order" of type throwing record
-    And step "charge" succeeds
+      | step   | inputs                 | outcome |
+      | charge | order: throwing record | success |
     And the data bag contains:
       | key   | value     |
       | order | {"id": 7} |
@@ -33,10 +31,8 @@ Feature: A value conversion that fails while a value is read
   @proposal-0113
   Scenario: A step input whose check refuses the value aborts the journey with "wrong type" and no error
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests input "order" of type rejected record
-    And step "charge" succeeds
+      | step   | inputs                 | outcome |
+      | charge | order: rejected record | success |
     And the data bag contains:
       | key   | value     |
       | order | {"id": 7} |
@@ -51,13 +47,11 @@ Feature: A value conversion that fails while a value is read
 
   @proposal-0113
   Scenario: A step input that an input adapter supplies, whose conversion fails, aborts with "wrong type" naming the adapter
+    Given the input adapter "pricing" returns {"id": 7} when step "charge" requests "order"
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests input "order" of type throwing record
-    And step "charge" succeeds
-    And the workflow declares the input adapter "pricing" for the steps "charge"
-    And the input adapter "pricing" returns {"id": 7} for "order"
+      | step   | inputs                 | outcome |
+      | charge | order: throwing record | success |
+    And the workflow binds the input adapter "pricing" to the step "charge"
     When the workflow runs
     Then the journey was aborted with the abort reason "wrong type"
     And the events include, in order:
@@ -68,16 +62,14 @@ Feature: A value conversion that fails while a value is read
 
   @proposal-0113
   Scenario: A hook's data from the workflow whose conversion fails aborts the journey before the hook runs
+    Given a step policy "audit" defines the hook "on step success"
+    Given the hook "on step success" of policy "audit" requests data from the workflow "order" of type throwing record
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | policies | outcome |
+      | charge | audit    | success |
     And the data bag contains:
       | key   | value     |
       | order | {"id": 7} |
-    And a step policy "audit" defines the hook "on step success"
-    And the hook "on step success" of policy "audit" requests data from the workflow "order" of type throwing record
-    And step "charge" has the policies "audit"
     When the workflow runs
     Then the journey was aborted with the abort reason "wrong type"
     And the events include, in order:
@@ -88,14 +80,12 @@ Feature: A value conversion that fails while a value is read
 
   @proposal-0113
   Scenario: A hook's data from the step whose check refuses the value aborts the journey before the hook runs
+    Given a step policy "audit" defines the hook "on step success"
+    Given the hook "on step success" of policy "audit" requests optional step data "order" of type rejected record
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies | outcome |
+      | charge | audit    | success |
     And step "charge" contributes "order" = {"id": 7}
-    And step "charge" succeeds
-    And a step policy "audit" defines the hook "on step success"
-    And the hook "on step success" of policy "audit" requests optional step data "order" of type rejected record
-    And step "charge" has the policies "audit"
     When the workflow runs
     Then the journey was aborted with the abort reason "wrong type"
     And the events include, in order:
@@ -108,9 +98,8 @@ Feature: A value conversion that fails while a value is read
   @proposal-0113
   Scenario: A rescue step's data from the step it rescues whose check refuses the value aborts the journey
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
+      | step   | rescue |
+      | charge | yes    |
     And step "charge" attempts:
       | attempt | outcome | code    | contributes          |
       | 1       | failure | expired | {"order": {"id": 7}} |
@@ -128,17 +117,15 @@ Feature: A value conversion that fails while a value is read
 
   @proposal-0113
   Scenario: An input adapter's request whose conversion fails aborts the journey before the adapter is called
+    Given the input adapter "pricing" returns 7 when step "charge" requests "amount"
+    And the input adapter "pricing" requests data from the workflow "order" of type throwing record
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests input "amount" of type integer
-    And step "charge" succeeds
+      | step   | inputs          | outcome |
+      | charge | amount: integer | success |
+    And the workflow binds the input adapter "pricing" to the step "charge"
     And the data bag contains:
       | key   | value     |
       | order | {"id": 7} |
-    And the workflow declares the input adapter "pricing" for the steps "charge"
-    And the input adapter "pricing" requests data from the workflow "order" of type throwing record
-    And the input adapter "pricing" returns 7 for "amount"
     When the workflow runs
     Then the journey was aborted with the abort reason "wrong type"
     And the events include, in order:
@@ -148,16 +135,15 @@ Feature: A value conversion that fails while a value is read
 
   @proposal-0113
   Scenario: A service provider's request whose check refuses the value aborts the journey before the provider is called
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
+    And the service provider "payments" requests data from the workflow "gateway" of type rejected record
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests the service "payments" of type labeller
-    And step "charge" succeeds
+      | step   | services           | outcome |
+      | charge | payments: labeller | success |
+    And the workflow binds the service provider "payments"
     And the data bag contains:
       | key     | value              |
       | gateway | {"name": "stripe"} |
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
-    And the service provider "payments" requests data from the workflow "gateway" of type rejected record
     When the workflow runs
     Then the journey was aborted with the abort reason "wrong type"
     And the events include, in order:
@@ -170,17 +156,15 @@ Feature: A value conversion that fails while a value is read
   @proposal-0113
   Scenario: A read through an input adapter's access whose conversion fails is another type, and emits nothing
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests input "amount" of type integer
-    And step "charge" succeeds
+      | step   | inputs          | outcome |
+      | charge | amount: integer | success |
+    And the workflow binds the input adapter "pricing" to the step "charge"
+    And the input adapter "pricing" requests the data bag
+    And the input adapter "pricing" returns "price.charge" of type throwing record, read from the data bag, for "amount"
     And the data bag contains:
       | key          | value     |
       | amount       | 42        |
       | price.charge | {"id": 7} |
-    And the workflow declares the input adapter "pricing" for the steps "charge"
-    And the input adapter "pricing" requests the data bag
-    And the input adapter "pricing" returns "price.charge" of type throwing record, read from the data bag, for "amount"
     When the workflow runs
     Then step "charge" was built with input "amount" = 42
     And the events are exactly:

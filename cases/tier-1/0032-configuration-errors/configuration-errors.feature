@@ -8,14 +8,10 @@ Feature: Configuration errors
 
   Scenario: A configuration error found partway through a journey ends the stream with journey_aborted
     Given a workflow "orders" with the steps:
-      | step    |
-      | reserve |
-      | charge  |
-      | ship    |
-    And step "reserve" succeeds
-    And step "charge" succeeds
-    And step "ship" requests input "address" of type string
-    And step "ship" succeeds
+      | step    | inputs          | outcome |
+      | reserve |                 | success |
+      | charge  |                 | success |
+      | ship    | address: string | success |
     And the data bag is empty
     When the workflow runs
     Then the events include, in order:
@@ -25,8 +21,10 @@ Feature: Configuration errors
       | step_succeeded    | charge  |         | 1       |                       |
       | journey_aborted   | ship    | address |         | required data missing |
     And the last event is "journey_aborted"
-    And step "reserve" ended as succeeded after 1 attempts
-    And step "charge" ended as succeeded after 1 attempts
+    And the steps ended as:
+      | step    | status    | attempts |
+      | reserve | succeeded | 1        |
+      | charge  | succeeded | 1        |
     And the journey was aborted
 
   @proposal-0042
@@ -46,10 +44,8 @@ Feature: Configuration errors
   @proposal-0083
   Scenario: An abort that no error caused carries no error
     Given a workflow "orders" with the steps:
-      | step |
-      | ship |
-    And step "ship" requests input "address" of type string
-    And step "ship" succeeds
+      | step | inputs          | outcome |
+      | ship | address: string | success |
     And the data bag is empty
     When the workflow runs
     Then the journey was aborted with the abort reason "required data missing"

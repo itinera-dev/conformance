@@ -7,13 +7,10 @@ Feature: Order, the scan and retries
 
   Scenario: Steps run in the order of their descriptors
     Given a workflow "orders" with the steps:
-      | step    |
-      | reserve |
-      | charge  |
-      | ship    |
-    And step "reserve" succeeds
-    And step "charge" succeeds
-    And step "ship" succeeds
+      | step    | outcome |
+      | reserve | success |
+      | charge  | success |
+      | ship    | success |
     When the workflow runs
     Then the events include, in order:
       | event           | step    | key | attempt | code |
@@ -24,42 +21,39 @@ Feature: Order, the scan and retries
 
   Scenario: A contribution from one step is an input to a later step
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
+      | step   | inputs          | outcome |
+      | charge |                 | success |
+      | ship   | receipt: string | success |
     And step "charge" contributes "receipt" = "R-1"
-    And step "charge" succeeds
-    And step "ship" requests input "receipt" of type string
-    And step "ship" succeeds
     When the workflow runs
     Then step "ship" was built with input "receipt" = "R-1"
     And the journey succeeded
 
   Scenario: A failed step ends the journey, and later steps do not run
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
+      | step   | outcome |
+      | charge |         |
+      | ship   | success |
     And step "charge" attempts:
       | attempt | outcome | code     |
       | 1       | failure | declined |
-    And step "ship" succeeds
     When the workflow runs
-    Then step "charge" ended as failed after 1 attempts
-    And step "ship" ended as not executed after 0 attempts
+    Then the steps ended as:
+      | step   | status       | attempts |
+      | charge | failed       | 1        |
+      | ship   | not executed | 0        |
     And the journey failed
 
   @proposal-0106
   Scenario: Without a stated budget, a failure is not retried
+    Given a step policy "policy" defines the hook "on step failure"
+    Given the hook "on step failure" of policy "policy" requests the failure cause
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | policy   |
     And step "charge" attempts:
       | attempt | outcome | code        |
       | 1       | failure | unreachable |
-    And a step policy "policy" defines the hook "on step failure"
-    And the hook "on step failure" of policy "policy" requests the failure cause
-    And step "charge" has the policies "policy"
     When the workflow runs
     Then the hook "on step failure" of policy "policy" received the cause "failure"
     And step "charge" ended as failed after 1 attempts

@@ -5,22 +5,26 @@ Feature: Skipped steps
   final.
 
   Scenario: A skipped step is out of the flow and the journey continues
+    Given the step policies and their hooks:
+      | policy | hook            |
+      | policy | on step success |
+      | alarm  | on step failure |
     Given a workflow "orders" with the steps:
-      | step     |
-      | discount |
-      | ship     |
+      | step     | policies      | outcome |
+      | discount | policy, alarm |         |
+      | ship     |               | success |
     And step "discount" attempts:
       | attempt | outcome | code             |
       | 1       | skipped | no discount here |
-    And step "ship" succeeds
-    And a step policy "policy" defines the hook "on step success"
-    And a step policy "alarm" defines the hook "on step failure"
-    And step "discount" has the policies "policy", "alarm"
     When the workflow runs
-    Then the hook "on step success" of policy "policy" was not called
-    And the hook "on step failure" of policy "alarm" was not called
-    And step "discount" ended as skipped after 1 attempts
-    And step "ship" ended as succeeded after 1 attempts
+    Then the hooks received:
+      | policy | hook            | calls |
+      | policy | on step success | 0     |
+      | alarm  | on step failure | 0     |
+    And the steps ended as:
+      | step     | status    | attempts |
+      | discount | skipped   | 1        |
+      | ship     | succeeded | 1        |
     And the events include, in order:
       | event        | step     | key | attempt | code             |
       | step_skipped | discount |     | 1       | no discount here |
@@ -42,27 +46,24 @@ Feature: Skipped steps
 
   Scenario: A later step requiring what a skipped step would have contributed aborts the journey
     Given a workflow "orders" with the steps:
-      | step     |
-      | discount |
-      | charge   |
+      | step     | inputs            | outcome |
+      | discount |                   |         |
+      | charge   | discount: integer | success |
     And step "discount" attempts:
       | attempt | outcome | contributes      |
       | 1       | skipped | {"discount": 10} |
-    And step "charge" requests input "discount" of type integer
-    And step "charge" succeeds
     When the workflow runs
     Then the journey was aborted
 
   Scenario: A later step with an optional input receives it absent after a skip
     Given a workflow "orders" with the steps:
-      | step     |
-      | discount |
-      | charge   |
+      | step     | outcome |
+      | discount |         |
+      | charge   | success |
     And step "discount" attempts:
       | attempt | outcome | contributes      |
       | 1       | skipped | {"discount": 10} |
     And step "charge" requests optional input "discount" of type integer
-    And step "charge" succeeds
     When the workflow runs
     Then step "charge" was built with input "discount" absent
     And the journey succeeded
