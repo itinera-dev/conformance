@@ -5,6 +5,8 @@ Feature: Input adapters that read the data bag
   another type emits nothing and aborts nothing. It sees what earlier attempts
   committed, never writes the data bag, and its access shows nothing after its
   call.
+  Amended by proposal 0134: the ordered pass starts with the fact
+  `pass_started`, right after `journey_started`.
 
   @proposal-0091
   Scenario: An adapter reads a key computed for the step and supplies its value
@@ -27,7 +29,7 @@ Feature: Input adapters that read the data bag
       | input_adapter_supplied | charge | amount | pricing |
     And the journey succeeded
 
-  @proposal-0091
+  @proposal-0091 @proposal-0134
   Scenario: A read of a missing key emits nothing, and the input comes from the data bag
     Given a workflow "orders" with the steps:
       | step   |
@@ -45,6 +47,7 @@ Feature: Input adapters that read the data bag
     And the events are exactly:
       | event             | step   | attempt |
       | journey_started   |        |         |
+      | pass_started      |        |         |
       | attempt_started   | charge | 1       |
       | step_succeeded    | charge | 1       |
       | journey_succeeded |        |         |

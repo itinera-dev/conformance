@@ -4,6 +4,8 @@ Feature: The rescued step's hooks
   neither the retry hook nor the failure hook; the abnormal termination hook
   runs as usual, and may give the step up instead of rescuing it. A step that
   fails again after its rescue is given up under the ordinary rules.
+  Amended by proposal 0134: the ordered pass starts with the fact
+  `pass_started`, right after `journey_started`.
 
   Scenario: The retry and failure hooks are not called for a rescued failure
     Given a workflow "orders" with the steps:
@@ -27,6 +29,7 @@ Feature: The rescued step's hooks
     And the hook "on step failure" of policy "watch" was not called
     And the journey succeeded
 
+  @proposal-0134
   Scenario: FailWorkflow from the abnormal termination hook gives the step up instead of rescuing it
     Given a workflow "orders" with the steps:
       | step   |
@@ -43,6 +46,7 @@ Feature: The rescued step's hooks
     Then the events are exactly:
       | event                     | step   | attempt | policy | hook                         | lifecycle    | cause        | decided by                          |
       | journey_started           |        |         |        |                              |              |              |                                     |
+      | pass_started              |        |         |        |                              |              |              |                                     |
       | attempt_started           | charge | 1       |        |                              |              |              |                                     |
       | step_abnormal_termination | charge | 1       |        |                              |              |              |                                     |
       | hook_called               | charge | 1       | watch  | on step abnormal termination | FailWorkflow |              |                                     |

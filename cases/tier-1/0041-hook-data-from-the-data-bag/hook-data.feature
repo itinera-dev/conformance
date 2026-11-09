@@ -4,7 +4,10 @@ Feature: Hooks read data from the workflow from the data bag
   the workflow from the data bag, never through an input adapter, and a failure
   while resolving it aborts the journey before the hook runs. The scenario on
   input adapters is in 0010-hooks-lifecycles-and-roles/reading-and-writing.feature.
+  Amended by proposal 0134: the ordered pass starts with the fact
+  `pass_started`, right after `journey_started`.
 
+  @proposal-0134
   Scenario: A hook's missing required data aborts the journey before the hook runs
     Given a workflow "orders" with the steps:
       | step   |
@@ -18,6 +21,7 @@ Feature: Hooks read data from the workflow from the data bag
     Then the events are exactly:
       | event           | step   | key    | attempt | policy | hook            | code                  |
       | journey_started |        |        |         |        |                 |                       |
+      | pass_started    |        |        |         |        |                 |                       |
       | attempt_started | charge |        | 1       |        |                 |                       |
       | step_succeeded  | charge |        | 1       |        |                 |                       |
       | journey_aborted | charge | amount |         | audit  | on step success | required data missing |

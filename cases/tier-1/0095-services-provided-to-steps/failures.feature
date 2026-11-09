@@ -6,7 +6,10 @@ Feature: Providers and services that fail, and a provider's events
   service_provided, and a reporter that fails on one ends the provider; an error
   from a service's operation, returned through the step, is an abnormal
   termination.
+  Amended by proposal 0134: the ordered pass starts with the fact
+  `pass_started`, right after `journey_started`.
 
+  @proposal-0134
   Scenario: A provider that fails aborts the journey
     Given a workflow "orders" with the steps:
       | step   |
@@ -19,6 +22,7 @@ Feature: Providers and services that fail, and a provider's events
     Then the events are exactly:
       | event                   | step   | attempt | key      | provider | code                    | error        |
       | journey_started         |        |         |          |          |                         |              |
+      | pass_started            |        |         |          |          |                         |              |
       | attempt_started         | charge | 1       |          |          |                         |              |
       | service_provider_failed | charge | 1       | payments | payments |                         |              |
       | journey_aborted         | charge |         |          | payments | step could not be built | gateway down |
@@ -55,7 +59,7 @@ Feature: Providers and services that fail, and a provider's events
       | journey_aborted         | charge |         |          | payments | step could not be built |
     And step "charge" ended as aborted after 2 attempts
 
-  @no-instance
+  @no-instance @proposal-0134
   Scenario: A provider that returns nothing aborts the journey, with no error
     Given a workflow "orders" with the steps:
       | step   |
@@ -68,6 +72,7 @@ Feature: Providers and services that fail, and a provider's events
     Then the events are exactly:
       | event                   | step   | attempt | key      | provider | code                    |
       | journey_started         |        |         |          |          |                         |
+      | pass_started            |        |         |          |          |                         |
       | attempt_started         | charge | 1       |          |          |                         |
       | service_provider_failed | charge | 1       | payments | payments |                         |
       | journey_aborted         | charge |         |          | payments | step could not be built |
@@ -75,6 +80,7 @@ Feature: Providers and services that fail, and a provider's events
     And the result's abort carries no error
     And no step ran
 
+  @proposal-0134
   Scenario: A provider's events carry its name and come before service_provided
     Given a workflow "orders" with the steps:
       | step   |
@@ -88,6 +94,7 @@ Feature: Providers and services that fail, and a provider's events
     Then the events are exactly:
       | event             | step   | attempt | key      | provider | message                   |
       | journey_started   |        |         |          |          |                           |
+      | pass_started      |        |         |          |          |                           |
       | attempt_started   | charge | 1       |          |          |                           |
       | journey_info      | charge | 1       |          | payments | choosing the main gateway |
       | service_provided  | charge | 1       | payments | payments |                           |
@@ -114,7 +121,7 @@ Feature: Providers and services that fail, and a provider's events
     And no step ran
     And the last event is "journey_aborted"
 
-  @non-value
+  @non-value @proposal-0134
   Scenario: A provider's event data that is not a value aborts the journey, and the event is not delivered
     Given a workflow "orders" with the steps:
       | step   |
@@ -127,6 +134,7 @@ Feature: Providers and services that fail, and a provider's events
     Then the events are exactly:
       | event           | step   | attempt | provider | code        |
       | journey_started |        |         |          |             |
+      | pass_started    |        |         |          |             |
       | attempt_started | charge | 1       |          |             |
       | journey_aborted | charge |         | payments | not a value |
     And no event carries the message "odd data"

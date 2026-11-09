@@ -6,6 +6,8 @@ Feature: What a service provider requests
   scope may also request the step's name and the attempt number. Its requests
   are resolved before it is called, with the rules for a hook's data from the
   workflow.
+  Amended by proposal 0134: the ordered pass starts with the fact
+  `pass_started`, right after `journey_started`.
 
   @proposal-0106
   Scenario: An attempt-scoped provider receives the step's name and the attempt number
@@ -67,6 +69,7 @@ Feature: What a service provider requests
     And step "charge" was given the service "payments" labelled "backup" for attempt 2
     And the journey succeeded
 
+  @proposal-0134
   Scenario: A provider's missing required data aborts the journey before it is called
     Given a workflow "orders" with the steps:
       | step   |
@@ -80,6 +83,7 @@ Feature: What a service provider requests
     Then the events are exactly:
       | event           | step   | attempt | key     | provider | code                  |
       | journey_started |        |         |         |          |                       |
+      | pass_started    |        |         |         |          |                       |
       | attempt_started | charge | 1       |         |          |                       |
       | journey_aborted | charge |         | gateway | payments | required data missing |
     And the service provider "payments" was called 0 times
@@ -104,6 +108,7 @@ Feature: What a service provider requests
     And the service provider "payments" was called 0 times
     And no step ran
 
+  @proposal-0134
   Scenario: A provider's absent optional data emits optional_input_absent naming the provider
     Given a workflow "orders" with the steps:
       | step   |
@@ -118,6 +123,7 @@ Feature: What a service provider requests
     And the events are exactly:
       | event                 | step   | attempt | key      | provider |
       | journey_started       |        |         |          |          |
+      | pass_started          |        |         |          |          |
       | attempt_started       | charge | 1       |          |          |
       | optional_input_absent | charge | 1       | gateway  | payments |
       | service_provided      | charge | 1       | payments | payments |
@@ -137,6 +143,7 @@ Feature: What a service provider requests
     Then the result names the step "charge" as where the journey was aborted, with the abort reason "required data missing"
     And the service provider "payments" was called 0 times
 
+  @proposal-0134
   Scenario: A step's input events come before its service events
     Given a workflow "orders" with the steps:
       | step   |
@@ -150,6 +157,7 @@ Feature: What a service provider requests
     Then the events are exactly:
       | event                 | step   | attempt | key      | provider |
       | journey_started       |        |         |          |          |
+      | pass_started          |        |         |          |          |
       | attempt_started       | charge | 1       |          |          |
       | optional_input_absent | charge | 1       | note     |          |
       | service_provided      | charge | 1       | payments | payments |

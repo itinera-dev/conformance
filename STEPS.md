@@ -15,7 +15,7 @@ A **null-like value** is what a language has for no value at all, such as `null`
 - **`And step "<step>" succeeds`**: every attempt of the step ends with success. (0002)
 - **`And step "<step>" changes its input "<key>" to <value>`**: before ending, the step changes the value it received for this input, in place, to this content, as far as the language allows; in a language where received values cannot be changed, it does nothing. (0027)
 - **`And step "<step>" contributes "<key>" = <value> and then changes it to <value>`**: the step contributes the first value, then changes that same object in place to the second content before ending, as far as the language allows. (0027)
-- **`And step "<step>" attempts:`** followed by a table scripting each attempt, with the columns `attempt` (the attempt number) and `outcome` (`success`, `failure`, `skipped` or `error`), and optionally `code`, `message`, `details` (JSON) for the reason, and `contributes` (a JSON object of keys and values contributed before ending). `error` means a recoverable failure escapes the running step (a throw, or an error returned through its signature), an abnormal termination; for `error`, the `message` column is the error's message. Attempts after the last row repeat the last row. (0008, 0054, 0083, 0106)
+- **`And step "<step>" attempts:`** followed by a table scripting each attempt, with the columns `attempt` (the attempt number) and `outcome` (`success`, `failure`, `skipped` or `error`), and optionally `code`, `message`, `details` (JSON) for the reason, and `contributes` (a JSON object of keys and values contributed before ending). `error` means a recoverable failure escapes the running step (a throw, or an error returned through its signature), an abnormal termination; for `error`, the `message` column is the error's message. Attempts after the last row repeat the last row. The outcome `pending` reports that the step's work is not finished yet, with the optional column `hint` (JSON) for the hint it attaches (0134). (0008, 0054, 0083, 0106)
 - **`And step "<step>" cannot be built because its constructor fails with "<message>"`**: building the step fails. (0008)
 - **`And step "<step>" returns no outcome`**: every attempt of the step ends by returning a null-like value instead of an outcome; for an asynchronous step, by resolving to one. (0122)
 - **`And step "<step>" is built as a null-like value`**: building the step gives a null-like value instead of a step. (0122)
@@ -131,7 +131,7 @@ Implementations of `labeller`, used only in these sentences: `first labeller`, w
 - **`Then the journey was aborted with the abort reason "<reason>"`**: the result's abort reason, from the list below. (0049)
 - **`Then run was refused`** and **`Then run was refused with the message "<message>"`**: `run` reported a refusal to the developer instead of a journey result, carrying this message. (0049)
 - **`Then the journey failed`** (0008)
-- **`Then step "<step>" ended as <status> after <n> attempts`**: the step's final status, one of `succeeded`, `failed`, `skipped`, `bypassed` (0133), `not executed`, `rescuing` or `aborted`, and how many attempts it took, both read from the event stream; an attempt counts from its `attempt_started`. The status is `aborted` when `journey_aborted` names the step and no `step_succeeded`, `step_skipped` or `step_given_up` of that step came before it: a step whose status was already final when the journey was aborted keeps it. A step whose last decision is `step_rescuing` or `step_rescued`, with no `attempt_started` of it after that decision, is `rescuing`, or `aborted` when the journey was aborted. (0008, spec#48, 0065, spec#89, 0003)
+- **`Then step "<step>" ended as <status> after <n> attempts`**: the step's final status, one of `succeeded`, `failed`, `skipped`, `bypassed` (0133), `abandoned` (0134), `not executed`, `rescuing` or `aborted`, and how many attempts it took, both read from the event stream; an attempt counts from its `attempt_started`. The status is `aborted` when `journey_aborted` names the step and no `step_succeeded`, `step_skipped` or `step_given_up` of that step came before it: a step whose status was already final when the journey was aborted keeps it. A step whose last decision is `step_rescuing` or `step_rescued`, with no `attempt_started` of it after that decision, is `rescuing`, or `aborted` when the journey was aborted. (0008, spec#48, 0065, spec#89, 0003)
 - **`Then step "<step>" ended as aborted`**: the journey was aborted while this step was executing or about to be retried: `journey_aborted` names it, and no `step_succeeded`, `step_skipped` or `step_given_up` of that step came before it; or while it was being rescued: its last decision is `step_rescuing` or `step_rescued`, with no `attempt_started` of it after that decision, and the journey was aborted. (0009, 0065, spec#89, 0003)
 - **`Then the journey ID is a UUID v4`** (0009)
 - **`Then the journey ID is "<id>"`** (0009)
@@ -146,7 +146,7 @@ Implementations of `labeller`, used only in these sentences: `first labeller`, w
 - **`Then the second journey's data bag contains:`** followed by a table with the columns `key` and `value`, after "the same executor runs the workflow twice". (0058)
 - **`Then the result's journey ID is "<id>"`** (0065)
 - **`Then the result's failure reason has the code "<code>"`**: the result of a failed journey explains it with a reason of this code. (0065)
-- **`Then the result's failure has the cause "<cause>"`**: one of `failure`, `retries exhausted`, `abnormal termination` or `FailWorkflow`, or `before hook failed` or `after hook failed` (0133). (0083)
+- **`Then the result's failure has the cause "<cause>"`**: one of `failure`, `retries exhausted`, `abnormal termination` or `FailWorkflow`, or `before hook failed` or `after hook failed` (0133), or `pending exhausted` (0134). (0083)
 - **`Then the result's failure carries the error "<message>"`** and **`Then the result's failure carries no error`**: the error the result of a failed journey carries, by its message, or that it carries none. (0083)
 - **`Then the result's failure carries no reason`** (0083)
 - **`Then the result's abort carries the error "<message>"`** and **`Then the result's abort carries no error`**: the error the result of an aborted journey carries, by its message, or that it carries none. (0083)
@@ -224,6 +224,28 @@ Sentences for the hooks of proposal 0133, `before journey`, `after journey`, `be
 - **`Then the policy "<policy>" was built <n> times`**: how many instances of this policy were built in the journey, each counted when building it was called, whether it succeeded or failed. (0133)
 - **`Then the input adapter "<adapter>" was called <n> times`**: counting every call, whether it supplied a value, returned nothing or failed. (0133)
 - **`Then journey_failed names no step`**: the journey's `journey_failed` names no step, as when `before journey` returned `FailWorkflow` or `after journey` failed. (0133)
+
+## Pending steps
+
+Sentences for proposal 0134. Durations are written as a number of milliseconds followed by `ms`, such as `5000 ms`; a runner gives them to its language in the language's own form for a duration, and a duration that form cannot hold, such as `1.5 ms` where only whole milliseconds can be written, appears only in scenarios tagged `@fractional-duration`. (0134)
+
+**The clock.** In every scenario, the runner gives the executor a clock it controls. It starts at `2026-01-01T00:00:00.000Z` and moves only when the executor waits, at once, to the moment the executor waits for, so no scenario waits in real time; later proposals add other ways for it to move. Times are written in ISO 8601 in UTC with milliseconds, and compared as moments. (0134)
+
+- **`And the workflow allows pending steps`**: the workflow descriptor declares `allows pending steps`. (0134)
+- **`And step "<step>" may be pending, with a pending budget of <n>`** and **`And step "<step>" may be pending, with no pending budget`**: the step descriptor declares `may be pending`, with this pending budget or with none. (0134)
+- **`And step "<step>" has a default nbf of <duration>`**, **`And step "<step>" has a default weight of <n>`** and **`And step "<step>" has a pending deadline of <duration>`**: the step descriptor's pending settings; without them, the default nbf and weight are 0 and there is no deadline. (0134)
+- **`And step "<step>" waits for the steps "<step>", "<step>"`**: the step descriptor names the steps it waits for, one or more. (0134)
+- **`And step "<step>" reports pending with a hint that is not a value`**: every attempt reports pending, with a hint that is not a value, such as a function. (0134)
+- **`And the hook "<hook>" of policy "<policy>" defers with nbf <duration>`**, **`And the hook "<hook>" of policy "<policy>" defers with weight <n>`** and **`And the hook "<hook>" of policy "<policy>" defers with nbf <duration> and weight <n>`**: `on step pending` returns a deferral with this nbf delay, this weight, or both. A negative delay appears only in scenarios tagged `@negative-delay`. (0134)
+- **`And the hook "<hook>" of policy "<policy>" requests the hint`**: `on step pending` requests, as optional, the hint the step attached. (0134)
+- **`Then the hook "<hook>" of policy "<policy>" received the hint <value>`** and **`Then the hook "<hook>" of policy "<policy>" received no hint`** (0134)
+- **`Then the listing allows pending steps`**: the listing shows that the workflow allows pending steps. (0134)
+
+"Then the listing is" takes the optional columns `pending budget`, `waits`, `pending deadline`, `nbf` and `weight` (0134): for a step that may be pending, its pending budget, the steps it waits for, separated by commas in the order declared, its deadline and default nbf in milliseconds, and its default weight; each is empty for a step that cannot be pending, and `waits` and `pending deadline` are empty when it has none. The default nbf and weight are listed as `0` when not declared.
+
+"Then step ... ended as" reads, for a step whose last decision is `step_deferred` or `step_waiting` with no `attempt_started` of it after that decision, `abandoned` when `step_abandoned` names it after that decision, and `aborted` when the journey was aborted. (0134)
+
+The endings of proposal 0134, in "received the endings": `pending` for an attempt, and `abandoned` for a step. (0134)
 
 ## Events and reporters
 
@@ -318,7 +340,7 @@ Fake providers:
 
 Scripted runs:
 
-- **`And the script says:`** followed by a table with the columns `step` and `attempt`, and optionally `contributes`, `emits`, `emit message`, `sets global metadata`, `ending`, `code` and `message`. Each row says what the attempts it chooses do, in the language's own words for the script of proposal 0108. The rows are written in the order given, and each row whose step differs from the row before names that step, with `step` for the first and `and step` for each next one, so a step whose rows another step's interrupt is named again; a rescue step is named `<step>_rescue`. `attempt` chooses the attempts: a number, which may be one the step can never have, such as `0`, `-1` or `1.5` (0119), `every` for every attempt, or `remaining` for every attempt not yet described, which never starts a step's rows; the first row of a step written with `1` may be written without saying it. `contributes` is a JSON object, contributed in the order its keys are written, which the runner keeps when it reads it. `emits` is `step_info`, `step_warning` or `step_error`, emitted with `emit message`. `sets global metadata` is a JSON object, set in the order its keys are written. `ending` is `success`, `failure` (with `code`), `skipped` (with a `code` when the skip has a reason), `abnormal termination` (with its error's `message`, the only ending that uses `message`) or `real run`, which plays nothing and runs the real step; a row with `real run` has no other column filled. (0108)
+- **`And the script says:`** followed by a table with the columns `step` and `attempt`, and optionally `contributes`, `emits`, `emit message`, `sets global metadata`, `ending`, `code` and `message`. Each row says what the attempts it chooses do, in the language's own words for the script of proposal 0108. The rows are written in the order given, and each row whose step differs from the row before names that step, with `step` for the first and `and step` for each next one, so a step whose rows another step's interrupt is named again; a rescue step is named `<step>_rescue`. `attempt` chooses the attempts: a number, which may be one the step can never have, such as `0`, `-1` or `1.5` (0119), `every` for every attempt, or `remaining` for every attempt not yet described, which never starts a step's rows; the first row of a step written with `1` may be written without saying it. `contributes` is a JSON object, contributed in the order its keys are written, which the runner keeps when it reads it. `emits` is `step_info`, `step_warning` or `step_error`, emitted with `emit message`. `sets global metadata` is a JSON object, set in the order its keys are written. `ending` is `success`, `failure` (with `code`), `skipped` (with a `code` when the skip has a reason), `pending` (with the optional column `hint`, as JSON, for a step that may be pending; 0134), `abnormal termination` (with its error's `message`, the only ending that uses `message`) or `real run`, which plays nothing and runs the real step; a row with `real run` has no other column filled. (0108)
 - **`And the script ensures every step is scripted`** (0108)
 - **`When the workflow runs with the script`**: the runner writes the script through its language's test support and runs the instance with it, on the local executor of the workflow's mode. That executor has no dispatcher factory from the runner, so the runner adds its own recording reporter to the instance as its first reporter, before the reporters the workflow lists, and every sentence about the event stream as a whole reads that reporter; the sentences in which the executor is given a dispatcher or a dispatcher factory are not used with this one. A mistake in writing the script is reported as it is written, so during this sentence. (0108)
 - **`And step "<step>" declares no contributor and no reporter`**: the scripted test step neither contributes, nor emits, nor sets global metadata, and declares neither a contributor nor a step reporter. Used only in scenarios tagged `@undeclared-handles`. (0108)
@@ -355,6 +377,8 @@ Test mistakes, the values of `mistake` (0108):
 - **`no such attempt`**: the script chooses an attempt the step can never have, a number that is not a whole number from 1 or one past the most attempts the step can have, or `remaining` once the numbered attempts reach that most, named by its step and that attempt: the number given, or for `remaining` the attempt after the last one given by number. When a row's choice is both this and `attempt scripted twice` or `gap in the attempts`, only `no such attempt` is reported. (0119)
 - **`rescue step skips`**: the script makes a rescue step skip.
 - **`no contributor`** and **`no reporter`**: the script contributes for a step that declares no contributor, or emits or sets global metadata for one that declares no reporter.
+- **`pending not declared`**: the script makes a step that is not declared `may be pending` end pending, named by its step. (0134)
+- **`rescue step pending`**: the script makes a rescue step end pending, named by the rescue step. (0134)
 - **`unknown provider`**: a fake is named after a provider the workflow does not have, named by its provider.
 - **`another service`**: a fake makes another service than its provider makes, named by its provider. Used only in scenarios tagged `@fake-service-type`.
 
@@ -363,6 +387,8 @@ Test mistakes, the values of `mistake` (0108):
 The hook names of proposal 0010: `on step success`, `on step failure`, `on step retry`, `on step abnormal termination`, `on workflow success`, `on workflow failure`. (0002; defined by 0010)
 
 Proposal 0133 adds `before journey` and `after journey`, defined by workflow policies, and `before step`, `after step`, `before attempt` and `after attempt`, defined by step policies. (0133)
+
+Proposal 0134 adds the step hook `on step pending`. (0134)
 
 ## Event names
 
@@ -374,9 +400,11 @@ Proposal 0102 adds the fact `global_metadata_set`. (0102)
 
 Proposal 0133 adds the facts `before_hook_failed` and `after_hook_failed` and the decision `step_bypassed`, and `hook_called` for its six hooks. (0133)
 
+Proposal 0134 adds the facts `step_pending`, `pass_started` and `journey_waiting`, and the decisions `step_deferred`, `step_waiting`, `step_selected` and `step_abandoned`. (0134)
+
 ## Abort reasons
 
-The abort reasons of a journey's result (0009, 0032, 0042, 0054, 0056, 0058): `step could not be built`, `required data missing`, `wrong type`, `invalid lifecycle`, `policy could not be built`, `not a value`, `hook failed`, `reporter failed`, `rescue skipped` (0003), `reserved metadata key` (0102), and `unexpected result` (0122).
+The abort reasons of a journey's result (0009, 0032, 0042, 0054, 0056, 0058): `step could not be built`, `required data missing`, `wrong type`, `invalid lifecycle`, `policy could not be built`, `not a value`, `hook failed`, `reporter failed`, `rescue skipped` (0003), `reserved metadata key` (0102), `unexpected result` (0122), and `pending not declared` (0134).
 
 ## Violation names
 
@@ -395,4 +423,8 @@ The abort reasons of a journey's result (0009, 0032, 0042, 0054, 0056, 0058): `s
 - **`service provider for unknown step`**: a service provider is attached to a step the workflow does not have. (0095)
 - **`wrong service type`**: the provider serving a step supplies another type than the step requests for that key. (0095)
 - **`attempt request in journey scope`**: a service provider of journey scope requests the name of the step being built or the attempt number. (0095)
+- **`pending not allowed`**: a step that may be pending is in a workflow that does not allow pending steps. (0134)
+- **`invalid pending wait`**: a step waits for a step the workflow does not have, a step that cannot be pending, itself or a step declared after it. (0134)
+- **`pending budget missing`**: a step that may be pending has no pending budget, or a budget of 0. (0134)
+- **`invalid pending setting`**: a negative default nbf, a pending deadline of 0 or less, a duration with a fraction of a millisecond, or pending settings or waits declared by a step that cannot be pending. (0134)
 - **`required request in after hook`**: an after hook makes a required request for something that may not exist: data from the workflow, data from the step, the failure reason, the error or the cause. (0133)

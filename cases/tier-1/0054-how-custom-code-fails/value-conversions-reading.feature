@@ -10,6 +10,8 @@ Feature: A value conversion that fails while a value is read
   adapter's access to the data bag is reported to the adapter as another type,
   and nothing is emitted. Only a language that claims the capability
   value-conversions runs these cases.
+  Amended by proposal 0134: the ordered pass starts with the fact
+  `pass_started`, right after `journey_started`.
 
   @proposal-0113
   Scenario: A step input whose conversion fails aborts the journey with "wrong type"
@@ -167,7 +169,7 @@ Feature: A value conversion that fails while a value is read
     And the service provider "payments" was called 0 times
     And no step ran
 
-  @proposal-0113
+  @proposal-0113 @proposal-0134
   Scenario: A read through an input adapter's access whose conversion fails is another type, and emits nothing
     Given a workflow "orders" with the steps:
       | step   |
@@ -186,6 +188,7 @@ Feature: A value conversion that fails while a value is read
     And the events are exactly:
       | event             | step   | attempt |
       | journey_started   |        |         |
+      | pass_started      |        |         |
       | attempt_started   | charge | 1       |
       | step_succeeded    | charge | 1       |
       | journey_succeeded |        |         |
