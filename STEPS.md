@@ -74,7 +74,7 @@ A hook's requests, made by the sentences below and in "Hooks, lifecycles and rol
 - **`And the hook "<hook>" of policy "<policy>" requests the failure reason`**: a required request for the failure's code, message and details; when the attempt reported no failure, the journey is aborted with `required data missing`. (0008, 0083)
 - **`And the hook "<hook>" of policy "<policy>" requests the optional failure reason`**: the same request, optional; when the attempt reported no failure, it is answered absent. (0083)
 - **`And the hook "<hook>" of policy "<policy>" requests the failure cause`**: why the failure hook was called: `failure`, `retries exhausted` or `abnormal termination`. (0008, 0024)
-- **`And the hook "<hook>" of policy "<policy>" requests the retry cause`**: why the retry hook was called: `failure` or `abnormal termination`. (0008, 0106)
+- **`And the hook "<hook>" of policy "<policy>" requests the retry cause`**: why the retry hook was called: `failure` or `abnormal termination`, or `before hook failed` or `after hook failed` (0133). (0008, 0106)
 - **`And the hook "<hook>" of policy "<policy>" requests the error`**: a required request for the error that ended the attempt, in an abnormal termination. (0008, 0083)
 
 ## Services
@@ -131,7 +131,7 @@ Implementations of `labeller`, used only in these sentences: `first labeller`, w
 - **`Then the journey was aborted with the abort reason "<reason>"`**: the result's abort reason, from the list below. (0049)
 - **`Then run was refused`** and **`Then run was refused with the message "<message>"`**: `run` reported a refusal to the developer instead of a journey result, carrying this message. (0049)
 - **`Then the journey failed`** (0008)
-- **`Then step "<step>" ended as <status> after <n> attempts`**: the step's final status, one of `succeeded`, `failed`, `skipped`, `not executed`, `rescuing` or `aborted`, and how many attempts it took, both read from the event stream; an attempt counts from its `attempt_started`. The status is `aborted` when `journey_aborted` names the step and no `step_succeeded`, `step_skipped` or `step_given_up` of that step came before it: a step whose status was already final when the journey was aborted keeps it. A step whose last decision is `step_rescuing` or `step_rescued`, with no `attempt_started` of it after that decision, is `rescuing`, or `aborted` when the journey was aborted. (0008, spec#48, 0065, spec#89, 0003)
+- **`Then step "<step>" ended as <status> after <n> attempts`**: the step's final status, one of `succeeded`, `failed`, `skipped`, `bypassed` (0133), `not executed`, `rescuing` or `aborted`, and how many attempts it took, both read from the event stream; an attempt counts from its `attempt_started`. The status is `aborted` when `journey_aborted` names the step and no `step_succeeded`, `step_skipped` or `step_given_up` of that step came before it: a step whose status was already final when the journey was aborted keeps it. A step whose last decision is `step_rescuing` or `step_rescued`, with no `attempt_started` of it after that decision, is `rescuing`, or `aborted` when the journey was aborted. (0008, spec#48, 0065, spec#89, 0003)
 - **`Then step "<step>" ended as aborted`**: the journey was aborted while this step was executing or about to be retried: `journey_aborted` names it, and no `step_succeeded`, `step_skipped` or `step_given_up` of that step came before it; or while it was being rescued: its last decision is `step_rescuing` or `step_rescued`, with no `attempt_started` of it after that decision, and the journey was aborted. (0009, 0065, spec#89, 0003)
 - **`Then the journey ID is a UUID v4`** (0009)
 - **`Then the journey ID is "<id>"`** (0009)
@@ -146,13 +146,13 @@ Implementations of `labeller`, used only in these sentences: `first labeller`, w
 - **`Then the second journey's data bag contains:`** followed by a table with the columns `key` and `value`, after "the same executor runs the workflow twice". (0058)
 - **`Then the result's journey ID is "<id>"`** (0065)
 - **`Then the result's failure reason has the code "<code>"`**: the result of a failed journey explains it with a reason of this code. (0065)
-- **`Then the result's failure has the cause "<cause>"`**: one of `failure`, `retries exhausted`, `abnormal termination` or `FailWorkflow`. (0083)
+- **`Then the result's failure has the cause "<cause>"`**: one of `failure`, `retries exhausted`, `abnormal termination` or `FailWorkflow`, or `before hook failed` or `after hook failed` (0133). (0083)
 - **`Then the result's failure carries the error "<message>"`** and **`Then the result's failure carries no error`**: the error the result of a failed journey carries, by its message, or that it carries none. (0083)
 - **`Then the result's failure carries no reason`** (0083)
 - **`Then the result's abort carries the error "<message>"`** and **`Then the result's abort carries no error`**: the error the result of an aborted journey carries, by its message, or that it carries none. (0083)
 - **`Then the hook "<hook>" of policy "<policy>" was not called`** (0008)
 - **`Then the hook "<hook>" of policy "<policy>" received the failure reason with code "<code>", message "<message>" and details <details>`** (0008)
-- **`Then the hook "<hook>" of policy "<policy>" received the cause "<cause>"`**: the failure cause or retry cause it requested. (0008)
+- **`Then the hook "<hook>" of policy "<policy>" received the cause "<cause>"`**: the failure cause or retry cause it requested, or the cause an `after step` requested (0133). (0008, 0133)
 - **`Then the hook "<hook>" of policy "<policy>" received an error`** (0008)
 - **`Then the hook "<hook>" of policy "<policy>" received the error with the message "<message>"`** (0083)
 - **`Then the hook "<hook>" of policy "<policy>" received no failure reason`**: its optional request for the failure reason was answered absent. (0083)
@@ -198,7 +198,7 @@ What a hook does:
 What happened:
 
 - **`Then the hook "<hook>" of policy "<policy>" was called <n> times`** (0010)
-- **`Then the hooks were called in this order:`** followed by a table with the columns `policy` and `hook`, listing calls in the order they happened. (0010)
+- **`Then the hooks were called in this order:`** followed by a table with the columns `policy` and `hook`, listing calls in the order they happened. A call counts whether the hook returned or failed, and whether or not its events were delivered, such as an after hook's after an abort; a hook whose requests aborted the journey before it ran was not called. (0010, 0133)
 - **`Then the hook "<hook>" of policy "<policy>" received data from the workflow "<key>" = <value>`** (0010)
 - **`Then the hook "<hook>" of policy "<policy>" received data from the workflow "<key>" absent`** (0010)
 - **`Then the hook "<hook>" of policy "<policy>" received the attempt number <n>`** (0010)
@@ -207,6 +207,23 @@ What happened:
 - **`Then the contribution of "<key>" is recorded as made by the hook "<hook>" of policy "<policy>"`**: the events record that this contribution came from that hook, not from a step. (0010)
 - **`Then the operation "<operation>" of the role "<role>" was called <n> times`** (0010)
 - **`And the operation "<operation>" of the role "<role>" throws`**: the role operation fails when called, by throwing or returning an error. (0049, 0054)
+
+## Hooks before and after
+
+Sentences for the hooks of proposal 0133, `before journey`, `after journey`, `before step`, `after step`, `before attempt` and `after attempt`, defined with "a step policy ... defines the hook" or "a workflow policy ... defines the hook" like any other hook. The other sentences about hooks apply to them too: what they request, emit and set, how they fail, and how often they were called. (0133)
+
+- **`And the hook "before step" of policy "<policy>" bypasses`** and **`And the hook "before step" of policy "<policy>" bypasses with code "<code>"`**: the hook returns a bypass, without a reason or with a reason of this code. (0133)
+- **`And the hook "<hook>" of policy "<policy>" fails with "<message>" on attempt <n>`**: the hook fails as "fails with" says when it is called for this attempt of the step its policy is attached to, and on no other call. (0133)
+- **`And the hook "<hook>" of policy "<policy>" requests the ending`**: an after hook requests the ending of its level: for `after attempt` the attempt's, for `after step` the step's, for `after journey` the journey's. (0133)
+- **`And the hook "<hook>" of policy "<policy>" requests the number of attempts`**: `after step` requests how many attempts the step made. (0133)
+- **`And the hook "<hook>" of policy "<policy>" requests the optional error`**: the request for the error, optional; it is answered absent when the attempt reported none. (0133)
+- **`And the hook "<hook>" of policy "<policy>" requests the optional cause`**: `after step` requests, as optional, the cause the step was given up for, from the causes of `step_given_up`. (0133)
+- **`Then the hook "<hook>" of policy "<policy>" received the endings "<ending>", "<ending>"`**: one ending for each call of the hook, in the order of its calls, written as the specification names them: for an attempt `succeeded`, `failed`, `abnormal termination`, `skipped` or `aborted`; for a step `succeeded`, `failed`, `skipped`, `bypassed` or `aborted`; for a journey `succeeded`, `failed` or `aborted`. Later proposals add endings. (0133)
+- **`Then the hook "<hook>" of policy "<policy>" received the number of attempts <n>`** (0133)
+- **`Then the hook "<hook>" of policy "<policy>" received no error`** and **`Then the hook "<hook>" of policy "<policy>" received no cause`**: its optional request was answered absent. (0133)
+- **`Then the policy "<policy>" was built <n> times`**: how many instances of this policy were built in the journey, each counted when building it was called, whether it succeeded or failed. (0133)
+- **`Then the input adapter "<adapter>" was called <n> times`**: counting every call, whether it supplied a value, returned nothing or failed. (0133)
+- **`Then journey_failed names no step`**: the journey's `journey_failed` names no step, as when `before journey` returned `FailWorkflow` or `after journey` failed. (0133)
 
 ## Events and reporters
 
@@ -345,6 +362,8 @@ Test mistakes, the values of `mistake` (0108):
 
 The hook names of proposal 0010: `on step success`, `on step failure`, `on step retry`, `on step abnormal termination`, `on workflow success`, `on workflow failure`. (0002; defined by 0010)
 
+Proposal 0133 adds `before journey` and `after journey`, defined by workflow policies, and `before step`, `after step`, `before attempt` and `after attempt`, defined by step policies. (0133)
+
 ## Event names
 
 The engine catalogue of proposal 0011 as amended by proposal 0040. Facts: `journey_started`, `attempt_started`, `input_adapter_supplied`, `input_adapter_failed`, `optional_input_absent`, `step_succeeded`, `step_failed`, `step_skipped`, `step_abnormal_termination`, `hook_called`, `contribution_committed`, `contributions_discarded`, `data_overwritten`, `journey_aborted`. Decisions: `step_retrying`, `step_given_up`, `step_rescuing`, `step_rescued`, `journey_succeeded`, `journey_failed`; and the events steps and hooks emit: `step_info`, `step_warning`, `step_error`, `journey_info`, `journey_warning`, `journey_error`. (0011, 0040, 0003)
@@ -352,6 +371,8 @@ The engine catalogue of proposal 0011 as amended by proposal 0040. Facts: `journ
 Proposal 0095 adds the facts `service_provided` and `service_provider_failed`, and lets a service provider emit `journey_info`, `journey_warning` and `journey_error`. Proposal 0104 makes `service_provided` carry the implementation the provider made and the data it supplied. (0095, 0104)
 
 Proposal 0102 adds the fact `global_metadata_set`. (0102)
+
+Proposal 0133 adds the facts `before_hook_failed` and `after_hook_failed` and the decision `step_bypassed`, and `hook_called` for its six hooks. (0133)
 
 ## Abort reasons
 
@@ -374,3 +395,4 @@ The abort reasons of a journey's result (0009, 0032, 0042, 0054, 0056, 0058): `s
 - **`service provider for unknown step`**: a service provider is attached to a step the workflow does not have. (0095)
 - **`wrong service type`**: the provider serving a step supplies another type than the step requests for that key. (0095)
 - **`attempt request in journey scope`**: a service provider of journey scope requests the name of the step being built or the attempt number. (0095)
+- **`required request in after hook`**: an after hook makes a required request for something that may not exist: data from the workflow, data from the step, the failure reason, the error or the cause. (0133)
