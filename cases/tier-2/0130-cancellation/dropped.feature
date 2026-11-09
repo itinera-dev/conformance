@@ -20,9 +20,10 @@ Feature: A dropped journey and on journey dropped
     And step "ship" succeeds
     And a step policy "tx" defines the hook "after step"
     And step "charge" has the policies "tx"
-    And a workflow policy "guard" defines the hook "on journey dropped"
-    And a workflow policy "guard" defines the hook "after journey"
-    And the hook "on journey dropped" of policy "guard" requests the journey ID
+    And the workflow policies define the hooks:
+      | policy | hook               | requests       |
+      | guard  | on journey dropped | the journey ID |
+      | guard  | after journey      |                |
     And the workflow has the policies "guard"
     And the workflow's ID generator returns "J-1"
     And the workflow lists the reporters "trace"
@@ -103,8 +104,10 @@ Feature: A dropped journey and on journey dropped
       | step   |
       | charge |
     And step "charge" succeeds
-    And a workflow policy "guard" defines the hook "on journey dropped"
-    And a workflow policy "alarm" defines the hook "on journey dropped"
+    And the workflow policies define the hooks:
+      | policy | hook               |
+      | guard  | on journey dropped |
+      | alarm  | on journey dropped |
     And the workflow has the policies "guard", "alarm"
     When the workflow is admitted
     Then admission is refused with the violations:

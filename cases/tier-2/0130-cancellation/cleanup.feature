@@ -53,9 +53,10 @@ Feature: Cleanup after a cancellation, and when a cancellation counts
       | step   |
       | charge |
     And step "charge" succeeds
-    And a step policy "tx" defines the hook "after attempt"
-    And a step policy "audit" defines the hook "after attempt"
-    And the hook "after attempt" of policy "audit" fails with "audit down"
+    And the step policies define the hooks:
+      | policy | hook          | fails with |
+      | tx     | after attempt |            |
+      | audit  | after attempt | audit down |
     And step "charge" has the policies "tx", "audit"
     And the workflow lists the reporters "trace"
     And the caller cancels the journey on "step_succeeded" of "charge"
@@ -104,9 +105,11 @@ Feature: Cleanup after a cancellation, and when a cancellation counts
       | step   |
       | charge |
     And step "charge" succeeds
-    And a workflow policy "audit" defines the hook "after journey"
+    And the workflow policies define the hooks:
+      | policy | hook                |
+      | audit  | after journey       |
+      | audit  | on workflow success |
     And the hook "after journey" of policy "audit" emits journey_info "closing"
-    And a workflow policy "audit" defines the hook "on workflow success"
     And the workflow has the policies "audit"
     And the workflow lists the reporters "trace"
     And the caller cancels the journey on "journey_info"

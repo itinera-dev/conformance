@@ -18,10 +18,10 @@ Feature: After hooks for a skipped attempt and around a rescue
       | attempt | outcome | code             | contributes  |
       | 1       | skipped | no discount here | {"rate": 10} |
     And step "ship" succeeds
-    And a step policy "tx" defines the hook "after attempt"
-    And a step policy "tx" defines the hook "after step"
-    And the hook "after attempt" of policy "tx" requests the ending
-    And the hook "after step" of policy "tx" requests the ending
+    And the step policies define the hooks:
+      | policy | hook          | requests   |
+      | tx     | after attempt | the ending |
+      | tx     | after step    | the ending |
     And step "discount" has the policies "tx"
     When the workflow runs
     Then the events include, in order:
@@ -46,10 +46,11 @@ Feature: After hooks for a skipped attempt and around a rescue
       | 1       | failure | expired |
       | 2       | success |         |
     And step "charge_rescue" succeeds
-    And a step policy "tx" defines the hook "before attempt"
-    And a step policy "tx" defines the hook "after attempt"
-    And a step policy "tx" defines the hook "after step"
-    And the hook "after attempt" of policy "tx" requests the ending
+    And the step policies define the hooks:
+      | policy | hook           | requests   |
+      | tx     | before attempt |            |
+      | tx     | after attempt  | the ending |
+      | tx     | after step     |            |
     And step "charge" has the policies "tx"
     When the workflow runs
     Then the events include, in order:

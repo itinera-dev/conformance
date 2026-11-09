@@ -19,11 +19,11 @@ Feature: Hooks before and after in test support
     And step "discount" succeeds
     And step "gift" succeeds
     And step "ship" succeeds
-    And a step policy "gate" defines the hook "before step"
-    And the hook "before step" of policy "gate" bypasses with code "no discount today"
+    And the step policies define the hooks:
+      | policy | hook        | returns | code              |
+      | gate   | before step | bypass  | no discount today |
+      | wrap   | before step | bypass  |                   |
     And step "discount" has the policies "gate"
-    And a step policy "wrap" defines the hook "before step"
-    And the hook "before step" of policy "wrap" bypasses
     And step "gift" has the policies "wrap"
     And the instance has the recording reporter of test support
     When the workflow runs
