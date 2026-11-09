@@ -155,8 +155,12 @@ Feature: The pending budget, the pending deadline and on step pending
       | 1       | pending |
       | 2       | success |
     And the step policies and their hooks:
-      | policy | hook            | requests                  |
-      | pace   | on step pending | step name, attempt number |
+      | policy | hook            |
+      | pace   | on step pending |
+    And the hooks request:
+      | policy | hook            | request        |
+      | pace   | on step pending | step name      |
+      | pace   | on step pending | attempt number |
     And step "payment" has the policies "pace"
     When the workflow runs
     Then the hooks received:

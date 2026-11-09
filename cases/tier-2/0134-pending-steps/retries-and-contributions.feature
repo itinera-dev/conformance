@@ -80,9 +80,10 @@ Feature: Pendings, retries, rescues and contributions
       | 1       | pending | {"status": "requested"} |
       | 2       | success |                         |
     And the step policies and their hooks:
-      | policy | hook            | requests |
-      | tx     | after attempt   | ending   |
-      | tx     | on step pending |          |
+      | policy | hook            |
+      | tx     | after attempt   |
+      | tx     | on step pending |
+    And the hook "after attempt" of policy "tx" requests its ending
     And step "payment" has the policies "tx"
     When the workflow runs
     Then the events include, in order:
