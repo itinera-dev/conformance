@@ -18,7 +18,7 @@ Feature: The hint a pending step attaches
       | attempt | outcome | hint                |
       | 1       | pending | {"retry after": 30} |
       | 2       | success |                     |
-    And the step policies and their hooks:
+    Given the step policies and their hooks:
       | policy | hook            |
       | pace   | on step pending |
     And the hook "on step pending" of policy "pace" requests the hint
@@ -35,7 +35,7 @@ Feature: The hint a pending step attaches
       | attempt | outcome |
       | 1       | pending |
       | 2       | success |
-    And the step policies and their hooks:
+    Given the step policies and their hooks:
       | policy | hook            |
       | pace   | on step pending |
     And the hook "on step pending" of policy "pace" requests the hint

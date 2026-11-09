@@ -10,7 +10,7 @@ Feature: A journey that ends while steps are pending
 
   Scenario: A failure abandons the pending steps, the last to begin first
     Given a step policy "alarm" defines the hook "on step failure"
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step     | policies |
       | payment  |          |
       | invoice  |          |
@@ -45,9 +45,9 @@ Feature: A journey that ends while steps are pending
     Given the step policies and their hooks:
       | policy | hook       |
       | tx     | after step |
-    And a workflow policy "audit" defines the hook "after journey"
+    Given a workflow policy "audit" defines the hook "after journey"
     And the hook "after step" of policy "tx" requests its ending
-    And a workflow "orders" with the policies "audit" and the steps:
+    Given a workflow "orders" with the policies "audit" and the steps:
       | step     | policies |
       | payment  | tx       |
       | shipping |          |
@@ -73,7 +73,7 @@ Feature: A journey that ends while steps are pending
     Given the step policies and their hooks:
       | policy | hook            | returns        |
       | done   | on step success | FinishWorkflow |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step     | policies | outcome |
       | payment  |          |         |
       | shipping | done     | success |
@@ -122,7 +122,7 @@ Feature: A journey that ends while steps are pending
       | policy | hook       |
       | tx     | after step |
     And the hook "after step" of policy "tx" requests its ending
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step     | policies | inputs          | outcome |
       | payment  | tx       |                 |         |
       | shipping |          | address: string | success |

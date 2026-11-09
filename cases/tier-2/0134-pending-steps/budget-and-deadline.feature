@@ -24,7 +24,7 @@ Feature: The pending budget, the pending deadline and on step pending
       | attempt | outcome |
       | 1       | pending |
       | 2       | success |
-    And a step policy "pace" defines the hook "on step pending"
+    Given a step policy "pace" defines the hook "on step pending"
     And the hook "on step pending" of policy "pace" defers with nbf 2000 ms and weight 7
     And step "payment" has the policies "pace"
     When the workflow runs
@@ -45,7 +45,7 @@ Feature: The pending budget, the pending deadline and on step pending
       | attempt | outcome |
       | 1       | pending |
       | 2       | success |
-    And a step policy "pace" defines the hook "on step pending"
+    Given a step policy "pace" defines the hook "on step pending"
     And step "payment" has the policies "pace"
     When the workflow runs
     Then the events include, in order:
@@ -59,7 +59,7 @@ Feature: The pending budget, the pending deadline and on step pending
     And step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
-    And the step policies and their hooks:
+    Given the step policies and their hooks:
       | policy | hook            |
       | pace   | on step pending |
       | pace   | on step failure |
@@ -89,7 +89,7 @@ Feature: The pending budget, the pending deadline and on step pending
     And step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
-    And a step policy "pace" defines the hook "on step failure"
+    Given a step policy "pace" defines the hook "on step failure"
     And step "payment" has the policies "pace"
     When the workflow runs
     Then the events include, in order:
@@ -108,7 +108,7 @@ Feature: The pending budget, the pending deadline and on step pending
     And step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
-    And the step policies and their hooks:
+    Given the step policies and their hooks:
       | policy | hook            | returns      | code     |
       | pace   | on step pending | FailWorkflow | too slow |
       | pace   | on step failure |              |          |
@@ -129,7 +129,7 @@ Feature: The pending budget, the pending deadline and on step pending
     And step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
-    And the step policies and their hooks:
+    Given the step policies and their hooks:
       | policy | hook            | returns        |
       | pace   | on step pending | FinishWorkflow |
     And step "payment" has the policies "pace"
@@ -142,7 +142,7 @@ Feature: The pending budget, the pending deadline and on step pending
     And step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
-    And a step policy "pace" defines the hook "on step pending"
+    Given a step policy "pace" defines the hook "on step pending"
     And the hook "on step pending" of policy "pace" defers with nbf -1000 ms
     And step "payment" has the policies "pace"
     When the workflow runs
@@ -154,10 +154,10 @@ Feature: The pending budget, the pending deadline and on step pending
       | attempt | outcome |
       | 1       | pending |
       | 2       | success |
-    And the step policies and their hooks:
+    Given the step policies and their hooks:
       | policy | hook            |
       | pace   | on step pending |
-    And the hooks request:
+    Given the hooks request:
       | policy | hook            | request        |
       | pace   | on step pending | step name      |
       | pace   | on step pending | attempt number |
