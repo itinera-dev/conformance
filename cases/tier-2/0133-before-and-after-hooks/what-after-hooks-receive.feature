@@ -12,21 +12,20 @@ Feature: What the after hooks receive
 
   Scenario: After attempt and after step receive the endings and the number of attempts of a step tried three times
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx       |
     And step "charge" allows 2 retries
     And step "charge" attempts:
       | attempt | outcome | code        | message |
       | 1       | failure | unreachable |         |
       | 2       | error   |             | timeout |
       | 3       | success |             |         |
-    And the step policies define the hooks:
-      | policy | hook          | requests                           |
-      | tx     | after attempt | the ending                         |
-      | tx     | after step    | the ending, the number of attempts |
-    And step "charge" has the policies "tx"
+    And its step policies and their hooks are:
+      | policy | hook          | requests                   |
+      | tx     | after attempt | ending                     |
+      | tx     | after step    | ending, number of attempts |
     And a workflow policy "audit" defines the hook "after journey"
-    And the hook "after journey" of policy "audit" requests the ending
+    And the hook "after journey" of policy "audit" requests its ending
     And the workflow has the policies "audit"
     When the workflow runs
     Then the hook "after attempt" of policy "tx" received the endings "failed", "abnormal termination", "succeeded"
@@ -37,16 +36,15 @@ Feature: What the after hooks receive
 
   Scenario: After attempt receives the failure's reason and the attempt's contributions, as optional
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx       |
     And step "charge" attempts:
       | attempt | outcome | code     | message | details        | contributes        |
       | 1       | failure | declined | no      | {"limit": 100} | {"receipt": "R-1"} |
     And a step policy "tx" defines the hook "after attempt"
     And the hook "after attempt" of policy "tx" requests the optional failure reason
-    And the hook "after attempt" of policy "tx" requests the optional error
+    And the hook "after attempt" of policy "tx" requests its optional error
     And the hook "after attempt" of policy "tx" requests optional step data "receipt" of type string
-    And step "charge" has the policies "tx"
     When the workflow runs
     Then the hook "after attempt" of policy "tx" received the failure reason with code "declined", message "no" and details {"limit": 100}
     And the hook "after attempt" of policy "tx" received no error
@@ -55,15 +53,14 @@ Feature: What the after hooks receive
 
   Scenario: After attempt receives the error of an abnormal termination, as optional
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx       |
     And step "charge" attempts:
       | attempt | outcome | message |
       | 1       | error   | timeout |
     And a step policy "tx" defines the hook "after attempt"
     And the hook "after attempt" of policy "tx" requests the optional failure reason
-    And the hook "after attempt" of policy "tx" requests the optional error
-    And step "charge" has the policies "tx"
+    And the hook "after attempt" of policy "tx" requests its optional error
     When the workflow runs
     Then the hook "after attempt" of policy "tx" received the error with the message "timeout"
     And the hook "after attempt" of policy "tx" received no failure reason
@@ -71,20 +68,19 @@ Feature: What the after hooks receive
 
   Scenario: After step receives the cause a step was given up for and its last reason
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx       |
     And step "charge" allows 1 retries
     And step "charge" attempts:
       | attempt | outcome | code     | message | details |
       | 1       | failure | declined | no      | {}      |
     And a step policy "tx" defines the hook "after step"
-    And the hook "after step" of policy "tx" requests the ending
-    And the hook "after step" of policy "tx" requests the number of attempts
-    And the hook "after step" of policy "tx" requests the optional cause
+    And the hook "after step" of policy "tx" requests its ending
+    And the hook "after step" of policy "tx" requests its number of attempts
+    And the hook "after step" of policy "tx" requests its optional cause
     And the hook "after step" of policy "tx" requests the optional failure reason
-    And step "charge" has the policies "tx"
     And a workflow policy "audit" defines the hook "after journey"
-    And the hook "after journey" of policy "audit" requests the ending
+    And the hook "after journey" of policy "audit" requests its ending
     And the workflow has the policies "audit"
     When the workflow runs
     Then the hook "after step" of policy "tx" received the endings "failed"
@@ -95,14 +91,13 @@ Feature: What the after hooks receive
 
   Scenario: After step receives the ending bypassed and no attempt, and nothing it cannot have
     Given a workflow "orders" with the steps:
-      | step     |
-      | discount |
+      | step     | policies |
+      | discount | gate     |
     And step "discount" succeeds
-    And the step policies define the hooks:
-      | policy | hook        | returns | code | requests                                                                            |
-      | gate   | before step | bypass  | off  |                                                                                     |
-      | gate   | after step  |         |      | the ending, the number of attempts, the optional failure reason, the optional cause |
-    And step "discount" has the policies "gate"
+    And its step policies and their hooks are:
+      | policy | hook        | returns | code | requests                                                            |
+      | gate   | before step | bypass  | off  |                                                                     |
+      | gate   | after step  |         |      | ending, number of attempts, optional failure reason, optional cause |
     When the workflow runs
     Then the hook "after step" of policy "gate" received the endings "bypassed"
     And the hook "after step" of policy "gate" received the number of attempts 0
@@ -112,14 +107,13 @@ Feature: What the after hooks receive
 
   Scenario: Before hooks receive the step's name and the attempt number
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx       |
     And step "charge" succeeds
-    And the step policies define the hooks:
-      | policy | hook           | requests           |
-      | tx     | before step    | the step name      |
-      | tx     | before attempt | the attempt number |
-    And step "charge" has the policies "tx"
+    And its step policies and their hooks are:
+      | policy | hook           | requests       |
+      | tx     | before step    | step name      |
+      | tx     | before attempt | attempt number |
     When the workflow runs
     Then the hook "before step" of policy "tx" received the step name "charge"
     And the hook "before attempt" of policy "tx" received the attempt number 1

@@ -10,39 +10,37 @@ Feature: Policy instances for the step hooks
 
   Scenario: A step policy with step hooks is built once for the step and once for each attempt
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx       |
     And step "charge" allows 1 retries
     And step "charge" attempts:
       | attempt | outcome | code        |
       | 1       | failure | unreachable |
       | 2       | success |             |
-    And the step policies define the hooks:
+    And its step policies and their hooks are:
       | policy | hook           |
       | tx     | before step    |
       | tx     | after step     |
       | tx     | before attempt |
       | tx     | after attempt  |
-    And step "charge" has the policies "tx"
     When the workflow runs
     Then the policy "tx" was built 3 times
     And the journey succeeded
 
   Scenario: A step policy without step hooks is built only for each attempt
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies  |
+      | charge | tx, audit |
     And step "charge" allows 1 retries
     And step "charge" attempts:
       | attempt | outcome | code        |
       | 1       | failure | unreachable |
       | 2       | success |             |
-    And the step policies define the hooks:
+    And its step policies and their hooks are:
       | policy | hook            |
       | tx     | before attempt  |
       | tx     | after attempt   |
       | audit  | on step success |
-    And step "charge" has the policies "tx", "audit"
     When the workflow runs
     Then the policy "tx" was built 2 times
     And the policy "audit" was built 2 times
@@ -50,14 +48,13 @@ Feature: Policy instances for the step hooks
 
   Scenario: A step policy with step hooks that fails when built aborts the journey before the first attempt
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
+      | step   | policies |
+      | charge |          |
+      | ship   | broken   |
     And step "charge" succeeds
     And step "ship" succeeds
     And a step policy "broken" defines the hook "before step"
     And the policy "broken" fails when it is built
-    And step "ship" has the policies "broken"
     And the workflow lists the reporters "trace"
     When the workflow runs
     Then the events include, in order:
