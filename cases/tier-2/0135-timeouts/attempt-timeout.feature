@@ -27,19 +27,19 @@ Feature: The attempt timeout
 
   @proposal-0133
   Scenario: An attempt that succeeds just over its timeout fails the step, and nothing is committed
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook            | requests |
+      | tx     | after attempt   | ending   |
+      | tx     | after step      | ending   |
+      | tx     | on step success |          |
+      | tx     | on step failure |          |
+    And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" has an attempt timeout of 1000 ms
     And step "charge" attempts:
       | attempt | outcome | takes   | contributes        |
       | 1       | success | 1001 ms | {"receipt": "R-1"} |
-    And its step policies and their hooks are:
-      | policy | hook            | requests |
-      | tx     | after attempt   | ending   |
-      | tx     | after step      | ending   |
-      | tx     | on step success |          |
-      | tx     | on step failure |          |
     When the workflow runs
     Then the events include, in order:
       | event                   | step   | attempt | policy | hook            | timeout | taken | cause             | decided by |
@@ -51,9 +51,11 @@ Feature: The attempt timeout
       | hook_called             | charge |         | tx     | after step      |         |       |                   |            |
       | hook_called             | charge | 1       | tx     | on step failure |         |       |                   |            |
       | journey_failed          | charge |         |        |                 |         |       | attempt timed out | default    |
-    And the hook "after attempt" of policy "tx" received the endings "timed out"
-    And the hook "after step" of policy "tx" received the endings "failed"
-    And the hook "on step success" of policy "tx" was not called
+    And the hooks received:
+      | policy | hook            | calls | endings   |
+      | tx     | after attempt   |       | timed out |
+      | tx     | after step      |       | failed    |
+      | tx     | on step success | 0     |           |
     And no contribution of "receipt" was committed
     And step "charge" ended as failed after 1 attempts
     And the journey failed
@@ -62,7 +64,8 @@ Feature: The attempt timeout
     And the result's failure carries no error
 
   Scenario: An attempt over its timeout is not retried, whatever retry budget is left
-    Given a workflow "orders" with the steps:
+    Given a step policy "tx" defines the hook "on step retry"
+    And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" has an attempt timeout of 1000 ms
@@ -70,7 +73,6 @@ Feature: The attempt timeout
     And step "charge" attempts:
       | attempt | outcome | code        | takes   |
       | 1       | failure | unreachable | 2000 ms |
-    And a step policy "tx" defines the hook "on step retry"
     And the workflow lists the reporters "trace"
     When the workflow runs
     Then the events include, in order:
@@ -140,15 +142,16 @@ Feature: The attempt timeout
 
   @proposal-0133
   Scenario: The time before attempt hooks take does not count against the attempt
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook           | takes   |
+      | tx     | before attempt | 2000 ms |
+    And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" has an attempt timeout of 1000 ms
     And step "charge" attempts:
       | attempt | outcome | takes  |
       | 1       | success | 500 ms |
-    And a step policy "tx" defines the hook "before attempt"
-    And the hook "before attempt" of policy "tx" takes 2000 ms
     And the workflow lists the reporters "trace"
     When the workflow runs
     Then the reporter "trace" did not receive the event "attempt_timed_out"
@@ -173,15 +176,16 @@ Feature: The attempt timeout
     And the journey succeeded
 
   Scenario: FailWorkflow from on step failure after a timed out attempt keeps the cause attempt timed out on step_given_up
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook            | returns      | code     |
+      | tx     | on step failure | FailWorkflow | too slow |
+    And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" has an attempt timeout of 1000 ms
     And step "charge" attempts:
       | attempt | outcome | takes   |
       | 1       | success | 2000 ms |
-    And a step policy "tx" defines the hook "on step failure"
-    And the hook "on step failure" of policy "tx" returns FailWorkflow with code "too slow"
     When the workflow runs
     Then the events include, in order:
       | event          | step   | cause             | decided by          |
