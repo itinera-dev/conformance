@@ -127,6 +127,7 @@ Feature: A journey that ends while steps are pending
       | payment  | tx       |
       | shipping |          |
     And the workflow allows pending steps
+    And the workflow lists the reporters "trace"
     And step "payment" may be pending, with a pending budget of 3
     And step "payment" attempts:
       | attempt | outcome |
@@ -134,7 +135,6 @@ Feature: A journey that ends while steps are pending
     And step "shipping" requests input "address" of type string
     And step "shipping" succeeds
     And the data bag is empty
-    And the workflow lists the reporters "trace"
     When the workflow runs
     Then the reporter "trace" did not receive the event "step_abandoned"
     And the last event is "journey_aborted"
