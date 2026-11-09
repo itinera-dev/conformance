@@ -12,24 +12,23 @@ Feature: After hooks after an abort
 
   Scenario: An abort during an attempt runs the after hooks of every level once, nested
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx       |
     And step "charge" requests input "amount" of type integer
     And step "charge" succeeds
     And the data bag is empty
-    And the step policies define the hooks:
-      | policy | hook            | requests   |
-      | tx     | before step     |            |
-      | tx     | before attempt  |            |
-      | tx     | after attempt   | the ending |
-      | tx     | after step      | the ending |
-      | tx     | on step failure |            |
-    And step "charge" has the policies "tx"
-    And the workflow policies define the hooks:
-      | policy | hook                | requests   |
-      | audit  | before journey      |            |
-      | audit  | after journey       | the ending |
-      | audit  | on workflow failure |            |
+    And its step policies and their hooks are:
+      | policy | hook            | requests |
+      | tx     | before step     |          |
+      | tx     | before attempt  |          |
+      | tx     | after attempt   | ending   |
+      | tx     | after step      | ending   |
+      | tx     | on step failure |          |
+    And its workflow policies and their hooks are:
+      | policy | hook                | requests |
+      | audit  | before journey      |          |
+      | audit  | after journey       | ending   |
+      | audit  | on workflow failure |          |
     And the workflow has the policies "audit"
     When the workflow runs
     Then the hooks were called in this order:
@@ -50,8 +49,8 @@ Feature: After hooks after an abort
 
   Scenario: After an abort, the after hooks' requests for data are answered absent
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx       |
     And step "charge" requests input "amount" of type integer
     And step "charge" succeeds
     And the data bag contains:
@@ -59,7 +58,6 @@ Feature: After hooks after an abort
       | order | "A-1" |
     And a step policy "tx" defines the hook "after attempt"
     And the hook "after attempt" of policy "tx" requests optional data from the workflow "order" of type string
-    And step "charge" has the policies "tx"
     And a workflow policy "audit" defines the hook "after journey"
     And the hook "after journey" of policy "audit" requests optional data from the workflow "order" of type string
     And the workflow has the policies "audit"
@@ -70,14 +68,13 @@ Feature: After hooks after an abort
 
   Scenario: What the after hooks emit after an abort reaches no reporter
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx       |
     And step "charge" requests input "amount" of type integer
     And step "charge" succeeds
     And the data bag is empty
     And a step policy "tx" defines the hook "after attempt"
     And the hook "after attempt" of policy "tx" emits journey_info "rolled back"
-    And step "charge" has the policies "tx"
     And the workflow lists the reporters "trace"
     When the workflow runs
     Then the hook "after attempt" of policy "tx" was called 1 times
@@ -87,17 +84,16 @@ Feature: After hooks after an abort
 
   Scenario: An after hook that fails after an abort does not change the abort, and the others still run
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies  |
+      | charge | tx, audit |
     And step "charge" requests input "amount" of type integer
     And step "charge" succeeds
     And the data bag is empty
-    And the step policies define the hooks:
+    And its step policies and their hooks are:
       | policy | hook          | fails with |
       | tx     | after attempt |            |
       | tx     | after step    |            |
       | audit  | after attempt | audit down |
-    And step "charge" has the policies "tx", "audit"
     When the workflow runs
     Then the hooks were called in this order:
       | policy | hook          |
@@ -109,39 +105,37 @@ Feature: After hooks after an abort
 
   Scenario: An after-only policy whose instance for the attempt was never built runs nothing
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies       |
+      | charge | broken, closer |
     And step "charge" succeeds
-    And the step policies define the hooks:
+    And its step policies and their hooks are:
       | policy | hook            |
       | broken | on step success |
       | closer | after attempt   |
     And the policy "broken" fails when it is built
-    And step "charge" has the policies "broken", "closer"
     When the workflow runs
     Then the hook "after attempt" of policy "closer" was not called
     And the journey was aborted with the abort reason "policy could not be built"
 
   Scenario: An abort caused by an after hook runs the remaining after hooks
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
+      | step   | policies  |
+      | charge | tx, audit |
+      | ship   |           |
     And step "charge" contributes "receipt" = "R-1"
     And step "charge" succeeds
     And step "ship" succeeds
     And the data bag contains:
       | key   | value |
       | order | "A-1" |
-    And the step policies define the hooks:
+    And its step policies and their hooks are:
       | policy | hook          |
       | tx     | after attempt |
       | tx     | after step    |
       | audit  | after attempt |
     And the hook "after attempt" of policy "audit" requests optional data from the workflow "order" of type integer
-    And step "charge" has the policies "tx", "audit"
     And a workflow policy "log" defines the hook "after journey"
-    And the hook "after journey" of policy "log" requests the ending
+    And the hook "after journey" of policy "log" requests its ending
     And the workflow has the policies "log"
     When the workflow runs
     Then the events include, in order:

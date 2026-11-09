@@ -94,7 +94,7 @@ Feature: Steps that wait for pending steps
     And step "receipt" may be pending, with a pending budget of 3
     And step "receipt" waits for the steps "payment"
     And step "receipt" succeeds
-    And the step policies define the hooks:
+    And its step policies and their hooks are:
       | policy | hook        |
       | tx     | before step |
       | tx     | after step  |
