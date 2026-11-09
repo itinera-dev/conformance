@@ -15,22 +15,21 @@ Feature: The journey timeout
   @proposal-0133
   Scenario: A journey timeout found after a step returns gives the step up with no outcome hook
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
+      | step   | policies |
+      | charge | tx       |
+      | ship   |          |
     And the workflow has a journey timeout of 5000 ms
     And step "charge" attempts:
       | attempt | outcome | takes   | contributes        |
       | 1       | success | 6000 ms | {"receipt": "R-1"} |
     And step "ship" succeeds
-    And the step policies define the hooks:
-      | policy | hook            | requests   |
-      | tx     | after attempt   | the ending |
-      | tx     | after step      | the ending |
-      | tx     | on step success |            |
-      | tx     | on step failure |            |
-    And step "charge" has the policies "tx"
-    And the workflow policies define the hooks:
+    And its step policies and their hooks are:
+      | policy | hook            | requests |
+      | tx     | after attempt   | ending   |
+      | tx     | after step      | ending   |
+      | tx     | on step success |          |
+      | tx     | on step failure |          |
+    And its workflow policies and their hooks are:
       | policy | hook                |
       | audit  | after journey       |
       | audit  | on workflow failure |
@@ -60,8 +59,8 @@ Feature: The journey timeout
 
   Scenario: A journey timeout found between attempts gives the step up, naming its last attempt
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx       |
     And the workflow has a journey timeout of 5000 ms
     And step "charge" allows 2 retries
     And step "charge" attempts:
@@ -69,7 +68,6 @@ Feature: The journey timeout
       | 1       | failure | unreachable | 4000 ms |
     And a step policy "tx" defines the hook "on step retry"
     And the hook "on step retry" of policy "tx" takes 2000 ms
-    And step "charge" has the policies "tx"
     And the workflow lists the reporters "trace"
     When the workflow runs
     Then the events include, in order:

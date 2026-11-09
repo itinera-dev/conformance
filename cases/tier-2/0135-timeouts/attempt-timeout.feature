@@ -28,19 +28,18 @@ Feature: The attempt timeout
   @proposal-0133
   Scenario: An attempt that succeeds just over its timeout fails the step, and nothing is committed
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx       |
     And step "charge" has an attempt timeout of 1000 ms
     And step "charge" attempts:
       | attempt | outcome | takes   | contributes        |
       | 1       | success | 1001 ms | {"receipt": "R-1"} |
-    And the step policies define the hooks:
-      | policy | hook            | requests   |
-      | tx     | after attempt   | the ending |
-      | tx     | after step      | the ending |
-      | tx     | on step success |            |
-      | tx     | on step failure |            |
-    And step "charge" has the policies "tx"
+    And its step policies and their hooks are:
+      | policy | hook            | requests |
+      | tx     | after attempt   | ending   |
+      | tx     | after step      | ending   |
+      | tx     | on step success |          |
+      | tx     | on step failure |          |
     When the workflow runs
     Then the events include, in order:
       | event                   | step   | attempt | policy | hook            | timeout | taken | cause             | decided by |
@@ -64,15 +63,14 @@ Feature: The attempt timeout
 
   Scenario: An attempt over its timeout is not retried, whatever retry budget is left
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx       |
     And step "charge" has an attempt timeout of 1000 ms
     And step "charge" allows 2 retries
     And step "charge" attempts:
       | attempt | outcome | code        | takes   |
       | 1       | failure | unreachable | 2000 ms |
     And a step policy "tx" defines the hook "on step retry"
-    And step "charge" has the policies "tx"
     And the workflow lists the reporters "trace"
     When the workflow runs
     Then the events include, in order:
@@ -143,15 +141,14 @@ Feature: The attempt timeout
   @proposal-0133
   Scenario: The time before attempt hooks take does not count against the attempt
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx       |
     And step "charge" has an attempt timeout of 1000 ms
     And step "charge" attempts:
       | attempt | outcome | takes  |
       | 1       | success | 500 ms |
     And a step policy "tx" defines the hook "before attempt"
     And the hook "before attempt" of policy "tx" takes 2000 ms
-    And step "charge" has the policies "tx"
     And the workflow lists the reporters "trace"
     When the workflow runs
     Then the reporter "trace" did not receive the event "attempt_timed_out"
@@ -177,15 +174,14 @@ Feature: The attempt timeout
 
   Scenario: FailWorkflow from on step failure after a timed out attempt keeps the cause attempt timed out on step_given_up
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx       |
     And step "charge" has an attempt timeout of 1000 ms
     And step "charge" attempts:
       | attempt | outcome | takes   |
       | 1       | success | 2000 ms |
     And a step policy "tx" defines the hook "on step failure"
     And the hook "on step failure" of policy "tx" returns FailWorkflow with code "too slow"
-    And step "charge" has the policies "tx"
     When the workflow runs
     Then the events include, in order:
       | event          | step   | cause             | decided by          |
