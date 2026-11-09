@@ -26,11 +26,11 @@ Feature: Everything in the data bag is a value
     And no event was emitted
 
   Scenario: An input adapter that supplies a non-value aborts with "step could not be built"
+    Given the input adapter "pricing" returns a non-value for "amount"
     Given a workflow "orders" with the steps:
       | step   | inputs          | outcome |
       | charge | amount: integer | success |
     And the workflow binds the input adapter "pricing" to the step "charge"
-    And the input adapter "pricing" returns a non-value for "amount"
     When the workflow runs
     Then the events include, in order:
       | event                | step   | key    |

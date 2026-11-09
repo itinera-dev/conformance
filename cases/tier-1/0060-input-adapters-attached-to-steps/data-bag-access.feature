@@ -8,12 +8,12 @@ Feature: Input adapters that read the data bag
 
   @proposal-0091
   Scenario: An adapter reads a key computed for the step and supplies its value
+    Given the input adapter "pricing" requests the data bag
+    And the input adapter "pricing" returns "price.charge" of type integer, read from the data bag, for "amount"
     Given a workflow "orders" with the steps:
       | step   | inputs          | outcome |
       | charge | amount: integer | success |
     And the workflow binds the input adapter "pricing" to the step "charge"
-    And the input adapter "pricing" requests the data bag
-    And the input adapter "pricing" returns "price.charge" of type integer, read from the data bag, for "amount"
     And the data bag contains:
       | key          | value |
       | amount       | 42    |
@@ -27,12 +27,12 @@ Feature: Input adapters that read the data bag
 
   @proposal-0091
   Scenario: A read of a missing key emits nothing, and the input comes from the data bag
+    Given the input adapter "pricing" requests the data bag
+    And the input adapter "pricing" returns "price.charge" of type integer, read from the data bag, for "amount"
     Given a workflow "orders" with the steps:
       | step   | inputs          | outcome |
       | charge | amount: integer | success |
     And the workflow binds the input adapter "pricing" to the step "charge"
-    And the input adapter "pricing" requests the data bag
-    And the input adapter "pricing" returns "price.charge" of type integer, read from the data bag, for "amount"
     And the data bag contains:
       | key    | value |
       | amount | 42    |
@@ -47,12 +47,12 @@ Feature: Input adapters that read the data bag
 
   @proposal-0091
   Scenario: A read of another type aborts nothing, and the input comes from the data bag
+    Given the input adapter "pricing" requests the data bag
+    And the input adapter "pricing" returns "price.charge" of type integer, read from the data bag, for "amount"
     Given a workflow "orders" with the steps:
       | step   | inputs          | outcome |
       | charge | amount: integer | success |
     And the workflow binds the input adapter "pricing" to the step "charge"
-    And the input adapter "pricing" requests the data bag
-    And the input adapter "pricing" returns "price.charge" of type integer, read from the data bag, for "amount"
     And the data bag contains:
       | key          | value   |
       | amount       | 42      |
@@ -65,12 +65,12 @@ Feature: Input adapters that read the data bag
   Scenario: An adapter sees what an earlier attempt's retry hook contributed
     Given a step policy "watch" defines the hook "on step retry"
     And the hook "on step retry" of policy "watch" contributes "bonus" = 5
+    Given the input adapter "pricing" requests the data bag
+    And the input adapter "pricing" returns "bonus" of type integer, read from the data bag, for "amount"
     Given a workflow "orders" with the steps:
       | step   | policies | inputs          |
       | charge | watch    | amount: integer |
     And the workflow binds the input adapter "pricing" to the step "charge"
-    And the input adapter "pricing" requests the data bag
-    And the input adapter "pricing" returns "bonus" of type integer, read from the data bag, for "amount"
     And step "charge" allows 1 retries
     And step "charge" attempts:
       | attempt | outcome | code        |
@@ -88,12 +88,12 @@ Feature: Input adapters that read the data bag
 
   @proposal-0091 @proposal-0106
   Scenario: An adapter does not see what a failed earlier attempt contributed
+    Given the input adapter "pricing" requests the data bag
+    And the input adapter "pricing" returns "price.charge" of type integer, read from the data bag, for "amount"
     Given a workflow "orders" with the steps:
       | step   | inputs          |
       | charge | amount: integer |
     And the workflow binds the input adapter "pricing" to the step "charge"
-    And the input adapter "pricing" requests the data bag
-    And the input adapter "pricing" returns "price.charge" of type integer, read from the data bag, for "amount"
     And step "charge" allows 1 retries
     And step "charge" attempts:
       | attempt | outcome | code        | contributes         |
@@ -108,13 +108,13 @@ Feature: Input adapters that read the data bag
 
   @proposal-0091 @bag-write
   Scenario: An adapter that writes through its access leaves the data bag unchanged
+    Given the input adapter "pricing" requests the data bag
+    And the input adapter "pricing" writes "amount" = 0 through its data bag access
     Given a workflow "orders" with the steps:
       | step   | inputs          | outcome |
       | charge | amount: integer | success |
       | ship   | amount: integer | success |
     And the workflow binds the input adapter "pricing" to the step "charge"
-    And the input adapter "pricing" requests the data bag
-    And the input adapter "pricing" writes "amount" = 0 through its data bag access
     And the data bag contains:
       | key    | value |
       | amount | 42    |
@@ -126,13 +126,13 @@ Feature: Input adapters that read the data bag
 
   @proposal-0091 @late-handle
   Scenario: An adapter's access kept from an earlier call shows nothing later
+    Given the input adapter "pricing" requests the data bag
+    And the input adapter "pricing" keeps its data bag access when called for step "charge", and returns "price" of type integer, read through that kept access, for "amount" when called for step "ship"
     Given a workflow "orders" with the steps:
       | step   | inputs          | outcome |
       | charge | amount: integer | success |
       | ship   | amount: integer | success |
     And the workflow binds the input adapter "pricing" to the steps "charge", "ship"
-    And the input adapter "pricing" requests the data bag
-    And the input adapter "pricing" keeps its data bag access when called for step "charge", and returns "price" of type integer, read through that kept access, for "amount" when called for step "ship"
     And step "charge" contributes "price" = 5
     And the data bag contains:
       | key    | value |
