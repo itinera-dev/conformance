@@ -9,12 +9,11 @@ Feature: Global metadata that cannot be set
   @non-value
   Scenario: A step's entry that is not a value aborts the journey with "not a value" and reaches no reporter
     Given a workflow "orders" with the steps:
-      | step   |
-      | lookup |
-    And step "lookup" sets the global metadata "callback" to a non-value
-    And step "lookup" succeeds
+      | step   | outcome |
+      | lookup | success |
     And the workflow's ID generator returns "order-42"
     And the workflow lists the reporters "audit"
+    And step "lookup" sets the global metadata "callback" to a non-value
     And the executor uses its default dispatcher
     When the workflow runs
     Then the journey was aborted with the abort reason "not a value"
@@ -31,11 +30,10 @@ Feature: Global metadata that cannot be set
   @non-value
   Scenario: Initial global metadata that is not a value is refused by run
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And the workflow instance is created with a non-value as global metadata "callback"
+      | step   | outcome |
+      | charge | success |
     And the workflow lists the reporters "audit"
+    And the workflow instance is created with a non-value as global metadata "callback"
     And the executor uses its default dispatcher
     When the workflow runs
     Then run was refused
@@ -43,12 +41,11 @@ Feature: Global metadata that cannot be set
 
   Scenario: A step that sets the journey ID aborts the journey with "reserved metadata key"
     Given a workflow "orders" with the steps:
-      | step   |
-      | lookup |
-    And step "lookup" sets the global metadata "journey_id" to "forged"
-    And step "lookup" succeeds
+      | step   | outcome |
+      | lookup | success |
     And the workflow's ID generator returns "order-42"
     And the workflow lists the reporters "audit"
+    And step "lookup" sets the global metadata "journey_id" to "forged"
     And the executor uses its default dispatcher
     When the workflow runs
     Then the journey was aborted with the abort reason "reserved metadata key"
@@ -64,13 +61,12 @@ Feature: Global metadata that cannot be set
 
   Scenario: Initial global metadata that sets the journey ID is refused by run
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
+    And the workflow lists the reporters "audit"
     And the workflow instance is created with the global metadata:
       | key        | value    |
       | journey_id | "forged" |
-    And the workflow lists the reporters "audit"
     And the executor uses its default dispatcher
     When the workflow runs
     Then run was refused
@@ -78,13 +74,12 @@ Feature: Global metadata that cannot be set
 
   Scenario: A reporter that fails on an entry aborts the journey, and the reporters after it do not receive the entry
     Given a workflow "orders" with the steps:
-      | step   |
-      | lookup |
-    And step "lookup" sets the global metadata "user_id" to "u-7"
-    And step "lookup" succeeds
+      | step   | outcome |
+      | lookup | success |
     And the workflow's ID generator returns "order-42"
     And the workflow lists the reporters "audit", "fragile", "metrics"
     And the reporter "fragile" fails when it receives the global metadata "user_id"
+    And step "lookup" sets the global metadata "user_id" to "u-7"
     And the executor uses its default dispatcher
     When the workflow runs
     Then the journey was aborted with the abort reason "reporter failed"
@@ -95,16 +90,17 @@ Feature: Global metadata that cannot be set
     And the reporter "metrics" received the global metadata:
       | key        | value      | after |
       | journey_id | "order-42" | none  |
-    And the reporter "audit" did not receive the event "global_metadata_set"
-    And the reporter "metrics" received the event "journey_aborted"
-    And the reporter "fragile" did not receive the event "journey_aborted"
+    And the reporters received:
+      | reporter | event               | received |
+      | audit    | global_metadata_set | no       |
+      | metrics  | journey_aborted     | yes      |
+      | fragile  | journey_aborted     | no       |
     And step "lookup" ended as aborted
 
   Scenario: A reporter that fails on the journey ID makes run refuse the journey
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the workflow lists the reporters "audit", "fragile"
     And the reporter "fragile" fails when it receives the global metadata "journey_id"
     And the executor uses its default dispatcher
