@@ -7,16 +7,17 @@ Feature: The order in which a hook's requests are resolved
 
   @spec-defect-0092 @proposal-0083
   Scenario: A required request declared first stops the resolution before a later optional one
+    Given a step policy "alarm" defines the hook "on step failure"
+    Given the hooks request:
+      | policy | hook            | request   | key     | type   | optional |
+      | alarm  | on step failure | error     |         |        |          |
+      | alarm  | on step failure | step data | receipt | string | yes      |
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | alarm    |
     And step "charge" attempts:
       | attempt | outcome | code     |
       | 1       | failure | declined |
-    And a step policy "alarm" defines the hook "on step failure"
-    And the hook "on step failure" of policy "alarm" requests the error
-    And the hook "on step failure" of policy "alarm" requests optional step data "receipt" of type string
-    And step "charge" has the policies "alarm"
     When the workflow runs
     Then the events are exactly:
       | event           | step   | key   | attempt | policy | hook            | code                  |
@@ -28,16 +29,17 @@ Feature: The order in which a hook's requests are resolved
 
   @spec-defect-0092 @proposal-0083
   Scenario: An optional request declared first is resolved before a later required one aborts
+    Given a step policy "alarm" defines the hook "on step failure"
+    Given the hooks request:
+      | policy | hook            | request   | key     | type   | optional |
+      | alarm  | on step failure | step data | receipt | string | yes      |
+      | alarm  | on step failure | error     |         |        |          |
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | alarm    |
     And step "charge" attempts:
       | attempt | outcome | code     |
       | 1       | failure | declined |
-    And a step policy "alarm" defines the hook "on step failure"
-    And the hook "on step failure" of policy "alarm" requests optional step data "receipt" of type string
-    And the hook "on step failure" of policy "alarm" requests the error
-    And step "charge" has the policies "alarm"
     When the workflow runs
     Then the events include, in order:
       | event                 | step   | key     | policy | hook            | code                  |

@@ -6,18 +6,16 @@ Feature: Listing a workflow
 
   @proposal-0060
   Scenario: A workflow is listed without running any step
+    Given the step policies and their hooks:
+      | policy | hook            |
+      | audit  | on step success |
+      | alarm  | on step failure |
+    Given the input adapter "pricing" returns 7 when step "charge" requests "amount"
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
-    And step "charge" requests input "amount" of type integer
-    And step "charge" succeeds
-    And step "ship" succeeds
-    And the workflow declares the input adapter "pricing" for the steps "charge"
-    And the input adapter "pricing" returns 7 for "amount"
-    And a step policy "audit" defines the hook "on step success"
-    And a step policy "alarm" defines the hook "on step failure"
-    And step "charge" has the policies "audit", "alarm"
+      | step   | policies     | inputs          | outcome |
+      | charge | audit, alarm | amount: integer | success |
+      | ship   |              |                 | success |
+    And the workflow binds the input adapter "pricing" to the step "charge"
     When the workflow is listed
     Then the listing is:
       | step   | position | policies     | adapter |
