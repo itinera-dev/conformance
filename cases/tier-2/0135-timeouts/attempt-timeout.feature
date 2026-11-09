@@ -132,7 +132,7 @@ Feature: The attempt timeout
     Given a workflow "orders" with the steps:
       | step   | inputs          | services         | outcome |
       | charge | amount: integer | labels: labeller | success |
-    And the workflow binds the input adapter "prices" to the steps "charge"
+    And the workflow binds the input adapter "prices" to the step "charge"
     And the workflow binds the service provider "stock"
     And step "charge" has an attempt timeout of 1000 ms
     When the workflow runs
