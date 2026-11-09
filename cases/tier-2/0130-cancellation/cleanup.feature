@@ -14,12 +14,13 @@ Feature: Cleanup after a cancellation, and when a cancellation counts
   @proposal-0133 @proposal-0134
   Scenario: A cancellation while waiting stops at once and abandons the pending and waiting steps
     Given the step policies and their hooks:
-      | policy | hook       | requests |
-      | tx     | after step | ending   |
+      | policy | hook       |
+      | tx     | after step |
+    And the hook "after step" of policy "tx" requests its ending
     And a workflow "orders" with the steps:
-      | step    | policies |
-      | payment | tx       |
-      | receipt | tx       |
+      | step    | policies | outcome |
+      | payment | tx       |         |
+      | receipt | tx       | success |
     And the workflow allows pending steps
     And the workflow lists the reporters "trace"
     And step "payment" may be pending, with a pending budget of 3
@@ -30,7 +31,6 @@ Feature: Cleanup after a cancellation, and when a cancellation counts
       | 2       | success |
     And step "receipt" may be pending, with a pending budget of 3
     And step "receipt" waits for the steps "payment"
-    And step "receipt" succeeds
     And the caller cancels the journey on "journey_waiting"
     When the workflow runs
     Then the events include, in order:
@@ -53,10 +53,9 @@ Feature: Cleanup after a cancellation, and when a cancellation counts
       | tx     | after attempt |            |
       | audit  | after attempt | audit down |
     And a workflow "orders" with the steps:
-      | step   | policies  |
-      | charge | tx, audit |
+      | step   | policies  | outcome |
+      | charge | tx, audit | success |
     And the workflow lists the reporters "trace"
-    And step "charge" succeeds
     And the caller cancels the journey on "step_succeeded" of "charge"
     When the workflow runs
     Then the events include, in order:
@@ -72,10 +71,9 @@ Feature: Cleanup after a cancellation, and when a cancellation counts
     Given a step policy "tx" defines the hook "after attempt"
     And the hook "after attempt" of policy "tx" emits journey_info "rolling back"
     And a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | tx       |
+      | step   | policies | outcome |
+      | charge | tx       | success |
     And the workflow lists the reporters "trace", "audit"
-    And step "charge" succeeds
     And the reporter "audit" throws on "journey_info"
     And the caller cancels the journey on "step_succeeded" of "charge"
     When the workflow runs
@@ -87,9 +85,8 @@ Feature: Cleanup after a cancellation, and when a cancellation counts
 
   Scenario: A token triggered before run is called means there is no journey
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the caller cancelled the journey before it runs
     When the workflow runs
     Then no event was emitted
@@ -104,10 +101,9 @@ Feature: Cleanup after a cancellation, and when a cancellation counts
       | audit  | on workflow success |
     And the hook "after journey" of policy "audit" emits journey_info "closing"
     And a workflow "orders" with the policies "audit" and the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And the workflow lists the reporters "trace"
-    And step "charge" succeeds
     And the caller cancels the journey on "journey_info"
     When the workflow runs
     Then the hook "on workflow success" of policy "audit" was called 1 times
@@ -117,11 +113,9 @@ Feature: Cleanup after a cancellation, and when a cancellation counts
 
   Scenario: An abort that comes before the cancellation is honoured stands
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | inputs          | outcome |
+      | charge | amount: integer | success |
     And the workflow lists the reporters "trace"
-    And step "charge" requests input "amount" of type integer
-    And step "charge" succeeds
     And the data bag is empty
     And the caller cancels the journey on "journey_aborted"
     When the workflow runs

@@ -12,21 +12,24 @@ Feature: A cancellation honoured at an executor checkpoint
 
   Scenario: A cancellation after a step returns keeps its outcome fact, and nothing follows from it
     Given the step policies and their hooks:
-      | policy | hook            | requests |
-      | tx     | after attempt   | ending   |
-      | tx     | after step      | ending   |
-      | tx     | on step success |          |
+      | policy | hook            |
+      | tx     | after attempt   |
+      | tx     | after step      |
+      | tx     | on step success |
     And the workflow policies and their hooks:
-      | policy | hook                | requests |
-      | audit  | after journey       | ending   |
-      | audit  | on workflow success |          |
+      | policy | hook                |
+      | audit  | after journey       |
+      | audit  | on workflow success |
+    And the hooks request:
+      | policy | hook          | request |
+      | tx     | after attempt | ending  |
+      | tx     | after step    | ending  |
+      | audit  | after journey | ending  |
     And a workflow "orders" with the policies "audit" and the steps:
-      | step   | policies |
-      | charge | tx       |
-      | ship   |          |
+      | step   | policies | outcome |
+      | charge | tx       | success |
+      | ship   |          | success |
     And step "charge" contributes "receipt" = "R-1"
-    And step "charge" succeeds
-    And step "ship" succeeds
     And the caller cancels the journey on "step_succeeded" of "charge"
     When the workflow runs
     Then the events include, in order:
@@ -51,9 +54,12 @@ Feature: A cancellation honoured at an executor checkpoint
 
   Scenario: After attempt may read what a returned attempt reported when the journey is cancelled
     Given the step policies and their hooks:
-      | policy | hook          | requests                |
-      | tx     | after attempt | optional failure reason |
-    And the hook "after attempt" of policy "tx" requests optional step data "receipt" of type string
+      | policy | hook          |
+      | tx     | after attempt |
+    And the hooks request:
+      | policy | hook          | request        | key     | type   | optional |
+      | tx     | after attempt | failure reason |         |        | yes      |
+      | tx     | after attempt | step data      | receipt | string | yes      |
     And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
@@ -130,10 +136,9 @@ Feature: A cancellation honoured at an executor checkpoint
       | tx     | after step      |
       | tx     | on step success |
     And a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | tx       |
+      | step   | policies | outcome |
+      | charge | tx       | success |
     And step "charge" contributes "receipt" = "R-1"
-    And step "charge" succeeds
     And the caller cancels the journey on "contribution_committed" of "charge"
     When the workflow runs
     Then the events include, in order:
@@ -182,11 +187,9 @@ Feature: A cancellation honoured at an executor checkpoint
       | tx     | before step     |
       | tx     | after step      |
     And a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | done     |
-      | ship   | tx       |
-    And step "charge" succeeds
-    And step "ship" succeeds
+      | step   | policies | outcome |
+      | charge | done     | success |
+      | ship   | tx       | success |
     And the caller cancels the journey on "hook_called" of "charge"
     When the workflow runs
     Then the events include, in order:
@@ -203,16 +206,16 @@ Feature: A cancellation honoured at an executor checkpoint
 
   Scenario: A cancellation before building an attempt leaves it with no outcome fact, and runs the after hooks whose instances exist
     Given the step policies and their hooks:
-      | policy | hook           | requests |
-      | tx     | before attempt |          |
-      | tx     | after attempt  |          |
-      | lock   | before step    |          |
-      | lock   | after step     | ending   |
+      | policy | hook           |
+      | tx     | before attempt |
+      | tx     | after attempt  |
+      | lock   | before step    |
+      | lock   | after step     |
+    And the hook "after step" of policy "lock" requests its ending
     And a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | tx, lock |
+      | step   | policies | outcome |
+      | charge | tx, lock | success |
     And the workflow lists the reporters "trace"
-    And step "charge" succeeds
     And the caller cancels the journey on "attempt_started" of "charge"
     When the workflow runs
     Then the events include, in order:
