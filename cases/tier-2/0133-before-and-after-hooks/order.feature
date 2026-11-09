@@ -19,12 +19,12 @@ Feature: The order of the hooks before and after a journey, a step and an attemp
       | tx     | after step      |
       | tx     | on step retry   |
       | tx     | on step success |
-    And the workflow policies and their hooks:
+    Given the workflow policies and their hooks:
       | policy | hook                |
       | audit  | before journey      |
       | audit  | after journey       |
       | audit  | on workflow success |
-    And a workflow "orders" with the policies "audit" and the steps:
+    Given a workflow "orders" with the policies "audit" and the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" allows 1 retries
@@ -68,13 +68,13 @@ Feature: The order of the hooks before and after a journey, a step and an attemp
       | lock   | before attempt |
       | lock   | after attempt  |
       | lock   | after step     |
-    And the workflow policies and their hooks:
+    Given the workflow policies and their hooks:
       | policy | hook           |
       | audit  | before journey |
       | audit  | after journey  |
       | trace  | before journey |
       | trace  | after journey  |
-    And a workflow "orders" with the policies "audit", "trace" and the steps:
+    Given a workflow "orders" with the policies "audit", "trace" and the steps:
       | step   | policies | outcome |
       | charge | tx, lock | success |
     When the workflow runs
@@ -101,7 +101,7 @@ Feature: The order of the hooks before and after a journey, a step and an attemp
       | tx     | before attempt |
       | tx     | after attempt  |
       | tx     | after step     |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge | tx       |         |
       | ship   | tx       | success |
@@ -122,7 +122,7 @@ Feature: The order of the hooks before and after a journey, a step and an attemp
 
   Scenario: The step's after step hooks run before the journey moves to the next step
     Given a step policy "tx" defines the hook "after step"
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge | tx       | success |
       | ship   |          | success |
@@ -139,11 +139,11 @@ Feature: The order of the hooks before and after a journey, a step and an attemp
       | tx     | after attempt   |
       | tx     | after step      |
       | tx     | on step failure |
-    And the workflow policies and their hooks:
+    Given the workflow policies and their hooks:
       | policy | hook                |
       | audit  | after journey       |
       | audit  | on workflow failure |
-    And a workflow "orders" with the policies "audit" and the steps:
+    Given a workflow "orders" with the policies "audit" and the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" attempts:
@@ -167,8 +167,8 @@ Feature: The order of the hooks before and after a journey, a step and an attemp
       | policy | hook          |
       | trail  | after attempt |
       | trail  | after step    |
-    And a workflow policy "log" defines the hook "after journey"
-    And a workflow "orders" with the policies "log" and the steps:
+    Given a workflow policy "log" defines the hook "after journey"
+    Given a workflow "orders" with the policies "log" and the steps:
       | step   | policies | outcome |
       | charge | trail    | success |
     When the workflow runs

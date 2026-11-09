@@ -18,7 +18,7 @@ Feature: Before and after hooks that fail
       | lock   | before step     | no lock    |
       | lock   | after step      |            |
       | lock   | on step failure |            |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge | lock     | success |
       | ship   |          | success |
@@ -47,7 +47,7 @@ Feature: Before and after hooks that fail
       | tx     | on step failure              |               |
       | lock   | before attempt               |               |
       | lock   | after attempt                |               |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge | tx, lock | success |
     When the workflow runs
@@ -75,7 +75,7 @@ Feature: Before and after hooks that fail
     Given the step policies and their hooks:
       | policy | hook           | fails with    | on attempt |
       | tx     | before attempt | no connection | 1          |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge | tx       | success |
     And step "charge" allows 1 retries
@@ -95,7 +95,7 @@ Feature: Before and after hooks that fail
     Given the step policies and their hooks:
       | policy | hook           | fails with    | on attempt |
       | tx     | before attempt | no connection | 1          |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge | tx       | success |
     And step "charge" has a rescue step
@@ -118,7 +118,7 @@ Feature: Before and after hooks that fail
       | tx     | after attempt | commit failed | 1          |
       | tx     | on step retry |               |            |
     And the hook "on step retry" of policy "tx" requests the retry cause
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And the workflow lists the reporters "trace"
@@ -150,7 +150,7 @@ Feature: Before and after hooks that fail
       | policy | hook            | fails with    |
       | tx     | after attempt   | commit failed |
       | tx     | on step success |               |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge | tx       | success |
     And step "charge" contributes "receipt" = "R-1"
@@ -171,7 +171,7 @@ Feature: Before and after hooks that fail
     Given the step policies and their hooks:
       | policy | hook          | fails with      |
       | tx     | after attempt | rollback failed |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" attempts:
@@ -193,7 +193,7 @@ Feature: Before and after hooks that fail
       | tx     | after step      | settle failed |
       | tx     | on step success |               |
       | tx     | on step failure |               |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge | tx       | success |
     And step "charge" contributes "receipt" = "R-1"
@@ -217,7 +217,7 @@ Feature: Before and after hooks that fail
       | audit  | after journey       | audit down |
       | audit  | on workflow success |            |
       | audit  | on workflow failure |            |
-    And a workflow "orders" with the policies "audit" and the steps:
+    Given a workflow "orders" with the policies "audit" and the steps:
       | step   | outcome |
       | charge | success |
     When the workflow runs
@@ -238,7 +238,7 @@ Feature: Before and after hooks that fail
       | policy | hook          | fails with |
       | tx     | after attempt |            |
       | audit  | after attempt | audit down |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies  |
       | charge | tx, audit |
     And step "charge" attempts:
@@ -257,7 +257,7 @@ Feature: Before and after hooks that fail
       | tx     | after step | second failure |
       | audit  | after step | first failure  |
     And the hook "after step" of policy "tx" requests its ending
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies  | outcome |
       | charge | tx, audit | success |
     When the workflow runs
@@ -279,7 +279,7 @@ Feature: Before and after hooks that fail
       | meter  | before step |            |
       | meter  | after step  |            |
       | trail  | after step  |            |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies               | outcome |
       | charge | tx, lock, meter, trail | success |
     When the workflow runs
