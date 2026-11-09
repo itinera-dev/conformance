@@ -66,11 +66,11 @@ Feature: The journey timeout
       | step   | policies |
       | charge | tx       |
     And the workflow has a journey timeout of 5000 ms
+    And the workflow lists the reporters "trace"
     And step "charge" allows 2 retries
     And step "charge" attempts:
       | attempt | outcome | code        | takes   |
       | 1       | failure | unreachable | 4000 ms |
-    And the workflow lists the reporters "trace"
     When the workflow runs
     Then the events include, in order:
       | event             | step   | attempt | checkpoint     | cause             |
@@ -89,13 +89,13 @@ Feature: The journey timeout
       | payment |
     And the workflow has a journey timeout of 10000 ms
     And the workflow allows pending steps
+    And the workflow lists the reporters "trace"
     And step "payment" may be pending, with a pending budget of 3
     And step "payment" has a default nbf of 60000 ms
     And step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
       | 2       | success |
-    And the workflow lists the reporters "trace"
     When the workflow runs
     Then the events include, in order:
       | event             | step    | until                    | checkpoint    | status before | timestamp                |
@@ -113,6 +113,7 @@ Feature: The journey timeout
       | step   |
       | charge |
     And the workflow has a journey timeout of 5000 ms
+    And the workflow lists the reporters "trace"
     And step "charge" has a rescue step
     And step "charge" attempts:
       | attempt | outcome | code    |
@@ -120,7 +121,6 @@ Feature: The journey timeout
     And step "charge_rescue" attempts:
       | attempt | outcome | takes   |
       | 1       | success | 6000 ms |
-    And the workflow lists the reporters "trace"
     When the workflow runs
     Then the events include, in order:
       | event             | step          | attempt | checkpoint             | cause             |
@@ -137,11 +137,11 @@ Feature: The journey timeout
       | step   |
       | charge |
     And the workflow has a journey timeout of 5000 ms
+    And the workflow lists the reporters "trace"
     And step "charge" has an attempt timeout of 1000 ms
     And step "charge" attempts:
       | attempt | outcome | takes   |
       | 1       | success | 6000 ms |
-    And the workflow lists the reporters "trace"
     When the workflow runs
     Then the reporter "trace" received the event "journey_timed_out" 1 times
     And the reporter "trace" did not receive the event "attempt_timed_out"
@@ -153,11 +153,11 @@ Feature: The journey timeout
       | step   |
       | charge |
     And the workflow has a journey timeout of 5000 ms
+    And the workflow lists the reporters "trace"
     And step "charge" has an attempt timeout of 1000 ms
     And step "charge" attempts:
       | attempt | outcome | takes   |
       | 1       | success | 6000 ms |
-    And the workflow lists the reporters "trace"
     And the caller cancels the journey on "step_succeeded" of "charge"
     When the workflow runs
     Then the reporter "trace" did not receive the event "journey_timed_out"
@@ -174,8 +174,8 @@ Feature: The journey timeout
       | step   |
       | charge |
     And the workflow has a journey timeout of 5000 ms
-    And step "charge" succeeds
     And the workflow lists the reporters "trace"
+    And step "charge" succeeds
     When the workflow runs
     Then the reporter "trace" did not receive the event "journey_timed_out"
     And the journey succeeded
@@ -186,13 +186,13 @@ Feature: The journey timeout
       | charge |
       | ship   |
     And the workflow has a journey timeout of 5000 ms
+    And the workflow lists the reporters "trace"
     And step "charge" attempts:
       | attempt | outcome | takes   |
       | 1       | success | 2000 ms |
     And step "ship" attempts:
       | attempt | outcome | takes   |
       | 1       | success | 2000 ms |
-    And the workflow lists the reporters "trace"
     When the workflow runs
     Then the reporter "trace" did not receive the event "journey_timed_out"
     And the journey succeeded
