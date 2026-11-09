@@ -59,7 +59,7 @@ Feature: The pending budget, the pending deadline and on step pending
     And step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
-    And its step policies and their hooks are:
+    And the step policies and their hooks:
       | policy | hook            |
       | pace   | on step pending |
       | pace   | on step failure |
@@ -108,7 +108,7 @@ Feature: The pending budget, the pending deadline and on step pending
     And step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
-    And its step policies and their hooks are:
+    And the step policies and their hooks:
       | policy | hook            | returns      | code     |
       | pace   | on step pending | FailWorkflow | too slow |
       | pace   | on step failure |              |          |
@@ -129,8 +129,9 @@ Feature: The pending budget, the pending deadline and on step pending
     And step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
-    And a step policy "pace" defines the hook "on step pending"
-    And the hook "on step pending" of policy "pace" returns FinishWorkflow
+    And the step policies and their hooks:
+      | policy | hook            | returns        |
+      | pace   | on step pending | FinishWorkflow |
     And step "payment" has the policies "pace"
     When the workflow runs
     Then the journey was aborted with the abort reason "invalid lifecycle"
@@ -153,11 +154,12 @@ Feature: The pending budget, the pending deadline and on step pending
       | attempt | outcome |
       | 1       | pending |
       | 2       | success |
-    And a step policy "pace" defines the hook "on step pending"
-    And the hook "on step pending" of policy "pace" requests the step name
-    And the hook "on step pending" of policy "pace" requests the attempt number
+    And the step policies and their hooks:
+      | policy | hook            | requests                  |
+      | pace   | on step pending | step name, attempt number |
     And step "payment" has the policies "pace"
     When the workflow runs
-    Then the hook "on step pending" of policy "pace" received the step name "payment"
-    And the hook "on step pending" of policy "pace" received the attempt number 1
+    Then the hooks received:
+      | policy | hook            | attempt number | step name |
+      | pace   | on step pending | 1              | payment   |
     And the journey succeeded

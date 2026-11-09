@@ -11,23 +11,22 @@ Feature: A cancellation honoured at an executor checkpoint
   returns from it, so the journey cannot pass its next checkpoint first.
 
   Scenario: A cancellation after a step returns keeps its outcome fact, and nothing follows from it
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook            | requests |
+      | tx     | after attempt   | ending   |
+      | tx     | after step      | ending   |
+      | tx     | on step success |          |
+    And the workflow policies and their hooks:
+      | policy | hook                | requests |
+      | audit  | after journey       | ending   |
+      | audit  | on workflow success |          |
+    And a workflow "orders" with the policies "audit" and the steps:
       | step   | policies |
       | charge | tx       |
       | ship   |          |
     And step "charge" contributes "receipt" = "R-1"
     And step "charge" succeeds
     And step "ship" succeeds
-    And its step policies and their hooks are:
-      | policy | hook            | requests |
-      | tx     | after attempt   | ending   |
-      | tx     | after step      | ending   |
-      | tx     | on step success |          |
-    And its workflow policies and their hooks are:
-      | policy | hook                | requests |
-      | audit  | after journey       | ending   |
-      | audit  | on workflow success |          |
-    And the workflow has the policies "audit"
     And the caller cancels the journey on "step_succeeded" of "charge"
     When the workflow runs
     Then the events include, in order:
@@ -38,26 +37,29 @@ Feature: A cancellation honoured at an executor checkpoint
       | hook_called       |        |         | audit  | after journey |                        |
       | journey_cancelled | charge | 1       |        |               | after the step returns |
     And the last event is "journey_cancelled"
-    And the hook "after attempt" of policy "tx" received the endings "cancelled"
-    And the hook "after step" of policy "tx" received the endings "cancelled"
-    And the hook "after journey" of policy "audit" received the endings "cancelled"
-    And the hook "on step success" of policy "tx" was not called
-    And the hook "on workflow success" of policy "audit" was not called
+    And the hooks received:
+      | policy | hook                | calls | endings   |
+      | tx     | after attempt       |       | cancelled |
+      | tx     | after step          |       | cancelled |
+      | audit  | after journey       |       | cancelled |
+      | tx     | on step success     | 0     |           |
+      | audit  | on workflow success | 0     |           |
     And no contribution of "receipt" was committed
     And step "charge" ended as abandoned after 1 attempts
     And step "ship" ended as not executed after 0 attempts
     And the run ended as cancelled
 
   Scenario: After attempt may read what a returned attempt reported when the journey is cancelled
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook          | requests                |
+      | tx     | after attempt | optional failure reason |
+    And the hook "after attempt" of policy "tx" requests optional step data "receipt" of type string
+    And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" attempts:
       | attempt | outcome | code     | message | details | contributes        |
       | 1       | failure | declined | no      | {}      | {"receipt": "R-1"} |
-    And a step policy "tx" defines the hook "after attempt"
-    And the hook "after attempt" of policy "tx" requests the optional failure reason
-    And the hook "after attempt" of policy "tx" requests optional step data "receipt" of type string
     And the caller cancels the journey on "step_failed" of "charge"
     When the workflow runs
     Then the hook "after attempt" of policy "tx" received the failure reason with code "declined", message "no" and details {}
@@ -65,14 +67,14 @@ Feature: A cancellation honoured at an executor checkpoint
     And the run ended as cancelled
 
   Scenario: A cancellation after a failure retries nothing
-    Given a workflow "orders" with the steps:
+    Given a step policy "tx" defines the hook "on step retry"
+    And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" allows 2 retries
     And step "charge" attempts:
       | attempt | outcome | code        |
       | 1       | failure | unreachable |
-    And a step policy "tx" defines the hook "on step retry"
     And the workflow lists the reporters "trace"
     And the caller cancels the journey on "step_failed" of "charge"
     When the workflow runs
@@ -123,15 +125,15 @@ Feature: A cancellation honoured at an executor checkpoint
     And the run ended as cancelled
 
   Scenario: A cancellation before a hook calls neither it nor the hooks after it, and no after step runs twice
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook            |
+      | tx     | after step      |
+      | tx     | on step success |
+    And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" contributes "receipt" = "R-1"
     And step "charge" succeeds
-    And its step policies and their hooks are:
-      | policy | hook            |
-      | tx     | after step      |
-      | tx     | on step success |
     And the caller cancels the journey on "contribution_committed" of "charge"
     When the workflow runs
     Then the events include, in order:
@@ -139,24 +141,25 @@ Feature: A cancellation honoured at an executor checkpoint
       | hook_called            | charge | tx     | after step |             |
       | contribution_committed | charge |        |            |             |
       | journey_cancelled      |        |        |            | before hook |
-    And the hook "after step" of policy "tx" was called 1 times
-    And the hook "on step success" of policy "tx" was not called
+    And the hooks received:
+      | policy | hook            | calls |
+      | tx     | after step      | 1     |
+      | tx     | on step success | 0     |
     And step "charge" ended as succeeded after 1 attempts
     And the run ended as cancelled
 
   Scenario: A cancellation before on step failure leaves the step given up, and runs no after step again
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook            |
+      | tx     | after step      |
+      | tx     | on step failure |
+    And a workflow policy "audit" defines the hook "on workflow failure"
+    And a workflow "orders" with the policies "audit" and the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" attempts:
       | attempt | outcome | code     |
       | 1       | failure | declined |
-    And its step policies and their hooks are:
-      | policy | hook            |
-      | tx     | after step      |
-      | tx     | on step failure |
-    And a workflow policy "audit" defines the hook "on workflow failure"
-    And the workflow has the policies "audit"
     And the caller cancels the journey on "step_given_up" of "charge"
     When the workflow runs
     Then the events include, in order:
@@ -164,47 +167,51 @@ Feature: A cancellation honoured at an executor checkpoint
       | step_given_up     | charge |        |            |             |
       | hook_called       | charge | tx     | after step |             |
       | journey_cancelled |        |        |            | before hook |
-    And the hook "after step" of policy "tx" was called 1 times
-    And the hook "on step failure" of policy "tx" was not called
-    And the hook "on workflow failure" of policy "audit" was not called
+    And the hooks received:
+      | policy | hook                | calls |
+      | tx     | after step          | 1     |
+      | tx     | on step failure     | 0     |
+      | audit  | on workflow failure | 0     |
     And step "charge" ended as failed after 1 attempts
     And the run ended as cancelled
 
   Scenario: A cancellation before a step's turn leaves it not executed, and none of its hooks run
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook            |
+      | done   | on step success |
+      | tx     | before step     |
+      | tx     | after step      |
+    And a workflow "orders" with the steps:
       | step   | policies |
       | charge | done     |
       | ship   | tx       |
     And step "charge" succeeds
     And step "ship" succeeds
-    And its step policies and their hooks are:
-      | policy | hook            |
-      | done   | on step success |
-      | tx     | before step     |
-      | tx     | after step      |
     And the caller cancels the journey on "hook_called" of "charge"
     When the workflow runs
     Then the events include, in order:
       | event             | step   | policy | hook            | checkpoint  |
       | hook_called       | charge | done   | on step success |             |
       | journey_cancelled |        |        |                 | before step |
-    And the hook "before step" of policy "tx" was not called
-    And the hook "after step" of policy "tx" was not called
+    And the hooks received:
+      | policy | hook        | calls |
+      | tx     | before step | 0     |
+      | tx     | after step  | 0     |
     And the policy "tx" was built 0 times
     And step "ship" ended as not executed after 0 attempts
     And the run ended as cancelled
 
   Scenario: A cancellation before building an attempt leaves it with no outcome fact, and runs the after hooks whose instances exist
-    Given a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | tx, lock |
-    And step "charge" succeeds
-    And its step policies and their hooks are:
+    Given the step policies and their hooks:
       | policy | hook           | requests |
       | tx     | before attempt |          |
       | tx     | after attempt  |          |
       | lock   | before step    |          |
       | lock   | after step     | ending   |
+    And a workflow "orders" with the steps:
+      | step   | policies |
+      | charge | tx, lock |
+    And step "charge" succeeds
     And the workflow lists the reporters "trace"
     And the caller cancels the journey on "attempt_started" of "charge"
     When the workflow runs
@@ -214,9 +221,11 @@ Feature: A cancellation honoured at an executor checkpoint
       | hook_called       | charge |         | lock   | after step |                 |
       | journey_cancelled | charge | 1       |        |            | before building |
     And the reporter "trace" did not receive the event "step_succeeded"
-    And the hook "before attempt" of policy "tx" was not called
-    And the hook "after attempt" of policy "tx" was not called
-    And the hook "after step" of policy "lock" received the endings "cancelled"
+    And the hooks received:
+      | policy | hook           | calls | endings   |
+      | tx     | before attempt | 0     |           |
+      | tx     | after attempt  | 0     |           |
+      | lock   | after step     |       | cancelled |
     And step "charge" was built 0 times, each time as a new instance
     And step "charge" ended as abandoned after 1 attempts
     And the run ended as cancelled

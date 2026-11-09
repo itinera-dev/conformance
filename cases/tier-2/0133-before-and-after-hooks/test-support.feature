@@ -11,7 +11,11 @@ Feature: Hooks before and after in test support
   given up`; and `journey failed: <reason>` when `journey_failed` names no step.
 
   Scenario: The path of a bypassed step, with and without a reason
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook        | returns | code              |
+      | gate   | before step | bypass  | no discount today |
+      | wrap   | before step | bypass  |                   |
+    And a workflow "orders" with the steps:
       | step     | policies |
       | discount | gate     |
       | gift     | wrap     |
@@ -19,10 +23,6 @@ Feature: Hooks before and after in test support
     And step "discount" succeeds
     And step "gift" succeeds
     And step "ship" succeeds
-    And its step policies and their hooks are:
-      | policy | hook        | returns | code              |
-      | gate   | before step | bypass  | no discount today |
-      | wrap   | before step | bypass  |                   |
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:
@@ -33,12 +33,13 @@ Feature: Hooks before and after in test support
       | journey succeeded                    |
 
   Scenario: The path of a failing before step
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook        | fails with |
+      | lock   | before step | no lock    |
+    And a workflow "orders" with the steps:
       | step   | policies |
       | charge | lock     |
     And step "charge" succeeds
-    And a step policy "lock" defines the hook "before step"
-    And the hook "before step" of policy "lock" fails with "no lock"
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:
@@ -48,12 +49,13 @@ Feature: Hooks before and after in test support
       | journey failed at charge: no lock   |
 
   Scenario: The path of a failing before attempt
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook           | fails with    |
+      | tx     | before attempt | no connection |
+    And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" succeeds
-    And a step policy "tx" defines the hook "before attempt"
-    And the hook "before attempt" of policy "tx" fails with "no connection"
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:
@@ -63,12 +65,13 @@ Feature: Hooks before and after in test support
       | journey failed at charge: no connection            |
 
   Scenario: The path of a failing after attempt after a success
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook          | fails with    |
+      | tx     | after attempt | commit failed |
+    And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" succeeds
-    And a step policy "tx" defines the hook "after attempt"
-    And the hook "after attempt" of policy "tx" fails with "commit failed"
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:
@@ -79,12 +82,13 @@ Feature: Hooks before and after in test support
       | journey failed at charge: commit failed           |
 
   Scenario: The path of a failing after step after a success
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook       | fails with    |
+      | tx     | after step | settle failed |
+    And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" succeeds
-    And a step policy "tx" defines the hook "after step"
-    And the hook "after step" of policy "tx" fails with "settle failed"
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:
@@ -95,13 +99,13 @@ Feature: Hooks before and after in test support
       | journey failed at charge: settle failed |
 
   Scenario: The path of a journey failed by before journey, which names no step
-    Given a workflow "orders" with the steps:
+    Given the workflow policies and their hooks:
+      | policy | hook           | returns      | code      |
+      | check  | before journey | FailWorkflow | bad input |
+    And a workflow "orders" with the policies "check" and the steps:
       | step   |
       | charge |
     And step "charge" succeeds
-    And a workflow policy "check" defines the hook "before journey"
-    And the hook "before journey" of policy "check" returns FailWorkflow with code "bad input"
-    And the workflow has the policies "check"
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:
@@ -109,13 +113,13 @@ Feature: Hooks before and after in test support
       | journey failed: bad input |
 
   Scenario: The path of a failing before journey
-    Given a workflow "orders" with the steps:
+    Given the workflow policies and their hooks:
+      | policy | hook           | fails with        |
+      | check  | before journey | rules unavailable |
+    And a workflow "orders" with the policies "check" and the steps:
       | step   |
       | charge |
     And step "charge" succeeds
-    And a workflow policy "check" defines the hook "before journey"
-    And the hook "before journey" of policy "check" fails with "rules unavailable"
-    And the workflow has the policies "check"
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:
@@ -124,13 +128,13 @@ Feature: Hooks before and after in test support
       | journey aborted: hook failed                  |
 
   Scenario: The path of a failing after journey after a success
-    Given a workflow "orders" with the steps:
+    Given the workflow policies and their hooks:
+      | policy | hook          | fails with |
+      | audit  | after journey | audit down |
+    And a workflow "orders" with the policies "audit" and the steps:
       | step   |
       | charge |
     And step "charge" succeeds
-    And a workflow policy "audit" defines the hook "after journey"
-    And the hook "after journey" of policy "audit" fails with "audit down"
-    And the workflow has the policies "audit"
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:

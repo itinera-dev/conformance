@@ -10,7 +10,11 @@ Feature: After hooks for a skipped attempt and around a rescue
   `journey_failed`.
 
   Scenario: A skipped step runs its after hooks before its contributions are discarded
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook          | requests |
+      | tx     | after attempt | ending   |
+      | tx     | after step    | ending   |
+    And a workflow "orders" with the steps:
       | step     | policies |
       | discount | tx       |
       | ship     |          |
@@ -18,10 +22,6 @@ Feature: After hooks for a skipped attempt and around a rescue
       | attempt | outcome | code             | contributes  |
       | 1       | skipped | no discount here | {"rate": 10} |
     And step "ship" succeeds
-    And its step policies and their hooks are:
-      | policy | hook          | requests |
-      | tx     | after attempt | ending   |
-      | tx     | after step    | ending   |
     When the workflow runs
     Then the events include, in order:
       | event                   | step     | attempt | policy | hook          |
@@ -30,13 +30,20 @@ Feature: After hooks for a skipped attempt and around a rescue
       | hook_called             | discount |         | tx     | after step    |
       | contributions_discarded | discount | 1       |        |               |
       | attempt_started         | ship     | 1       |        |               |
-    And the hook "after attempt" of policy "tx" received the endings "skipped"
-    And the hook "after step" of policy "tx" received the endings "skipped"
+    And the hooks received:
+      | policy | hook          | endings |
+      | tx     | after attempt | skipped |
+      | tx     | after step    | skipped |
     And step "discount" ended as skipped after 1 attempts
     And the journey succeeded
 
   Scenario: After attempt runs for an attempt that goes to a rescue step, and no hook runs for the rescue step
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook           | requests |
+      | tx     | before attempt |          |
+      | tx     | after attempt  | ending   |
+      | tx     | after step     |          |
+    And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" has a rescue step
@@ -45,11 +52,6 @@ Feature: After hooks for a skipped attempt and around a rescue
       | 1       | failure | expired |
       | 2       | success |         |
     And step "charge_rescue" succeeds
-    And its step policies and their hooks are:
-      | policy | hook           | requests |
-      | tx     | before attempt |          |
-      | tx     | after attempt  | ending   |
-      | tx     | after step     |          |
     When the workflow runs
     Then the events include, in order:
       | event           | step          | attempt | policy | hook          |
@@ -62,14 +64,19 @@ Feature: After hooks for a skipped attempt and around a rescue
       | attempt_started | charge        | 2       |        |               |
       | hook_called     | charge        | 2       | tx     | after attempt |
       | hook_called     | charge        |         | tx     | after step    |
-    And the hook "before attempt" of policy "tx" was called 2 times
-    And the hook "after attempt" of policy "tx" was called 2 times
-    And the hook "after step" of policy "tx" was called 1 times
-    And the hook "after attempt" of policy "tx" received the endings "failed", "succeeded"
+    And the hooks received:
+      | policy | hook           | calls | endings           |
+      | tx     | before attempt | 2     |                   |
+      | tx     | after attempt  | 2     | failed, succeeded |
+      | tx     | after step     | 1     |                   |
     And the journey succeeded
 
   Scenario: A step whose rescue step fails runs its after step hooks with the ending failed
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook       | requests |
+      | tx     | after step | ending   |
+    And a workflow policy "audit" defines the hook "after journey"
+    And a workflow "orders" with the policies "audit" and the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" has a rescue step
@@ -79,10 +86,6 @@ Feature: After hooks for a skipped attempt and around a rescue
     And step "charge_rescue" attempts:
       | attempt | outcome | code       |
       | 1       | failure | no-refresh |
-    And a step policy "tx" defines the hook "after step"
-    And the hook "after step" of policy "tx" requests its ending
-    And a workflow policy "audit" defines the hook "after journey"
-    And the workflow has the policies "audit"
     When the workflow runs
     Then the events include, in order:
       | event          | step          | attempt | policy | hook          |

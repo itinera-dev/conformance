@@ -10,47 +10,46 @@ Feature: Declaring before and after hooks
   request in after hook`, found when the workflow is built.
 
   Scenario: Several policies of one step and of the workflow may define the same before and after hooks
-    Given a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | tx, lock |
-    And step "charge" succeeds
-    And its step policies and their hooks are:
+    Given the step policies and their hooks:
       | policy | hook          |
       | tx     | before step   |
       | tx     | after attempt |
       | lock   | before step   |
       | lock   | after attempt |
-    And its workflow policies and their hooks are:
+    And the workflow policies and their hooks:
       | policy | hook          |
       | audit  | after journey |
       | trace  | after journey |
-    And the workflow has the policies "audit", "trace"
+    And a workflow "orders" with the policies "audit", "trace" and the steps:
+      | step   | policies |
+      | charge | tx, lock |
+    And step "charge" succeeds
     When the workflow runs
     Then the journey succeeded
 
   Scenario: Hook defined twice still applies to the hooks of tier 1 beside the new ones
-    Given a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | tx, lock |
-    And step "charge" succeeds
-    And its step policies and their hooks are:
+    Given the step policies and their hooks:
       | policy | hook            |
       | tx     | after step      |
       | tx     | on step success |
       | lock   | after step      |
       | lock   | on step success |
+    And a workflow "orders" with the steps:
+      | step   | policies |
+      | charge | tx, lock |
+    And step "charge" succeeds
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation          |
       | hook defined twice |
 
   Scenario: A required request for step data in after attempt is refused
-    Given a workflow "orders" with the steps:
+    Given a step policy "tx" defines the hook "after attempt"
+    And the hook "after attempt" of policy "tx" requests step data "receipt" of type string
+    And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" succeeds
-    And a step policy "tx" defines the hook "after attempt"
-    And the hook "after attempt" of policy "tx" requests step data "receipt" of type string
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation                      |
@@ -58,59 +57,58 @@ Feature: Declaring before and after hooks
     And no journey ID was produced
 
   Scenario: A required request for data from the workflow in after journey is refused
-    Given a workflow "orders" with the steps:
+    Given a workflow policy "audit" defines the hook "after journey"
+    And the hook "after journey" of policy "audit" requests data from the workflow "order" of type string
+    And a workflow "orders" with the policies "audit" and the steps:
       | step   |
       | charge |
     And step "charge" succeeds
-    And a workflow policy "audit" defines the hook "after journey"
-    And the hook "after journey" of policy "audit" requests data from the workflow "order" of type string
-    And the workflow has the policies "audit"
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation                      |
       | required request in after hook |
 
   Scenario: A required request for the failure reason in after step is refused
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook       | requests       |
+      | tx     | after step | failure reason |
+    And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" succeeds
-    And a step policy "tx" defines the hook "after step"
-    And the hook "after step" of policy "tx" requests the failure reason
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation                      |
       | required request in after hook |
 
   Scenario: After hooks may require what always exists
-    Given a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | tx       |
-    And step "charge" succeeds
-    And its step policies and their hooks are:
+    Given the step policies and their hooks:
       | policy | hook          | requests                                      |
       | tx     | after attempt | step name, attempt number, ending, journey ID |
       | tx     | after step    | number of attempts                            |
-    And the workflow's ID generator returns "J-1"
-    When the workflow runs
-    Then the hook "after attempt" of policy "tx" received the step name "charge"
-    And the hook "after attempt" of policy "tx" received the attempt number 1
-    And the hook "after attempt" of policy "tx" received the journey ID "J-1"
-    And the hook "after attempt" of policy "tx" received the endings "succeeded"
-    And the hook "after step" of policy "tx" received the number of attempts 1
-    And the journey succeeded
-
-  Scenario: Before hooks may require data from the workflow, and a missing one aborts the journey
-    Given a workflow "orders" with the steps:
+    And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" succeeds
-    And the data bag is empty
-    And its step policies and their hooks are:
+    And the workflow's ID generator returns "J-1"
+    When the workflow runs
+    Then the hooks received:
+      | policy | hook          | endings   | number of attempts | attempt number | step name | journey ID |
+      | tx     | after attempt | succeeded |                    | 1              | charge    | J-1        |
+      | tx     | after step    |           | 1                  |                |           |            |
+    And the journey succeeded
+
+  Scenario: Before hooks may require data from the workflow, and a missing one aborts the journey
+    Given the step policies and their hooks:
       | policy | hook           |
       | tx     | before attempt |
       | tx     | after attempt  |
     And the hook "before attempt" of policy "tx" requests data from the workflow "order" of type string
+    And a workflow "orders" with the steps:
+      | step   | policies |
+      | charge | tx       |
+    And step "charge" succeeds
+    And the data bag is empty
     When the workflow runs
     Then the events include, in order:
       | event           | step   | policy | hook           | key   | code                  |

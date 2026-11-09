@@ -10,7 +10,15 @@ Feature: A before step hook that bypasses its step
   lifecycle from `before step` is an `invalid lifecycle`.
 
   Scenario: The second of three before step hooks bypasses the step
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook        | returns | code              |
+      | first  | before step |         |                   |
+      | first  | after step  |         |                   |
+      | gate   | before step | bypass  | no discount today |
+      | gate   | after step  |         |                   |
+      | last   | before step |         |                   |
+      | last   | after step  |         |                   |
+    And a workflow "orders" with the steps:
       | step     | policies          |
       | discount | first, gate, last |
       | ship     |                   |
@@ -20,14 +28,6 @@ Feature: A before step hook that bypasses its step
     And the workflow declares the service provider "stock" for "labels" of type labeller, for each attempt
     And the service provider "stock" serves only the steps "discount"
     And the workflow declares the input adapter "prices" for the steps "discount"
-    And its step policies and their hooks are:
-      | policy | hook        | returns | code              |
-      | first  | before step |         |                   |
-      | first  | after step  |         |                   |
-      | gate   | before step | bypass  | no discount today |
-      | gate   | after step  |         |                   |
-      | last   | before step |         |                   |
-      | last   | after step  |         |                   |
     When the workflow runs
     Then the events include, in order:
       | event           | step     | attempt | policy | hook        | lifecycle | code              | decided by        |
@@ -37,8 +37,10 @@ Feature: A before step hook that bypasses its step
       | hook_called     | discount |         | gate   | after step  |           |                   |                   |
       | hook_called     | discount |         | first  | after step  |           |                   |                   |
       | attempt_started | ship     | 1       |        |             |           |                   |                   |
-    And the hook "before step" of policy "last" was not called
-    And the hook "after step" of policy "last" was not called
+    And the hooks received:
+      | policy | hook        | calls |
+      | last   | before step | 0     |
+      | last   | after step  | 0     |
     And the service provider "stock" was called 0 times
     And the input adapter "prices" was called 0 times
     And step "discount" was built 0 times, each time as a new instance
@@ -47,12 +49,13 @@ Feature: A before step hook that bypasses its step
     And the journey succeeded
 
   Scenario: A bypass without a reason bypasses the step
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook        | returns |
+      | gate   | before step | bypass  |
+    And a workflow "orders" with the steps:
       | step     | policies |
       | discount | gate     |
     And step "discount" succeeds
-    And a step policy "gate" defines the hook "before step"
-    And the hook "before step" of policy "gate" bypasses
     When the workflow runs
     Then the events include, in order:
       | event             | step     | decided by        |
@@ -62,15 +65,15 @@ Feature: A before step hook that bypasses its step
     And the journey succeeded
 
   Scenario: A bypassed step's contributions never reach the data bag, and its outcome hooks are not called
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook            | returns | code |
+      | gate   | before step     | bypass  | off  |
+      | gate   | on step success |         |      |
+    And a workflow "orders" with the steps:
       | step     | policies |
       | discount | gate     |
     And step "discount" contributes "rate" = 10
     And step "discount" succeeds
-    And its step policies and their hooks are:
-      | policy | hook            | returns | code |
-      | gate   | before step     | bypass  | off  |
-      | gate   | on step success |         |      |
     When the workflow runs
     Then the hook "on step success" of policy "gate" was not called
     And no contribution of "rate" was committed
@@ -79,14 +82,14 @@ Feature: A before step hook that bypasses its step
 
   @invalid-lifecycle
   Scenario: A lifecycle returned by before step aborts the journey with invalid lifecycle
-    Given a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | gate     |
-    And step "charge" succeeds
-    And its step policies and their hooks are:
+    Given the step policies and their hooks:
       | policy | hook        | returns        |
       | gate   | before step | FinishWorkflow |
       | gate   | after step  |                |
+    And a workflow "orders" with the steps:
+      | step   | policies |
+      | charge | gate     |
+    And step "charge" succeeds
     When the workflow runs
     Then the events include, in order:
       | event           | step   | policy | hook        | code              |
