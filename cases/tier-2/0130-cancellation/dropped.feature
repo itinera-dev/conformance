@@ -13,12 +13,12 @@ Feature: A dropped journey and on journey dropped
   @dropped-journey @proposal-0133
   Scenario: A dropped journey runs on journey dropped once, and nothing else
     Given a step policy "tx" defines the hook "after step"
-    And the workflow policies and their hooks:
+    Given the workflow policies and their hooks:
       | policy | hook               |
       | guard  | on journey dropped |
       | guard  | after journey      |
     And the hook "on journey dropped" of policy "guard" requests the journey ID
-    And a workflow "orders" with the policies "guard" and the steps:
+    Given a workflow "orders" with the policies "guard" and the steps:
       | step   | policies | outcome |
       | charge | tx       | success |
       | ship   |          | success |
@@ -38,7 +38,7 @@ Feature: A dropped journey and on journey dropped
   Scenario: On journey dropped calls a role of the workflow
     Given a workflow policy "guard" defines the hook "on journey dropped"
     And the hook "on journey dropped" of policy "guard" requests the role "alerts" and calls its operation "page"
-    And a workflow "orders" with the policies "guard" and the steps:
+    Given a workflow "orders" with the policies "guard" and the steps:
       | step   | outcome |
       | charge | success |
     And the workflow provides the role "alerts" with the operation "page"
@@ -48,7 +48,7 @@ Feature: A dropped journey and on journey dropped
 
   Scenario: On journey dropped does not run when the journey succeeds
     Given a workflow policy "guard" defines the hook "on journey dropped"
-    And a workflow "orders" with the policies "guard" and the steps:
+    Given a workflow "orders" with the policies "guard" and the steps:
       | step   |
       | charge |
     And step "charge" attempts:
@@ -59,7 +59,7 @@ Feature: A dropped journey and on journey dropped
 
   Scenario: On journey dropped does not run when the journey fails
     Given a workflow policy "guard" defines the hook "on journey dropped"
-    And a workflow "orders" with the policies "guard" and the steps:
+    Given a workflow "orders" with the policies "guard" and the steps:
       | step   |
       | charge |
     And step "charge" attempts:
@@ -70,7 +70,7 @@ Feature: A dropped journey and on journey dropped
 
   Scenario: On journey dropped does not run when the journey is aborted
     Given a workflow policy "guard" defines the hook "on journey dropped"
-    And a workflow "orders" with the policies "guard" and the steps:
+    Given a workflow "orders" with the policies "guard" and the steps:
       | step   | inputs          | outcome |
       | charge | amount: integer | success |
     And the data bag is empty
@@ -80,7 +80,7 @@ Feature: A dropped journey and on journey dropped
 
   Scenario: On journey dropped does not run when the journey is cancelled
     Given a workflow policy "guard" defines the hook "on journey dropped"
-    And a workflow "orders" with the policies "guard" and the steps:
+    Given a workflow "orders" with the policies "guard" and the steps:
       | step   | outcome |
       | charge | success |
     And the caller cancels the journey on "step_succeeded" of "charge"
@@ -93,7 +93,7 @@ Feature: A dropped journey and on journey dropped
       | policy | hook               |
       | guard  | on journey dropped |
       | alarm  | on journey dropped |
-    And a workflow "orders" with the policies "guard", "alarm" and the steps:
+    Given a workflow "orders" with the policies "guard", "alarm" and the steps:
       | step   | outcome |
       | charge | success |
     When the workflow is admitted
@@ -105,7 +105,7 @@ Feature: A dropped journey and on journey dropped
   Scenario: An asynchronous on journey dropped is refused
     Given a workflow policy "guard" defines the hook "on journey dropped"
     And the hook "on journey dropped" of policy "guard" is asynchronous
-    And a workflow "orders" with the policies "guard" and the steps:
+    Given a workflow "orders" with the policies "guard" and the steps:
       | step   | outcome |
       | charge | success |
     When the workflow is admitted
@@ -117,7 +117,7 @@ Feature: A dropped journey and on journey dropped
   Scenario: An asynchronous role operation called by on journey dropped is refused
     Given a workflow policy "guard" defines the hook "on journey dropped"
     And the hook "on journey dropped" of policy "guard" requests the role "alerts" and calls its operation "page"
-    And a workflow "orders" with the policies "guard" and the steps:
+    Given a workflow "orders" with the policies "guard" and the steps:
       | step   | outcome |
       | charge | success |
     And the workflow provides the role "alerts" with the operation "page"

@@ -16,16 +16,16 @@ Feature: A cancellation honoured at an executor checkpoint
       | tx     | after attempt   |
       | tx     | after step      |
       | tx     | on step success |
-    And the workflow policies and their hooks:
+    Given the workflow policies and their hooks:
       | policy | hook                |
       | audit  | after journey       |
       | audit  | on workflow success |
-    And the hooks request:
+    Given the hooks request:
       | policy | hook          | request |
       | tx     | after attempt | ending  |
       | tx     | after step    | ending  |
       | audit  | after journey | ending  |
-    And a workflow "orders" with the policies "audit" and the steps:
+    Given a workflow "orders" with the policies "audit" and the steps:
       | step   | policies | outcome |
       | charge | tx       | success |
       | ship   |          | success |
@@ -56,11 +56,11 @@ Feature: A cancellation honoured at an executor checkpoint
     Given the step policies and their hooks:
       | policy | hook          |
       | tx     | after attempt |
-    And the hooks request:
+    Given the hooks request:
       | policy | hook          | request        | key     | type   | optional |
       | tx     | after attempt | failure reason |         |        | yes      |
       | tx     | after attempt | step data      | receipt | string | yes      |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" attempts:
@@ -74,7 +74,7 @@ Feature: A cancellation honoured at an executor checkpoint
 
   Scenario: A cancellation after a failure retries nothing
     Given a step policy "tx" defines the hook "on step retry"
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And the workflow lists the reporters "trace"
@@ -135,7 +135,7 @@ Feature: A cancellation honoured at an executor checkpoint
       | policy | hook            |
       | tx     | after step      |
       | tx     | on step success |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge | tx       | success |
     And step "charge" contributes "receipt" = "R-1"
@@ -158,8 +158,8 @@ Feature: A cancellation honoured at an executor checkpoint
       | policy | hook            |
       | tx     | after step      |
       | tx     | on step failure |
-    And a workflow policy "audit" defines the hook "on workflow failure"
-    And a workflow "orders" with the policies "audit" and the steps:
+    Given a workflow policy "audit" defines the hook "on workflow failure"
+    Given a workflow "orders" with the policies "audit" and the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" attempts:
@@ -186,7 +186,7 @@ Feature: A cancellation honoured at an executor checkpoint
       | done   | on step success |
       | tx     | before step     |
       | tx     | after step      |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge | done     | success |
       | ship   | tx       | success |
@@ -212,7 +212,7 @@ Feature: A cancellation honoured at an executor checkpoint
       | lock   | before step    |
       | lock   | after step     |
     And the hook "after step" of policy "lock" requests its ending
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge | tx, lock | success |
     And the workflow lists the reporters "trace"

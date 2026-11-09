@@ -17,7 +17,7 @@ Feature: A cancellation delivered inside custom code
       | tx     | after attempt                |
       | tx     | on step abnormal termination |
     And the hook "after attempt" of policy "tx" requests its ending
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And the workflow lists the reporters "trace"
@@ -47,7 +47,7 @@ Feature: A cancellation delivered inside custom code
     Given the service provider "stock" makes a labeller for "labels", for each attempt
     And the service provider "stock" emits journey_info "reserving"
     And the service provider "stock" waits for cancellation
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | services         | outcome |
       | charge | labels: labeller | success |
     And the workflow binds the service provider "stock"
@@ -66,7 +66,7 @@ Feature: A cancellation delivered inside custom code
     Given a step policy "notify" defines the hook "on step success"
     And the hook "on step success" of policy "notify" emits journey_info "sending"
     And the hook "on step success" of policy "notify" waits for cancellation
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge | notify   | success |
     And the workflow lists the reporters "trace"
@@ -89,7 +89,7 @@ Feature: A cancellation delivered inside custom code
     And the hook "after step" of policy "tx" requests its ending
     And the hook "after attempt" of policy "audit" emits journey_info "auditing"
     And the hook "after attempt" of policy "audit" waits for cancellation
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies  | outcome |
       | charge | tx, audit | success |
     And the caller cancels the journey on "journey_info"

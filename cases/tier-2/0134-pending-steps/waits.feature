@@ -69,7 +69,7 @@ Feature: Steps that wait for pending steps
   @proposal-0133
   Scenario: A bypassed awaited step is done, so the step waiting for it runs in the ordered pass
     Given step "payment" succeeds
-    And the step policies and their hooks:
+    Given the step policies and their hooks:
       | policy | hook        | returns | code         |
       | gate   | before step | bypass  | paid already |
     And step "payment" has the policies "gate"
@@ -95,7 +95,7 @@ Feature: Steps that wait for pending steps
     And step "receipt" may be pending, with a pending budget of 3
     And step "receipt" waits for the steps "payment"
     And step "receipt" succeeds
-    And the step policies and their hooks:
+    Given the step policies and their hooks:
       | policy | hook        |
       | tx     | before step |
       | tx     | after step  |

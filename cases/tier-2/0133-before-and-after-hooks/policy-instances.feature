@@ -15,7 +15,7 @@ Feature: Policy instances for the step hooks
       | tx     | after step     |
       | tx     | before attempt |
       | tx     | after attempt  |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" allows 1 retries
@@ -33,7 +33,7 @@ Feature: Policy instances for the step hooks
       | tx     | before attempt  |
       | tx     | after attempt   |
       | audit  | on step success |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies  |
       | charge | tx, audit |
     And step "charge" allows 1 retries
@@ -49,7 +49,7 @@ Feature: Policy instances for the step hooks
   Scenario: A step policy with step hooks that fails when built aborts the journey before the first attempt
     Given a step policy "broken" defines the hook "before step"
     And the policy "broken" fails when it is built
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge |          | success |
       | ship   | broken   | success |

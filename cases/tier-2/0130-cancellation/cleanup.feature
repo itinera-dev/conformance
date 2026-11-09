@@ -17,7 +17,7 @@ Feature: Cleanup after a cancellation, and when a cancellation counts
       | policy | hook       |
       | tx     | after step |
     And the hook "after step" of policy "tx" requests its ending
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step    | policies | outcome |
       | payment | tx       |         |
       | receipt | tx       | success |
@@ -52,7 +52,7 @@ Feature: Cleanup after a cancellation, and when a cancellation counts
       | policy | hook          | fails with |
       | tx     | after attempt |            |
       | audit  | after attempt | audit down |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies  | outcome |
       | charge | tx, audit | success |
     And the workflow lists the reporters "trace"
@@ -70,7 +70,7 @@ Feature: Cleanup after a cancellation, and when a cancellation counts
   Scenario: A reporter that fails during cleanup receives nothing more, and the others receive journey_cancelled
     Given a step policy "tx" defines the hook "after attempt"
     And the hook "after attempt" of policy "tx" emits journey_info "rolling back"
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge | tx       | success |
     And the workflow lists the reporters "trace", "audit"
@@ -100,7 +100,7 @@ Feature: Cleanup after a cancellation, and when a cancellation counts
       | audit  | after journey       |
       | audit  | on workflow success |
     And the hook "after journey" of policy "audit" emits journey_info "closing"
-    And a workflow "orders" with the policies "audit" and the steps:
+    Given a workflow "orders" with the policies "audit" and the steps:
       | step   | outcome |
       | charge | success |
     And the workflow lists the reporters "trace"
