@@ -8,11 +8,10 @@ Feature: Recorders lend a step, a hook or an input adapter its handles outside a
 
   Scenario: The contributions recorder keeps what a step contributes
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" contributes "charged" = 40
     And step "charge" contributes "currency" = "EUR"
-    And step "charge" succeeds
     When step "charge" runs alone
     Then the contributions recorder holds:
       | key      | value |
@@ -21,12 +20,11 @@ Feature: Recorders lend a step, a hook or an input adapter its handles outside a
 
   Scenario: The step event reporter keeps the events and the global metadata a step sets
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" emits step_info "charging" with data {"amount": 40}
     And step "charge" sets the global metadata "user_id" to "u-7"
     And step "charge" emits step_warning "slow gateway"
-    And step "charge" succeeds
     When step "charge" runs alone
     Then the step event reporter kept the events:
       | level   | message      | data           |
@@ -38,11 +36,10 @@ Feature: Recorders lend a step, a hook or an input adapter its handles outside a
 
   Scenario: A failing step event reporter interrupts every call and keeps nothing
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" emits step_info "charging"
     And step "charge" sets the global metadata "user_id" to "u-7"
-    And step "charge" succeeds
     And the step event reporter is failing
     When step "charge" runs alone
     Then every call step "charge" made to its step reporter was interrupted
@@ -50,12 +47,11 @@ Feature: Recorders lend a step, a hook or an input adapter its handles outside a
 
   Scenario: Setting journey_id interrupts that call and every later one
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" emits step_info "before"
     And step "charge" sets the global metadata "journey_id" to "other"
     And step "charge" emits step_info "after"
-    And step "charge" succeeds
     When step "charge" runs alone
     Then the call step "charge" made setting "journey_id", and every call after it, was interrupted, and no call before it
     And the step event reporter kept the events:
@@ -63,14 +59,12 @@ Feature: Recorders lend a step, a hook or an input adapter its handles outside a
       | info  | before  |
 
   Scenario: The hook event reporter keeps the events a hook emits, and the contributions recorder what it contributes
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And a step policy "audit" defines the hook "on step success"
+    Given a step policy "audit" defines the hook "on step success"
     And the hook "on step success" of policy "audit" emits journey_info "seen"
     And the hook "on step success" of policy "audit" contributes "seen" = true
-    And step "charge" has the policies "audit"
+    Given a workflow "orders" with the steps:
+      | step   | policies | outcome |
+      | charge | audit    | success |
     When the hook "on step success" of policy "audit" runs alone
     Then the hook event reporter kept the events:
       | level | message |
@@ -80,13 +74,11 @@ Feature: Recorders lend a step, a hook or an input adapter its handles outside a
       | seen | true  |
 
   Scenario: A failing hook event reporter interrupts every call and keeps nothing
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And a step policy "audit" defines the hook "on step success"
+    Given a step policy "audit" defines the hook "on step success"
     And the hook "on step success" of policy "audit" emits journey_info "seen"
-    And step "charge" has the policies "audit"
+    Given a workflow "orders" with the steps:
+      | step   | policies | outcome |
+      | charge | audit    | success |
     And the hook event reporter is failing
     When the hook "on step success" of policy "audit" runs alone
     Then every call the hook "on step success" of policy "audit" made to its hook reporter was interrupted
@@ -94,11 +86,9 @@ Feature: Recorders lend a step, a hook or an input adapter its handles outside a
 
   Scenario: A data bag built from values lends an input adapter its read access
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests input "amount" of type integer
-    And step "charge" succeeds
-    And the workflow declares the input adapter "amounts" for the steps "charge"
+      | step   | inputs          | outcome |
+      | charge | amount: integer | success |
+    And the workflow binds the input adapter "amounts" to the step "charge"
     And the input adapter "amounts" requests the data bag
     And the input adapter "amounts" returns "total" of type integer, read from the data bag, for "amount"
     When the input adapter "amounts" is called alone for the input "amount" of step "charge", with a data bag holding:
