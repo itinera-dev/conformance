@@ -79,8 +79,8 @@ Feature: The ordered pass and the scheduled pass
     And a workflow "orders" with the policies "check" and the steps:
       | step   |
       | charge |
-    And step "charge" succeeds
     And the workflow lists the reporters "trace"
+    And step "charge" succeeds
     When the workflow runs
     Then the reporter "trace" did not receive the event "pass_started"
     And the journey failed
@@ -92,6 +92,7 @@ Feature: The ordered pass and the scheduled pass
       | invoice  |
       | shipping |
     And the workflow allows pending steps
+    And the workflow lists the reporters "trace"
     And step "payment" may be pending, with a pending budget of 3
     And step "payment" attempts:
       | attempt | outcome |
@@ -103,7 +104,6 @@ Feature: The ordered pass and the scheduled pass
       | 1       | pending |
       | 2       | success |
     And step "shipping" succeeds
-    And the workflow lists the reporters "trace"
     When the workflow runs
     Then the events include, in order:
       | event          | step     | attempt | pass      | steps            |

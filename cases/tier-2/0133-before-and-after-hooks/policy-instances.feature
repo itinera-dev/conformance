@@ -53,9 +53,9 @@ Feature: Policy instances for the step hooks
       | step   | policies |
       | charge |          |
       | ship   | broken   |
+    And the workflow lists the reporters "trace"
     And step "charge" succeeds
     And step "ship" succeeds
-    And the workflow lists the reporters "trace"
     When the workflow runs
     Then the events include, in order:
       | event           | step   | attempt | policy | code                      |
