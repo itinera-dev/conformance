@@ -18,17 +18,17 @@ Feature: After hooks after an abort
       | tx     | after attempt   |
       | tx     | after step      |
       | tx     | on step failure |
-    And the workflow policies and their hooks:
+    Given the workflow policies and their hooks:
       | policy | hook                |
       | audit  | before journey      |
       | audit  | after journey       |
       | audit  | on workflow failure |
-    And the hooks request:
+    Given the hooks request:
       | policy | hook          | request |
       | tx     | after attempt | ending  |
       | tx     | after step    | ending  |
       | audit  | after journey | ending  |
-    And a workflow "orders" with the policies "audit" and the steps:
+    Given a workflow "orders" with the policies "audit" and the steps:
       | step   | policies | inputs          | outcome |
       | charge | tx       | amount: integer | success |
     And the data bag is empty
@@ -53,12 +53,12 @@ Feature: After hooks after an abort
 
   Scenario: After an abort, the after hooks' requests for data are answered absent
     Given a step policy "tx" defines the hook "after attempt"
-    And a workflow policy "audit" defines the hook "after journey"
-    And the hooks request:
+    Given a workflow policy "audit" defines the hook "after journey"
+    Given the hooks request:
       | policy | hook          | request                | key   | type   | optional |
       | tx     | after attempt | data from the workflow | order | string | yes      |
       | audit  | after journey | data from the workflow | order | string | yes      |
-    And a workflow "orders" with the policies "audit" and the steps:
+    Given a workflow "orders" with the policies "audit" and the steps:
       | step   | policies | inputs          | outcome |
       | charge | tx       | amount: integer | success |
     And the data bag contains:
@@ -72,7 +72,7 @@ Feature: After hooks after an abort
   Scenario: What the after hooks emit after an abort reaches no reporter
     Given a step policy "tx" defines the hook "after attempt"
     And the hook "after attempt" of policy "tx" emits journey_info "rolled back"
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | inputs          | outcome |
       | charge | tx       | amount: integer | success |
     And the workflow lists the reporters "trace"
@@ -89,7 +89,7 @@ Feature: After hooks after an abort
       | tx     | after attempt |            |
       | tx     | after step    |            |
       | audit  | after attempt | audit down |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies  | inputs          | outcome |
       | charge | tx, audit | amount: integer | success |
     And the data bag is empty
@@ -108,7 +108,7 @@ Feature: After hooks after an abort
       | broken | on step success |
       | closer | after attempt   |
     And the policy "broken" fails when it is built
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies       | outcome |
       | charge | broken, closer | success |
     When the workflow runs
@@ -121,14 +121,14 @@ Feature: After hooks after an abort
       | tx     | after attempt |
       | tx     | after step    |
       | audit  | after attempt |
-    And the workflow policies and their hooks:
+    Given the workflow policies and their hooks:
       | policy | hook          |
       | log    | after journey |
-    And the hooks request:
+    Given the hooks request:
       | policy | hook          | request                | key   | type    | optional |
       | log    | after journey | ending                 |       |         |          |
       | audit  | after attempt | data from the workflow | order | integer | yes      |
-    And a workflow "orders" with the policies "log" and the steps:
+    Given a workflow "orders" with the policies "log" and the steps:
       | step   | policies  | outcome |
       | charge | tx, audit | success |
       | ship   |           | success |

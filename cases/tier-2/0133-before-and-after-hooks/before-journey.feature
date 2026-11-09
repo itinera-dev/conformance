@@ -19,7 +19,7 @@ Feature: A before journey hook that fails the journey or fails itself
       | check  | after journey       |              |           |
       | audit  | before journey      |              |           |
       | audit  | after journey       |              |           |
-    And a workflow "orders" with the policies "trail", "check", "audit" and the steps:
+    Given a workflow "orders" with the policies "trail", "check", "audit" and the steps:
       | step   | outcome |
       | charge | success |
     When the workflow runs
@@ -48,7 +48,7 @@ Feature: A before journey hook that fails the journey or fails itself
     Given the workflow policies and their hooks:
       | policy | hook           | returns        |
       | check  | before journey | FinishWorkflow |
-    And a workflow "orders" with the policies "check" and the steps:
+    Given a workflow "orders" with the policies "check" and the steps:
       | step   | outcome |
       | charge | success |
     When the workflow runs
@@ -65,7 +65,7 @@ Feature: A before journey hook that fails the journey or fails itself
       | audit  | before journey      |                  |
       | audit  | after journey       |                  |
       | audit  | on workflow failure |                  |
-    And a workflow "orders" with the policies "trail", "guard", "audit" and the steps:
+    Given a workflow "orders" with the policies "trail", "guard", "audit" and the steps:
       | step   | outcome |
       | charge | success |
     When the workflow runs

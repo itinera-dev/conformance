@@ -14,11 +14,11 @@ Feature: After hooks for a skipped attempt and around a rescue
       | policy | hook          |
       | tx     | after attempt |
       | tx     | after step    |
-    And the hooks request:
+    Given the hooks request:
       | policy | hook          | request |
       | tx     | after attempt | ending  |
       | tx     | after step    | ending  |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step     | policies | outcome |
       | discount | tx       |         |
       | ship     |          | success |
@@ -47,7 +47,7 @@ Feature: After hooks for a skipped attempt and around a rescue
       | tx     | after attempt  |
       | tx     | after step     |
     And the hook "after attempt" of policy "tx" requests its ending
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" has a rescue step
@@ -79,9 +79,9 @@ Feature: After hooks for a skipped attempt and around a rescue
     Given the step policies and their hooks:
       | policy | hook       |
       | tx     | after step |
-    And a workflow policy "audit" defines the hook "after journey"
+    Given a workflow policy "audit" defines the hook "after journey"
     And the hook "after step" of policy "tx" requests its ending
-    And a workflow "orders" with the policies "audit" and the steps:
+    Given a workflow "orders" with the policies "audit" and the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" has a rescue step

@@ -15,7 +15,7 @@ Feature: Hooks before and after in test support
       | policy | hook        | returns | code              |
       | gate   | before step | bypass  | no discount today |
       | wrap   | before step | bypass  |                   |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step     | policies | outcome |
       | discount | gate     | success |
       | gift     | wrap     | success |
@@ -33,7 +33,7 @@ Feature: Hooks before and after in test support
     Given the step policies and their hooks:
       | policy | hook        | fails with |
       | lock   | before step | no lock    |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge | lock     | success |
     And the instance has the recording reporter of test support
@@ -48,7 +48,7 @@ Feature: Hooks before and after in test support
     Given the step policies and their hooks:
       | policy | hook           | fails with    |
       | tx     | before attempt | no connection |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge | tx       | success |
     And the instance has the recording reporter of test support
@@ -63,7 +63,7 @@ Feature: Hooks before and after in test support
     Given the step policies and their hooks:
       | policy | hook          | fails with    |
       | tx     | after attempt | commit failed |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge | tx       | success |
     And the instance has the recording reporter of test support
@@ -79,7 +79,7 @@ Feature: Hooks before and after in test support
     Given the step policies and their hooks:
       | policy | hook       | fails with    |
       | tx     | after step | settle failed |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge | tx       | success |
     And the instance has the recording reporter of test support
@@ -95,7 +95,7 @@ Feature: Hooks before and after in test support
     Given the workflow policies and their hooks:
       | policy | hook           | returns      | code      |
       | check  | before journey | FailWorkflow | bad input |
-    And a workflow "orders" with the policies "check" and the steps:
+    Given a workflow "orders" with the policies "check" and the steps:
       | step   | outcome |
       | charge | success |
     And the instance has the recording reporter of test support
@@ -108,7 +108,7 @@ Feature: Hooks before and after in test support
     Given the workflow policies and their hooks:
       | policy | hook           | fails with        |
       | check  | before journey | rules unavailable |
-    And a workflow "orders" with the policies "check" and the steps:
+    Given a workflow "orders" with the policies "check" and the steps:
       | step   | outcome |
       | charge | success |
     And the instance has the recording reporter of test support
@@ -122,7 +122,7 @@ Feature: Hooks before and after in test support
     Given the workflow policies and their hooks:
       | policy | hook          | fails with |
       | audit  | after journey | audit down |
-    And a workflow "orders" with the policies "audit" and the steps:
+    Given a workflow "orders" with the policies "audit" and the steps:
       | step   | outcome |
       | charge | success |
     And the instance has the recording reporter of test support
