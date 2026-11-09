@@ -19,12 +19,12 @@ Feature: A cancellation delivered inside custom code
     And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
+    And the workflow lists the reporters "trace"
     And step "charge" allows 2 retries
     And step "charge" has a rescue step
     And step "charge" emits step_info "calling the bank"
     And step "charge" waits for cancellation
     And step "charge_rescue" succeeds
-    And the workflow lists the reporters "trace"
     And the caller cancels the journey on "step_info" of "charge"
     When the workflow runs
     Then the events include, in order:
@@ -46,12 +46,12 @@ Feature: A cancellation delivered inside custom code
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
-    And step "charge" requests the service "labels" of type labeller
-    And step "charge" succeeds
     And the workflow declares the service provider "stock" for "labels" of type labeller, for each attempt
     And the service provider "stock" emits journey_info "reserving"
     And the service provider "stock" waits for cancellation
     And the workflow lists the reporters "trace"
+    And step "charge" requests the service "labels" of type labeller
+    And step "charge" succeeds
     And the caller cancels the journey on "journey_info"
     When the workflow runs
     Then the events include, in order:
@@ -69,8 +69,8 @@ Feature: A cancellation delivered inside custom code
     And a workflow "orders" with the steps:
       | step   | policies |
       | charge | notify   |
-    And step "charge" succeeds
     And the workflow lists the reporters "trace"
+    And step "charge" succeeds
     And the caller cancels the journey on "journey_info"
     When the workflow runs
     Then the events include, in order:
