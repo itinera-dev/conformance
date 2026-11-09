@@ -7,13 +7,15 @@ Feature: Pendings, retries, rescues and contributions
   it is not rescued. A pending attempt's contributions are discarded, as a
   skipped attempt's are, with `contributions_discarded`.
 
-  Scenario: Pendings do not spend the retry budget
+  Background:
     Given a workflow "orders" with the steps:
       | step    |
       | payment |
     And the workflow allows pending steps
     And step "payment" may be pending, with a pending budget of 2
-    And step "payment" allows 1 retries
+
+  Scenario: Pendings do not spend the retry budget
+    Given step "payment" allows 1 retries
     And step "payment" attempts:
       | attempt | outcome | code        |
       | 1       | pending |             |
@@ -35,12 +37,7 @@ Feature: Pendings, retries, rescues and contributions
     And the journey succeeded
 
   Scenario: A pending attempt is not rescued, and a failure after it is
-    Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
-    And the workflow allows pending steps
-    And step "payment" may be pending, with a pending budget of 2
-    And step "payment" has a rescue step
+    Given step "payment" has a rescue step
     And step "payment" attempts:
       | attempt | outcome | code    |
       | 1       | pending |         |
@@ -62,12 +59,7 @@ Feature: Pendings, retries, rescues and contributions
     And the journey succeeded
 
   Scenario: A pending attempt's contributions are discarded
-    Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
-    And the workflow allows pending steps
-    And step "payment" may be pending, with a pending budget of 2
-    And step "payment" attempts:
+    Given step "payment" attempts:
       | attempt | outcome | contributes             |
       | 1       | pending | {"status": "requested"} |
       | 2       | success |                         |
@@ -83,12 +75,7 @@ Feature: Pendings, retries, rescues and contributions
 
   @proposal-0133
   Scenario: After attempt runs after each pending attempt, before its contributions are discarded and its decision
-    Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
-    And the workflow allows pending steps
-    And step "payment" may be pending, with a pending budget of 2
-    And step "payment" attempts:
+    Given step "payment" attempts:
       | attempt | outcome | contributes             |
       | 1       | pending | {"status": "requested"} |
       | 2       | success |                         |
