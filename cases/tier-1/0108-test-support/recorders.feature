@@ -85,12 +85,12 @@ Feature: Recorders lend a step, a hook or an input adapter its handles outside a
     And the hook event reporter kept nothing
 
   Scenario: A data bag built from values lends an input adapter its read access
+    Given the input adapter "amounts" requests the data bag
+    And the input adapter "amounts" returns "total" of type integer, read from the data bag, for "amount"
     Given a workflow "orders" with the steps:
       | step   | inputs          | outcome |
       | charge | amount: integer | success |
     And the workflow binds the input adapter "amounts" to the step "charge"
-    And the input adapter "amounts" requests the data bag
-    And the input adapter "amounts" returns "total" of type integer, read from the data bag, for "amount"
     When the input adapter "amounts" is called alone for the input "amount" of step "charge", with a data bag holding:
       | key   | value |
       | total | 40    |
