@@ -17,18 +17,19 @@ Feature: After hooks after an abort
     And step "charge" requests input "amount" of type integer
     And step "charge" succeeds
     And the data bag is empty
-    And a step policy "tx" defines the hook "before step"
-    And a step policy "tx" defines the hook "before attempt"
-    And a step policy "tx" defines the hook "after attempt"
-    And a step policy "tx" defines the hook "after step"
-    And a step policy "tx" defines the hook "on step failure"
-    And the hook "after attempt" of policy "tx" requests the ending
-    And the hook "after step" of policy "tx" requests the ending
+    And the step policies define the hooks:
+      | policy | hook            | requests   |
+      | tx     | before step     |            |
+      | tx     | before attempt  |            |
+      | tx     | after attempt   | the ending |
+      | tx     | after step      | the ending |
+      | tx     | on step failure |            |
     And step "charge" has the policies "tx"
-    And a workflow policy "audit" defines the hook "before journey"
-    And a workflow policy "audit" defines the hook "after journey"
-    And a workflow policy "audit" defines the hook "on workflow failure"
-    And the hook "after journey" of policy "audit" requests the ending
+    And the workflow policies define the hooks:
+      | policy | hook                | requests   |
+      | audit  | before journey      |            |
+      | audit  | after journey       | the ending |
+      | audit  | on workflow failure |            |
     And the workflow has the policies "audit"
     When the workflow runs
     Then the hooks were called in this order:
@@ -91,10 +92,11 @@ Feature: After hooks after an abort
     And step "charge" requests input "amount" of type integer
     And step "charge" succeeds
     And the data bag is empty
-    And a step policy "tx" defines the hook "after attempt"
-    And a step policy "tx" defines the hook "after step"
-    And a step policy "audit" defines the hook "after attempt"
-    And the hook "after attempt" of policy "audit" fails with "audit down"
+    And the step policies define the hooks:
+      | policy | hook          | fails with |
+      | tx     | after attempt |            |
+      | tx     | after step    |            |
+      | audit  | after attempt | audit down |
     And step "charge" has the policies "tx", "audit"
     When the workflow runs
     Then the hooks were called in this order:
@@ -110,9 +112,11 @@ Feature: After hooks after an abort
       | step   |
       | charge |
     And step "charge" succeeds
-    And a step policy "broken" defines the hook "on step success"
+    And the step policies define the hooks:
+      | policy | hook            |
+      | broken | on step success |
+      | closer | after attempt   |
     And the policy "broken" fails when it is built
-    And a step policy "closer" defines the hook "after attempt"
     And step "charge" has the policies "broken", "closer"
     When the workflow runs
     Then the hook "after attempt" of policy "closer" was not called
@@ -129,9 +133,11 @@ Feature: After hooks after an abort
     And the data bag contains:
       | key   | value |
       | order | "A-1" |
-    And a step policy "tx" defines the hook "after attempt"
-    And a step policy "tx" defines the hook "after step"
-    And a step policy "audit" defines the hook "after attempt"
+    And the step policies define the hooks:
+      | policy | hook          |
+      | tx     | after attempt |
+      | tx     | after step    |
+      | audit  | after attempt |
     And the hook "after attempt" of policy "audit" requests optional data from the workflow "order" of type integer
     And step "charge" has the policies "tx", "audit"
     And a workflow policy "log" defines the hook "after journey"

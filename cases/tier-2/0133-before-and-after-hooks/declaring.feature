@@ -14,13 +14,17 @@ Feature: Declaring before and after hooks
       | step   |
       | charge |
     And step "charge" succeeds
-    And a step policy "tx" defines the hook "before step"
-    And a step policy "tx" defines the hook "after attempt"
-    And a step policy "lock" defines the hook "before step"
-    And a step policy "lock" defines the hook "after attempt"
+    And the step policies define the hooks:
+      | policy | hook          |
+      | tx     | before step   |
+      | tx     | after attempt |
+      | lock   | before step   |
+      | lock   | after attempt |
     And step "charge" has the policies "tx", "lock"
-    And a workflow policy "audit" defines the hook "after journey"
-    And a workflow policy "trace" defines the hook "after journey"
+    And the workflow policies define the hooks:
+      | policy | hook          |
+      | audit  | after journey |
+      | trace  | after journey |
     And the workflow has the policies "audit", "trace"
     When the workflow runs
     Then the journey succeeded
@@ -30,10 +34,12 @@ Feature: Declaring before and after hooks
       | step   |
       | charge |
     And step "charge" succeeds
-    And a step policy "tx" defines the hook "after step"
-    And a step policy "tx" defines the hook "on step success"
-    And a step policy "lock" defines the hook "after step"
-    And a step policy "lock" defines the hook "on step success"
+    And the step policies define the hooks:
+      | policy | hook            |
+      | tx     | after step      |
+      | tx     | on step success |
+      | lock   | after step      |
+      | lock   | on step success |
     And step "charge" has the policies "tx", "lock"
     When the workflow is admitted
     Then admission is refused with the violations:
@@ -85,13 +91,10 @@ Feature: Declaring before and after hooks
       | step   |
       | charge |
     And step "charge" succeeds
-    And a step policy "tx" defines the hook "after attempt"
-    And the hook "after attempt" of policy "tx" requests the step name
-    And the hook "after attempt" of policy "tx" requests the attempt number
-    And the hook "after attempt" of policy "tx" requests the ending
-    And the hook "after attempt" of policy "tx" requests the journey ID
-    And a step policy "tx" defines the hook "after step"
-    And the hook "after step" of policy "tx" requests the number of attempts
+    And the step policies define the hooks:
+      | policy | hook          | requests                                                      |
+      | tx     | after attempt | the step name, the attempt number, the ending, the journey ID |
+      | tx     | after step    | the number of attempts                                        |
     And step "charge" has the policies "tx"
     And the workflow's ID generator returns "J-1"
     When the workflow runs
@@ -108,9 +111,11 @@ Feature: Declaring before and after hooks
       | charge |
     And step "charge" succeeds
     And the data bag is empty
-    And a step policy "tx" defines the hook "before attempt"
+    And the step policies define the hooks:
+      | policy | hook           |
+      | tx     | before attempt |
+      | tx     | after attempt  |
     And the hook "before attempt" of policy "tx" requests data from the workflow "order" of type string
-    And a step policy "tx" defines the hook "after attempt"
     And step "charge" has the policies "tx"
     When the workflow runs
     Then the events include, in order:
