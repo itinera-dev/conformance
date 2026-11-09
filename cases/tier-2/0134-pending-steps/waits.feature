@@ -116,8 +116,10 @@ Feature: Steps that wait for pending steps
     And step "receipt" may be pending, with a pending budget of 3
     And step "receipt" waits for the steps "payment"
     And step "receipt" succeeds
-    And a step policy "tx" defines the hook "before step"
-    And a step policy "tx" defines the hook "after step"
+    And the step policies define the hooks:
+      | policy | hook        |
+      | tx     | before step |
+      | tx     | after step  |
     And step "receipt" has the policies "tx"
     When the workflow runs
     Then the events include, in order:
