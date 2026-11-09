@@ -77,7 +77,8 @@ Event tables use one row per event. The column `event` is required; any of these
 - `ending`: the journey's ending a `step_abandoned` carries (proposal 0134);
 - `hint`: the hint a `step_pending` carries, as JSON (proposal 0134);
 - `limit`: for a `step_given_up` with the cause `pending exhausted`, `budget` or `deadline` (proposal 0134);
-- `checkpoint`: the checkpoint a `journey_cancelled` names; its `step` and `attempt` are the step that was running or waited for and its attempt, its `rescue` the rescue step that was running, and its `steps` the steps that became `Abandoned` (proposal 0130);
+- `timeout`, `taken`: the attempt timeout and the time taken, in milliseconds, that an `attempt_timed_out` carries, and the journey timeout a `journey_timed_out` carries (proposal 0135);
+- `checkpoint`: the checkpoint a `journey_cancelled` or a `journey_timed_out` (proposal 0135) names; its `step` and `attempt` are the step that was running or waited for and its attempt, its `rescue` the rescue step that was running, and its `steps` the steps that became `Abandoned` (proposal 0130);
 - `timestamp`: the event's timestamp, from the executor's clock, in ISO 8601 in UTC (proposal 0134);
 - `error`: the message of the error a `journey_failed` or `journey_aborted` carries (proposal 0083), or that a `before_hook_failed` or `after_hook_failed` records (proposal 0133). An error's message is the language's own text for it; for a failure scripted with a message, exactly that message.
 
@@ -86,7 +87,7 @@ Two sentences compare them:
 - "the events include, in order" checks that these events appear in this order, possibly with others in between;
 - "the events are exactly" checks the complete stream.
 
-Event names are those of the engine catalogue of proposal 0011 (Events), as amended by proposals 0040, 0003, 0095, 0102, 0133, 0134 and 0130, and the `step_*` and `journey_*` events steps, hooks and service providers emit.
+Event names are those of the engine catalogue of proposal 0011 (Events), as amended by proposals 0040, 0003, 0095, 0102, 0133, 0134, 0130 and 0135, and the `step_*` and `journey_*` events steps, hooks and service providers emit.
 
 ## Versions of the cases
 
