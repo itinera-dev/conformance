@@ -41,11 +41,11 @@ Feature: Input adapters attached to steps
       | refund | amount | 7     |
 
   Scenario: An adapter's missing required data from the workflow aborts the journey
+    Given the input adapter "pricing" requests data from the workflow "price" of type integer
     Given a workflow "orders" with the steps:
       | step   | inputs          | outcome |
       | charge | amount: integer | success |
     And the workflow binds the input adapter "pricing" to the step "charge"
-    And the input adapter "pricing" requests data from the workflow "price" of type integer
     And the data bag is empty
     When the workflow runs
     Then the events include, in order:
