@@ -8,7 +8,7 @@ A **null-like value** is what a language has for no value at all, such as `null`
 
 ## Building a workflow
 
-- **`Given a workflow "<workflow>" with the steps:`** followed by a table with the column `step`, one row per step in declaration order. Declares a workflow whose steps are scripted test steps. (0002)
+- **`Given a workflow "<workflow>" with the steps:`** followed by a table with the column `step`, one row per step in declaration order. Declares a workflow whose steps are scripted test steps. (0002) The table may have the column `policies` (0133): a filled cell, written as policy names separated by commas, stands for `step "<step>" has the policies` with those names, in the order written; an empty cell attaches none. The policies it names may be declared by sentences after it.
 - **`And step "<step>" requests input "<key>" of type <type>`**: the step declares a required input. (0002)
 - **`And step "<step>" requests optional input "<key>" of type <type>`**: the step declares an optional input. (0002)
 - **`And step "<step>" contributes "<key>" = <value>`**: on every attempt, the step contributes this key and value before ending. Repeated for the same key, the contributions happen in the order written. (0002)
@@ -65,10 +65,10 @@ A hook's requests, made by the sentences below and in "Hooks, lifecycles and rol
 
 - **`And a step policy "<policy>" defines the hook "<hook>"`**: a step policy whose hook does nothing beyond what other sentences add, and returns no lifecycle. Repeated with another hook for the same policy, it adds that hook to the same policy. (0002)
 - **`And a workflow policy "<policy>" defines the hook "<hook>"`** (0002)
-- **`And the step policies define the hooks:`** and **`And the workflow policies define the hooks:`**, followed by a table with one row for each hook, in the columns `policy` and `hook` and any of the optional columns below. Each row is the sentence above for that policy and hook, followed by the sentence each of its filled cells stands for; an empty cell adds nothing, and a scenario writes only the columns it uses. Rows are taken in the order written. (0133)
+- **`And its step policies and their hooks are:`** and **`And its workflow policies and their hooks are:`**, followed by a table with one row for each hook, in the columns `policy` and `hook` and any of the optional columns below. Each row is the sentence above for that policy and hook, followed by the sentence each of its filled cells stands for; an empty cell adds nothing, and a scenario writes only the columns it uses. Rows are taken in the order written. (0133)
   - `returns`: `FailWorkflow`, with `code`, for "returns FailWorkflow with code"; `FinishWorkflow` for "returns FinishWorkflow"; or `bypass`, with or without `code`, for "bypasses" and "bypasses with code".
   - `fails with`: the message, for "fails with", and with `on attempt` for "fails with ... on attempt".
-  - `requests`: one or more of the requests that take no argument, separated by commas, such as `the ending, the number of attempts`, each for "requests" followed by it.
+  - `requests`: one or more of the requests that take no argument, written without their leading "the" or "its" and separated by commas, such as `ending, number of attempts`: `ending`, `number of attempts`, `optional error` and `optional cause` stand for "requests its ..." below, and the others, such as `retry cause`, `step name` or `hint`, for "requests the ...".
   - `takes`: a duration such as `2000 ms`, for "takes" (0135).
 
   Other behaviours of a hook, such as requests that take an argument, `emits`, `defers` or `waits for cancellation`, stay sentences of their own after the table.
@@ -221,10 +221,10 @@ Sentences for the hooks of proposal 0133, `before journey`, `after journey`, `be
 
 - **`And the hook "before step" of policy "<policy>" bypasses`** and **`And the hook "before step" of policy "<policy>" bypasses with code "<code>"`**: the hook returns a bypass, without a reason or with a reason of this code. (0133)
 - **`And the hook "<hook>" of policy "<policy>" fails with "<message>" on attempt <n>`**: the hook fails as "fails with" says when it is called for this attempt of the step its policy is attached to, and on no other call. (0133)
-- **`And the hook "<hook>" of policy "<policy>" requests the ending`**: an after hook requests the ending of its level: for `after attempt` the attempt's, for `after step` the step's, for `after journey` the journey's. (0133)
-- **`And the hook "<hook>" of policy "<policy>" requests the number of attempts`**: `after step` requests how many attempts the step made. (0133)
-- **`And the hook "<hook>" of policy "<policy>" requests the optional error`**: the request for the error, optional; it is answered absent when the attempt reported none. (0133)
-- **`And the hook "<hook>" of policy "<policy>" requests the optional cause`**: `after step` requests, as optional, the cause the step was given up for, from the causes of `step_given_up`. (0133)
+- **`And the hook "<hook>" of policy "<policy>" requests its ending`**: an after hook requests the ending of what it closes: for `after attempt` the attempt's, for `after step` the step's, for `after journey` the journey's. (0133)
+- **`And the hook "<hook>" of policy "<policy>" requests its number of attempts`**: `after step` requests how many attempts the step made. (0133)
+- **`And the hook "<hook>" of policy "<policy>" requests its optional error`**: the request for the error, optional; it is answered absent when the attempt reported none. (0133)
+- **`And the hook "<hook>" of policy "<policy>" requests its optional cause`**: `after step` requests, as optional, the cause the step was given up for, from the causes of `step_given_up`. (0133)
 - **`Then the hook "<hook>" of policy "<policy>" received the endings "<ending>", "<ending>"`**: one ending for each call of the hook, in the order of its calls, written as the specification names them: for an attempt `succeeded`, `failed`, `abnormal termination`, `skipped` or `aborted`; for a step `succeeded`, `failed`, `skipped`, `bypassed` or `aborted`; for a journey `succeeded`, `failed` or `aborted`. Later proposals add endings. (0133)
 - **`Then the hook "<hook>" of policy "<policy>" received the number of attempts <n>`** (0133)
 - **`Then the hook "<hook>" of policy "<policy>" received no error`** and **`Then the hook "<hook>" of policy "<policy>" received no cause`**: its optional request was answered absent. (0133)

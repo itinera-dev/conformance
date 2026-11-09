@@ -10,10 +10,10 @@ Feature: A journey that ends while steps are pending
 
   Scenario: A failure abandons the pending steps, the last to begin first
     Given a workflow "orders" with the steps:
-      | step     |
-      | payment  |
-      | invoice  |
-      | shipping |
+      | step     | policies |
+      | payment  |          |
+      | invoice  |          |
+      | shipping | alarm    |
     And the workflow allows pending steps
     And step "payment" may be pending, with a pending budget of 3
     And step "payment" attempts:
@@ -27,7 +27,6 @@ Feature: A journey that ends while steps are pending
       | attempt | outcome | code     |
       | 1       | failure | no stock |
     And a step policy "alarm" defines the hook "on step failure"
-    And step "shipping" has the policies "alarm"
     When the workflow runs
     Then the events include, in order:
       | event          | step     | attempt | policy | hook            | status before | ending | cause   | decided by |
@@ -44,9 +43,9 @@ Feature: A journey that ends while steps are pending
   @proposal-0133
   Scenario: An abandoned step runs its after step hooks with the ending abandoned
     Given a workflow "orders" with the steps:
-      | step     |
-      | payment  |
-      | shipping |
+      | step     | policies |
+      | payment  | tx       |
+      | shipping |          |
     And the workflow allows pending steps
     And step "payment" may be pending, with a pending budget of 3
     And step "payment" attempts:
@@ -56,8 +55,7 @@ Feature: A journey that ends while steps are pending
       | attempt | outcome | code     |
       | 1       | failure | no stock |
     And a step policy "tx" defines the hook "after step"
-    And the hook "after step" of policy "tx" requests the ending
-    And step "payment" has the policies "tx"
+    And the hook "after step" of policy "tx" requests its ending
     And a workflow policy "audit" defines the hook "after journey"
     And the workflow has the policies "audit"
     When the workflow runs
@@ -72,9 +70,9 @@ Feature: A journey that ends while steps are pending
 
   Scenario: FinishWorkflow abandons the pending steps, decided by the hook that returned it
     Given a workflow "orders" with the steps:
-      | step     |
-      | payment  |
-      | shipping |
+      | step     | policies |
+      | payment  |          |
+      | shipping | done     |
     And the workflow allows pending steps
     And step "payment" may be pending, with a pending budget of 3
     And step "payment" attempts:
@@ -83,7 +81,6 @@ Feature: A journey that ends while steps are pending
     And step "shipping" succeeds
     And a step policy "done" defines the hook "on step success"
     And the hook "on step success" of policy "done" returns FinishWorkflow
-    And step "shipping" has the policies "done"
     When the workflow runs
     Then the events include, in order:
       | event             | step     | attempt | policy | hook            | status before | ending    | decided by            |
@@ -122,9 +119,9 @@ Feature: A journey that ends while steps are pending
   @proposal-0133
   Scenario: An abort while a step is pending emits no step_abandoned, and the pending step is aborted
     Given a workflow "orders" with the steps:
-      | step     |
-      | payment  |
-      | shipping |
+      | step     | policies |
+      | payment  | tx       |
+      | shipping |          |
     And the workflow allows pending steps
     And step "payment" may be pending, with a pending budget of 3
     And step "payment" attempts:
@@ -134,8 +131,7 @@ Feature: A journey that ends while steps are pending
     And step "shipping" succeeds
     And the data bag is empty
     And a step policy "tx" defines the hook "after step"
-    And the hook "after step" of policy "tx" requests the ending
-    And step "payment" has the policies "tx"
+    And the hook "after step" of policy "tx" requests its ending
     And the workflow lists the reporters "trace"
     When the workflow runs
     Then the reporter "trace" did not receive the event "step_abandoned"

@@ -14,9 +14,9 @@ Feature: Cleanup after a cancellation, and when a cancellation counts
   @proposal-0133 @proposal-0134
   Scenario: A cancellation while waiting stops at once and abandons the pending and waiting steps
     Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
-      | receipt |
+      | step    | policies |
+      | payment | tx       |
+      | receipt | tx       |
     And the workflow allows pending steps
     And step "payment" may be pending, with a pending budget of 3
     And step "payment" has a default nbf of 60000 ms
@@ -28,9 +28,7 @@ Feature: Cleanup after a cancellation, and when a cancellation counts
     And step "receipt" waits for the steps "payment"
     And step "receipt" succeeds
     And a step policy "tx" defines the hook "after step"
-    And the hook "after step" of policy "tx" requests the ending
-    And step "payment" has the policies "tx"
-    And step "receipt" has the policies "tx"
+    And the hook "after step" of policy "tx" requests its ending
     And the workflow lists the reporters "trace"
     And the caller cancels the journey on "journey_waiting"
     When the workflow runs
@@ -50,14 +48,13 @@ Feature: Cleanup after a cancellation, and when a cancellation counts
   @proposal-0133
   Scenario: A failing after hook during cleanup is recorded, the others run, and nothing aborts
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies  |
+      | charge | tx, audit |
     And step "charge" succeeds
-    And the step policies define the hooks:
+    And its step policies and their hooks are:
       | policy | hook          | fails with |
       | tx     | after attempt |            |
       | audit  | after attempt | audit down |
-    And step "charge" has the policies "tx", "audit"
     And the workflow lists the reporters "trace"
     And the caller cancels the journey on "step_succeeded" of "charge"
     When the workflow runs
@@ -72,12 +69,11 @@ Feature: Cleanup after a cancellation, and when a cancellation counts
   @proposal-0133
   Scenario: A reporter that fails during cleanup receives nothing more, and the others receive journey_cancelled
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx       |
     And step "charge" succeeds
     And a step policy "tx" defines the hook "after attempt"
     And the hook "after attempt" of policy "tx" emits journey_info "rolling back"
-    And step "charge" has the policies "tx"
     And the workflow lists the reporters "trace", "audit"
     And the reporter "audit" throws on "journey_info"
     And the caller cancels the journey on "step_succeeded" of "charge"
@@ -105,7 +101,7 @@ Feature: Cleanup after a cancellation, and when a cancellation counts
       | step   |
       | charge |
     And step "charge" succeeds
-    And the workflow policies define the hooks:
+    And its workflow policies and their hooks are:
       | policy | hook                |
       | audit  | after journey       |
       | audit  | on workflow success |

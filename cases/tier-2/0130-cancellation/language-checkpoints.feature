@@ -13,18 +13,17 @@ Feature: A cancellation delivered inside custom code
   @proposal-0133
   Scenario: A cancellation delivered inside a step ends its attempt with no outcome fact
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx       |
     And step "charge" allows 2 retries
     And step "charge" has a rescue step
     And step "charge" emits step_info "calling the bank"
     And step "charge" waits for cancellation
     And step "charge_rescue" succeeds
-    And the step policies define the hooks:
-      | policy | hook                         | requests   |
-      | tx     | after attempt                | the ending |
-      | tx     | on step abnormal termination |            |
-    And step "charge" has the policies "tx"
+    And its step policies and their hooks are:
+      | policy | hook                         | requests |
+      | tx     | after attempt                | ending   |
+      | tx     | on step abnormal termination |          |
     And the workflow lists the reporters "trace"
     And the caller cancels the journey on "step_info" of "charge"
     When the workflow runs
@@ -63,13 +62,12 @@ Feature: A cancellation delivered inside custom code
 
   Scenario: A cancellation delivered inside a hook is not hook failed
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | notify   |
     And step "charge" succeeds
     And a step policy "notify" defines the hook "on step success"
     And the hook "on step success" of policy "notify" emits journey_info "sending"
     And the hook "on step success" of policy "notify" waits for cancellation
-    And step "charge" has the policies "notify"
     And the workflow lists the reporters "trace"
     And the caller cancels the journey on "journey_info"
     When the workflow runs
@@ -83,17 +81,16 @@ Feature: A cancellation delivered inside custom code
   @proposal-0133
   Scenario: A cancellation delivered inside an after hook during the normal flow runs the rest of its level in cleanup
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies  |
+      | charge | tx, audit |
     And step "charge" succeeds
-    And the step policies define the hooks:
-      | policy | hook          | requests   |
-      | tx     | after attempt |            |
-      | tx     | after step    | the ending |
-      | audit  | after attempt |            |
+    And its step policies and their hooks are:
+      | policy | hook          | requests |
+      | tx     | after attempt |          |
+      | tx     | after step    | ending   |
+      | audit  | after attempt |          |
     And the hook "after attempt" of policy "audit" emits journey_info "auditing"
     And the hook "after attempt" of policy "audit" waits for cancellation
-    And step "charge" has the policies "tx", "audit"
     And the caller cancels the journey on "journey_info"
     When the workflow runs
     Then the hooks were called in this order:

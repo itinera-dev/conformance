@@ -15,7 +15,7 @@ Feature: A before journey hook that fails the journey or fails itself
       | step   |
       | charge |
     And step "charge" succeeds
-    And the workflow policies define the hooks:
+    And its workflow policies and their hooks are:
       | policy | hook                | returns      | code      |
       | trail  | after journey       |              |           |
       | trail  | on workflow failure |              |           |
@@ -64,7 +64,7 @@ Feature: A before journey hook that fails the journey or fails itself
       | step   |
       | charge |
     And step "charge" succeeds
-    And the workflow policies define the hooks:
+    And its workflow policies and their hooks are:
       | policy | hook                | fails with       |
       | trail  | after journey       |                  |
       | guard  | before journey      | no configuration |

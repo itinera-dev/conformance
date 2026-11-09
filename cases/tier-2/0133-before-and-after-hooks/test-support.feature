@@ -12,19 +12,17 @@ Feature: Hooks before and after in test support
 
   Scenario: The path of a bypassed step, with and without a reason
     Given a workflow "orders" with the steps:
-      | step     |
-      | discount |
-      | gift     |
-      | ship     |
+      | step     | policies |
+      | discount | gate     |
+      | gift     | wrap     |
+      | ship     |          |
     And step "discount" succeeds
     And step "gift" succeeds
     And step "ship" succeeds
-    And the step policies define the hooks:
+    And its step policies and their hooks are:
       | policy | hook        | returns | code              |
       | gate   | before step | bypass  | no discount today |
       | wrap   | before step | bypass  |                   |
-    And step "discount" has the policies "gate"
-    And step "gift" has the policies "wrap"
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:
@@ -36,12 +34,11 @@ Feature: Hooks before and after in test support
 
   Scenario: The path of a failing before step
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | lock     |
     And step "charge" succeeds
     And a step policy "lock" defines the hook "before step"
     And the hook "before step" of policy "lock" fails with "no lock"
-    And step "charge" has the policies "lock"
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:
@@ -52,12 +49,11 @@ Feature: Hooks before and after in test support
 
   Scenario: The path of a failing before attempt
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx       |
     And step "charge" succeeds
     And a step policy "tx" defines the hook "before attempt"
     And the hook "before attempt" of policy "tx" fails with "no connection"
-    And step "charge" has the policies "tx"
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:
@@ -68,12 +64,11 @@ Feature: Hooks before and after in test support
 
   Scenario: The path of a failing after attempt after a success
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx       |
     And step "charge" succeeds
     And a step policy "tx" defines the hook "after attempt"
     And the hook "after attempt" of policy "tx" fails with "commit failed"
-    And step "charge" has the policies "tx"
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:
@@ -85,12 +80,11 @@ Feature: Hooks before and after in test support
 
   Scenario: The path of a failing after step after a success
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx       |
     And step "charge" succeeds
     And a step policy "tx" defines the hook "after step"
     And the hook "after step" of policy "tx" fails with "settle failed"
-    And step "charge" has the policies "tx"
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:
