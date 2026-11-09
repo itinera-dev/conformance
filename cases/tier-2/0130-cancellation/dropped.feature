@@ -13,17 +13,16 @@ Feature: A dropped journey and on journey dropped
   @dropped-journey @proposal-0133
   Scenario: A dropped journey runs on journey dropped once, and nothing else
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
+      | step   | policies |
+      | charge | tx       |
+      | ship   |          |
     And step "charge" succeeds
     And step "ship" succeeds
     And a step policy "tx" defines the hook "after step"
-    And step "charge" has the policies "tx"
-    And the workflow policies define the hooks:
-      | policy | hook               | requests       |
-      | guard  | on journey dropped | the journey ID |
-      | guard  | after journey      |                |
+    And its workflow policies and their hooks are:
+      | policy | hook               | requests   |
+      | guard  | on journey dropped | journey ID |
+      | guard  | after journey      |            |
     And the workflow has the policies "guard"
     And the workflow's ID generator returns "J-1"
     And the workflow lists the reporters "trace"
@@ -104,7 +103,7 @@ Feature: A dropped journey and on journey dropped
       | step   |
       | charge |
     And step "charge" succeeds
-    And the workflow policies define the hooks:
+    And its workflow policies and their hooks are:
       | policy | hook               |
       | guard  | on journey dropped |
       | alarm  | on journey dropped |
