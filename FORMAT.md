@@ -39,7 +39,7 @@ A feature or scenario that needs a capability also carries:
 - `@capability-sync` or `@capability-async`: the execution mode it requires;
 - `@capability-testing`: test support (proposal 0108), which a language claims as the capability `testing`;
 - `@capability-value-conversions`: value conversions (proposal 0113), which a language claims as the capability `value-conversions` when its executor calls, while a journey runs, code the application supplies or customises to turn its objects into values, or values into its types, or to check them; any other language does not claim it;
-- a tag for a rule a language may make impossible to express (proposal 0054): `@invalid-lifecycle`, `@role-not-provided`, `@mode-not-accepted`, `@non-value`, `@late-handle`, `@bag-write` (proposal 0091), `@rescue-skip` (proposal 0003), `@journey-scope-request` or `@no-instance` (proposal 0095), `@undeclared-handles` or `@fake-service-type` (proposal 0108), `@attempt-zero`, `@attempt-negative` or `@attempt-fraction` (proposal 0119), `@unexpected-result`, `@non-string-journey-id` or `@empty-journey-id` (proposal 0122), `@pending-not-declared`, `@rescue-pending`, `@negative-delay` or `@fractional-duration` (proposal 0134);
+- a tag for a rule a language may make impossible to express (proposal 0054): `@invalid-lifecycle`, `@role-not-provided`, `@mode-not-accepted`, `@non-value`, `@late-handle`, `@bag-write` (proposal 0091), `@rescue-skip` (proposal 0003), `@journey-scope-request` or `@no-instance` (proposal 0095), `@undeclared-handles` or `@fake-service-type` (proposal 0108), `@attempt-zero`, `@attempt-negative` or `@attempt-fraction` (proposal 0119), `@unexpected-result`, `@non-string-journey-id` or `@empty-journey-id` (proposal 0122), `@pending-not-declared`, `@rescue-pending`, `@negative-delay` or `@fractional-duration` (proposal 0134), `@dropped-journey`, `@asynchronous-drop-hook` or `@language-checkpoint` (proposal 0130); a language that has no language checkpoints excludes `@language-checkpoint` this way, and its tech spec says so;
 - other capability tags as later tiers add them.
 
 A language runs every scenario whose proposals are all listed in its manifest (see below), excluding capabilities it does not claim, and every one must pass. When a language moves to cases holding a new amendment, everything else keeps running, and the amendment's scenarios wait until it is listed. Listing an amendment is how a language declares it implemented: from that pull request on, its scenarios run with everything already listed. It claims tier N of a specification version once every proposal of tiers 1 to N is listed, except a proposal whose every scenario needs a capability it does not claim, such as proposal 0108 (test support) for a language that does not claim `testing`, or proposal 0113 (value conversions) for one that does not claim `value-conversions`: such a proposal is listed only by a language that claims its capability.
@@ -77,6 +77,7 @@ Event tables use one row per event. The column `event` is required; any of these
 - `ending`: the journey's ending a `step_abandoned` carries (proposal 0134);
 - `hint`: the hint a `step_pending` carries, as JSON (proposal 0134);
 - `limit`: for a `step_given_up` with the cause `pending exhausted`, `budget` or `deadline` (proposal 0134);
+- `checkpoint`: the checkpoint a `journey_cancelled` names; its `step` and `attempt` are the step that was running or waited for and its attempt, its `rescue` the rescue step that was running, and its `steps` the steps that became `Abandoned` (proposal 0130);
 - `timestamp`: the event's timestamp, from the executor's clock, in ISO 8601 in UTC (proposal 0134);
 - `error`: the message of the error a `journey_failed` or `journey_aborted` carries (proposal 0083), or that a `before_hook_failed` or `after_hook_failed` records (proposal 0133). An error's message is the language's own text for it; for a failure scripted with a message, exactly that message.
 
@@ -85,7 +86,7 @@ Two sentences compare them:
 - "the events include, in order" checks that these events appear in this order, possibly with others in between;
 - "the events are exactly" checks the complete stream.
 
-Event names are those of the engine catalogue of proposal 0011 (Events), as amended by proposals 0040, 0003, 0095, 0102, 0133 and 0134, and the `step_*` and `journey_*` events steps, hooks and service providers emit.
+Event names are those of the engine catalogue of proposal 0011 (Events), as amended by proposals 0040, 0003, 0095, 0102, 0133, 0134 and 0130, and the `step_*` and `journey_*` events steps, hooks and service providers emit.
 
 ## Versions of the cases
 
