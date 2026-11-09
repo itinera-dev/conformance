@@ -3,12 +3,12 @@ Feature: Policy instances for the step hooks
   Checks proposal 0133 (hooks before and after a journey, a step and an
   attempt): `before step` and `after step` use one instance of each step
   policy that defines either of them, built at the step's turn before `before
-  step`. That instance also serves the step's first attempt, which does not
-  build it again, and later attempts get new instances. A step policy that
-  defines neither is built only for each attempt, as in tier 1. When building the step's instance fails, the journey is aborted with
+  step`, and used by no attempt; every attempt, the first included, gets new
+  instances, as in tier 1. A step policy that defines neither is built only
+  for each attempt. When building the step's instance fails, the journey is aborted with
   `policy could not be built`, naming the step and the policy, with no attempt.
 
-  Scenario: A step policy with step hooks is built once for the step and its first attempt, and once for each later attempt
+  Scenario: A step policy with step hooks is built once for the step and once for each attempt
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
@@ -23,7 +23,7 @@ Feature: Policy instances for the step hooks
     And a step policy "tx" defines the hook "after attempt"
     And step "charge" has the policies "tx"
     When the workflow runs
-    Then the policy "tx" was built 2 times
+    Then the policy "tx" was built 3 times
     And the journey succeeded
 
   Scenario: A step policy without step hooks is built only for each attempt
