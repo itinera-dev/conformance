@@ -37,7 +37,7 @@ Feature: Declaring before and after hooks
     And step "charge" has the policies "tx", "lock"
     When the workflow is admitted
     Then admission is refused with the violations:
-      | violation         |
+      | violation          |
       | hook defined twice |
 
   Scenario: A required request for step data in after attempt is refused

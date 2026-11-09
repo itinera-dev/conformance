@@ -16,9 +16,9 @@ Feature: The order of the hooks before and after a journey, a step and an attemp
       | charge |
     And step "charge" allows 1 retries
     And step "charge" attempts:
-      | attempt | outcome | code        | contributes         |
-      | 1       | failure | unreachable |                     |
-      | 2       | success |             | {"receipt": "R-1"}  |
+      | attempt | outcome | code        | contributes        |
+      | 1       | failure | unreachable |                    |
+      | 2       | success |             | {"receipt": "R-1"} |
     And a step policy "tx" defines the hook "before step"
     And a step policy "tx" defines the hook "before attempt"
     And a step policy "tx" defines the hook "after attempt"
