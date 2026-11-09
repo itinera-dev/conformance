@@ -44,12 +44,13 @@ Feature: A cancellation delivered inside custom code
     And the run ended as cancelled
 
   Scenario: A cancellation delivered inside a service provider cancels the journey
-    Given a workflow "orders" with the steps:
-      | step   | services         | outcome |
-      | charge | labels: labeller | success |
-    And the workflow declares the service provider "stock" for "labels" of type labeller, for each attempt
+    Given the service provider "stock" makes a labeller for "labels", for each attempt
     And the service provider "stock" emits journey_info "reserving"
     And the service provider "stock" waits for cancellation
+    And a workflow "orders" with the steps:
+      | step   | services         | outcome |
+      | charge | labels: labeller | success |
+    And the workflow binds the service provider "stock"
     And the workflow lists the reporters "trace"
     And the caller cancels the journey on "journey_info"
     When the workflow runs
