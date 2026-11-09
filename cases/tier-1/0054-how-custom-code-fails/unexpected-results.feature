@@ -80,11 +80,11 @@ Feature: Custom code that returns an unexpected result
 
   @proposal-0122 @unexpected-result
   Scenario: An input adapter that returns no result aborts the journey
+    Given the input adapter "pricing" returns no result for "amount"
     Given a workflow "orders" with the steps:
       | step   | outcome |
       | charge | success |
     And the workflow binds the input adapter "pricing" to the step "charge"
-    And the input adapter "pricing" returns no result for "amount"
     And step "charge" requests optional input "amount" of type integer
     When the workflow runs
     Then the events are exactly:

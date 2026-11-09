@@ -155,12 +155,12 @@ Feature: A value conversion that fails while a value is read
 
   @proposal-0113
   Scenario: A read through an input adapter's access whose conversion fails is another type, and emits nothing
+    Given the input adapter "pricing" requests the data bag
+    And the input adapter "pricing" returns "price.charge" of type throwing record, read from the data bag, for "amount"
     Given a workflow "orders" with the steps:
       | step   | inputs          | outcome |
       | charge | amount: integer | success |
     And the workflow binds the input adapter "pricing" to the step "charge"
-    And the input adapter "pricing" requests the data bag
-    And the input adapter "pricing" returns "price.charge" of type throwing record, read from the data bag, for "amount"
     And the data bag contains:
       | key          | value     |
       | amount       | 42        |

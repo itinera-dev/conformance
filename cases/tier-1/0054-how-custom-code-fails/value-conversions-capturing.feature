@@ -81,11 +81,11 @@ Feature: A value conversion that fails while a value is captured
 
   @proposal-0113
   Scenario: An input adapter's supply whose conversion fails aborts with "step could not be built"
+    Given the input adapter "pricing" returns a throwing record for "order"
     Given a workflow "orders" with the steps:
       | step   | inputs                 | outcome |
       | charge | order: throwing record | success |
     And the workflow binds the input adapter "pricing" to the step "charge"
-    And the input adapter "pricing" returns a throwing record for "order"
     When the workflow runs
     Then the journey was aborted with the abort reason "step could not be built"
     And the events include, in order:
