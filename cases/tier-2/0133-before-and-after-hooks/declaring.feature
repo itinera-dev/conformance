@@ -16,11 +16,11 @@ Feature: Declaring before and after hooks
       | tx     | after attempt |
       | lock   | before step   |
       | lock   | after attempt |
-    And the workflow policies and their hooks:
+    Given the workflow policies and their hooks:
       | policy | hook          |
       | audit  | after journey |
       | trace  | after journey |
-    And a workflow "orders" with the policies "audit", "trace" and the steps:
+    Given a workflow "orders" with the policies "audit", "trace" and the steps:
       | step   | policies | outcome |
       | charge | tx, lock | success |
     When the workflow runs
@@ -33,7 +33,7 @@ Feature: Declaring before and after hooks
       | tx     | on step success |
       | lock   | after step      |
       | lock   | on step success |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge | tx, lock | success |
     When the workflow is admitted
@@ -44,7 +44,7 @@ Feature: Declaring before and after hooks
   Scenario: A required request for step data in after attempt is refused
     Given a step policy "tx" defines the hook "after attempt"
     And the hook "after attempt" of policy "tx" requests step data "receipt" of type string
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge | tx       | success |
     When the workflow is admitted
@@ -56,7 +56,7 @@ Feature: Declaring before and after hooks
   Scenario: A required request for data from the workflow in after journey is refused
     Given a workflow policy "audit" defines the hook "after journey"
     And the hook "after journey" of policy "audit" requests data from the workflow "order" of type string
-    And a workflow "orders" with the policies "audit" and the steps:
+    Given a workflow "orders" with the policies "audit" and the steps:
       | step   | outcome |
       | charge | success |
     When the workflow is admitted
@@ -69,7 +69,7 @@ Feature: Declaring before and after hooks
       | policy | hook       |
       | tx     | after step |
     And the hook "after step" of policy "tx" requests the failure reason
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge | tx       | success |
     When the workflow is admitted
@@ -82,14 +82,14 @@ Feature: Declaring before and after hooks
       | policy | hook          |
       | tx     | after attempt |
       | tx     | after step    |
-    And the hooks request:
+    Given the hooks request:
       | policy | hook          | request            |
       | tx     | after attempt | step name          |
       | tx     | after attempt | attempt number     |
       | tx     | after attempt | ending             |
       | tx     | after attempt | journey ID         |
       | tx     | after step    | number of attempts |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge | tx       | success |
     And the workflow's ID generator returns "J-1"
@@ -106,7 +106,7 @@ Feature: Declaring before and after hooks
       | tx     | before attempt |
       | tx     | after attempt  |
     And the hook "before attempt" of policy "tx" requests data from the workflow "order" of type string
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge | tx       | success |
     And the data bag is empty

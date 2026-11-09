@@ -15,16 +15,16 @@ Feature: What the after hooks receive
       | policy | hook          |
       | tx     | after attempt |
       | tx     | after step    |
-    And the workflow policies and their hooks:
+    Given the workflow policies and their hooks:
       | policy | hook          |
       | audit  | after journey |
-    And the hooks request:
+    Given the hooks request:
       | policy | hook          | request            |
       | tx     | after attempt | ending             |
       | tx     | after step    | ending             |
       | tx     | after step    | number of attempts |
       | audit  | after journey | ending             |
-    And a workflow "orders" with the policies "audit" and the steps:
+    Given a workflow "orders" with the policies "audit" and the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" allows 2 retries
@@ -45,12 +45,12 @@ Feature: What the after hooks receive
     Given the step policies and their hooks:
       | policy | hook          |
       | tx     | after attempt |
-    And the hooks request:
+    Given the hooks request:
       | policy | hook          | request        | key     | type   | optional |
       | tx     | after attempt | failure reason |         |        | yes      |
       | tx     | after attempt | error          |         |        | yes      |
       | tx     | after attempt | step data      | receipt | string | yes      |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" attempts:
@@ -66,11 +66,11 @@ Feature: What the after hooks receive
     Given the step policies and their hooks:
       | policy | hook          |
       | tx     | after attempt |
-    And the hooks request:
+    Given the hooks request:
       | policy | hook          | request        | optional |
       | tx     | after attempt | failure reason | yes      |
       | tx     | after attempt | error          | yes      |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" attempts:
@@ -86,17 +86,17 @@ Feature: What the after hooks receive
     Given the step policies and their hooks:
       | policy | hook       |
       | tx     | after step |
-    And the workflow policies and their hooks:
+    Given the workflow policies and their hooks:
       | policy | hook          |
       | audit  | after journey |
-    And the hooks request:
+    Given the hooks request:
       | policy | hook          | request            | optional |
       | tx     | after step    | ending             |          |
       | tx     | after step    | number of attempts |          |
       | tx     | after step    | cause              | yes      |
       | tx     | after step    | failure reason     | yes      |
       | audit  | after journey | ending             |          |
-    And a workflow "orders" with the policies "audit" and the steps:
+    Given a workflow "orders" with the policies "audit" and the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" allows 1 retries
@@ -115,13 +115,13 @@ Feature: What the after hooks receive
       | policy | hook        | returns | code |
       | gate   | before step | bypass  | off  |
       | gate   | after step  |         |      |
-    And the hooks request:
+    Given the hooks request:
       | policy | hook       | request            | optional |
       | gate   | after step | ending             |          |
       | gate   | after step | number of attempts |          |
       | gate   | after step | failure reason     | yes      |
       | gate   | after step | cause              | yes      |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step     | policies | outcome |
       | discount | gate     | success |
     When the workflow runs
@@ -135,11 +135,11 @@ Feature: What the after hooks receive
       | policy | hook           |
       | tx     | before step    |
       | tx     | before attempt |
-    And the hooks request:
+    Given the hooks request:
       | policy | hook           | request        |
       | tx     | before step    | step name      |
       | tx     | before attempt | attempt number |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge | tx       | success |
     When the workflow runs

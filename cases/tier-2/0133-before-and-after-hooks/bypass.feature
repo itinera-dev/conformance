@@ -18,8 +18,8 @@ Feature: A before step hook that bypasses its step
       | gate   | after step  |         |                   |
       | last   | before step |         |                   |
       | last   | after step  |         |                   |
-    And the service provider "stock" makes a labeller for "labels", for each attempt
-    And a workflow "orders" with the steps:
+    Given the service provider "stock" makes a labeller for "labels", for each attempt
+    Given a workflow "orders" with the steps:
       | step     | policies          | services         | outcome |
       | discount | first, gate, last | labels: labeller | success |
       | ship     |                   |                  | success |
@@ -49,7 +49,7 @@ Feature: A before step hook that bypasses its step
     Given the step policies and their hooks:
       | policy | hook        | returns |
       | gate   | before step | bypass  |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step     | policies | outcome |
       | discount | gate     | success |
     When the workflow runs
@@ -65,7 +65,7 @@ Feature: A before step hook that bypasses its step
       | policy | hook            | returns | code |
       | gate   | before step     | bypass  | off  |
       | gate   | on step success |         |      |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step     | policies | outcome |
       | discount | gate     | success |
     And step "discount" contributes "rate" = 10
@@ -81,7 +81,7 @@ Feature: A before step hook that bypasses its step
       | policy | hook        | returns        |
       | gate   | before step | FinishWorkflow |
       | gate   | after step  |                |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies | outcome |
       | charge | gate     | success |
     When the workflow runs

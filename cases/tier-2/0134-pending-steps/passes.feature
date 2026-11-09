@@ -57,7 +57,7 @@ Feature: The ordered pass and the scheduled pass
   @proposal-0133
   Scenario: The ordered pass starts after the before journey hooks
     Given a workflow policy "audit" defines the hook "before journey"
-    And a workflow "orders" with the policies "audit" and the steps:
+    Given a workflow "orders" with the policies "audit" and the steps:
       | step   | outcome |
       | charge | success |
     When the workflow runs
@@ -73,7 +73,7 @@ Feature: The ordered pass and the scheduled pass
     Given the workflow policies and their hooks:
       | policy | hook           | returns      | code      |
       | check  | before journey | FailWorkflow | bad input |
-    And a workflow "orders" with the policies "check" and the steps:
+    Given a workflow "orders" with the policies "check" and the steps:
       | step   | outcome |
       | charge | success |
     And the workflow lists the reporters "trace"
