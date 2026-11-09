@@ -20,15 +20,15 @@ Feature: The journey timeout
       | tx     | after step      |
       | tx     | on step success |
       | tx     | on step failure |
-    And the workflow policies and their hooks:
+    Given the workflow policies and their hooks:
       | policy | hook                |
       | audit  | after journey       |
       | audit  | on workflow failure |
-    And the hooks request:
+    Given the hooks request:
       | policy | hook          | request |
       | tx     | after attempt | ending  |
       | tx     | after step    | ending  |
-    And a workflow "orders" with the policies "audit" and the steps:
+    Given a workflow "orders" with the policies "audit" and the steps:
       | step   | policies | outcome |
       | charge | tx       |         |
       | ship   |          | success |
@@ -65,7 +65,7 @@ Feature: The journey timeout
     Given the step policies and their hooks:
       | policy | hook          | duration |
       | tx     | on step retry | 2000 ms  |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And the workflow has a journey timeout of 5000 ms
@@ -173,7 +173,7 @@ Feature: The journey timeout
     Given the workflow policies and their hooks:
       | policy | hook          | duration |
       | audit  | after journey | 10000 ms |
-    And a workflow "orders" with the policies "audit" and the steps:
+    Given a workflow "orders" with the policies "audit" and the steps:
       | step   | outcome |
       | charge | success |
     And the workflow has a journey timeout of 5000 ms

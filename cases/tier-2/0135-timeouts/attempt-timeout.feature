@@ -33,11 +33,11 @@ Feature: The attempt timeout
       | tx     | after step      |
       | tx     | on step success |
       | tx     | on step failure |
-    And the hooks request:
+    Given the hooks request:
       | policy | hook          | request |
       | tx     | after attempt | ending  |
       | tx     | after step    | ending  |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" has an attempt timeout of 1000 ms
@@ -69,7 +69,7 @@ Feature: The attempt timeout
 
   Scenario: An attempt over its timeout is not retried, whatever retry budget is left
     Given a step policy "tx" defines the hook "on step retry"
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And the workflow lists the reporters "trace"
@@ -127,9 +127,9 @@ Feature: The attempt timeout
   Scenario: The time input adapters and service providers take counts against the attempt
     Given the input adapter "prices" returns 42 when step "charge" requests "amount"
     And the input adapter "prices" takes 600 ms when step "charge" requests "amount"
-    And the service provider "stock" makes a labeller for "labels", for each attempt
+    Given the service provider "stock" makes a labeller for "labels", for each attempt
     And the service provider "stock" takes 600 ms
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | inputs          | services         | outcome |
       | charge | amount: integer | labels: labeller | success |
     And the workflow binds the input adapter "prices" to the steps "charge"
@@ -147,7 +147,7 @@ Feature: The attempt timeout
     Given the step policies and their hooks:
       | policy | hook           | duration |
       | tx     | before attempt | 2000 ms  |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And the workflow lists the reporters "trace"
@@ -181,7 +181,7 @@ Feature: The attempt timeout
     Given the step policies and their hooks:
       | policy | hook            | returns      | code     |
       | tx     | on step failure | FailWorkflow | too slow |
-    And a workflow "orders" with the steps:
+    Given a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" has an attempt timeout of 1000 ms
