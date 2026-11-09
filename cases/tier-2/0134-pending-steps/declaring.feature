@@ -45,10 +45,9 @@ Feature: Declaring pending steps
 
   Scenario: A step that may be pending in a workflow that does not allow it is refused
     Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
+      | step    | outcome |
+      | payment | success |
     And step "payment" may be pending, with a pending budget of 3
-    And step "payment" succeeds
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation           |
@@ -56,12 +55,11 @@ Feature: Declaring pending steps
 
   Scenario: Waiting for a step the workflow does not have is refused
     Given a workflow "orders" with the steps:
-      | step    |
-      | receipt |
+      | step    | outcome |
+      | receipt | success |
     And the workflow allows pending steps
     And step "receipt" may be pending, with a pending budget of 3
     And step "receipt" waits for the steps "payment"
-    And step "receipt" succeeds
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation            |
@@ -69,14 +67,12 @@ Feature: Declaring pending steps
 
   Scenario: Waiting for a step that cannot be pending is refused
     Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
-      | receipt |
+      | step    | outcome |
+      | payment | success |
+      | receipt | success |
     And the workflow allows pending steps
-    And step "payment" succeeds
     And step "receipt" may be pending, with a pending budget of 3
     And step "receipt" waits for the steps "payment"
-    And step "receipt" succeeds
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation            |
@@ -84,12 +80,11 @@ Feature: Declaring pending steps
 
   Scenario: Waiting for itself is refused
     Given a workflow "orders" with the steps:
-      | step    |
-      | receipt |
+      | step    | outcome |
+      | receipt | success |
     And the workflow allows pending steps
     And step "receipt" may be pending, with a pending budget of 3
     And step "receipt" waits for the steps "receipt"
-    And step "receipt" succeeds
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation            |
@@ -97,15 +92,13 @@ Feature: Declaring pending steps
 
   Scenario: Waiting for a step declared later is refused
     Given a workflow "orders" with the steps:
-      | step    |
-      | receipt |
-      | payment |
+      | step    | outcome |
+      | receipt | success |
+      | payment | success |
     And the workflow allows pending steps
     And step "receipt" may be pending, with a pending budget of 3
     And step "receipt" waits for the steps "payment"
-    And step "receipt" succeeds
     And step "payment" may be pending, with a pending budget of 3
-    And step "payment" succeeds
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation            |
@@ -113,11 +106,10 @@ Feature: Declaring pending steps
 
   Scenario: A step that may be pending with no pending budget is refused
     Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
+      | step    | outcome |
+      | payment | success |
     And the workflow allows pending steps
     And step "payment" may be pending, with no pending budget
-    And step "payment" succeeds
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation              |
@@ -125,11 +117,10 @@ Feature: Declaring pending steps
 
   Scenario: A pending budget of 0 is refused
     Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
+      | step    | outcome |
+      | payment | success |
     And the workflow allows pending steps
     And step "payment" may be pending, with a pending budget of 0
-    And step "payment" succeeds
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation              |
@@ -137,12 +128,11 @@ Feature: Declaring pending steps
 
   Scenario: A negative default nbf is refused
     Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
+      | step    | outcome |
+      | payment | success |
     And the workflow allows pending steps
     And step "payment" may be pending, with a pending budget of 3
     And step "payment" has a default nbf of -1 ms
-    And step "payment" succeeds
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation               |
@@ -150,12 +140,11 @@ Feature: Declaring pending steps
 
   Scenario: A pending deadline of 0 is refused
     Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
+      | step    | outcome |
+      | payment | success |
     And the workflow allows pending steps
     And step "payment" may be pending, with a pending budget of 3
     And step "payment" has a pending deadline of 0 ms
-    And step "payment" succeeds
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation               |
@@ -163,11 +152,10 @@ Feature: Declaring pending steps
 
   Scenario: A pending setting on a step that cannot be pending is refused
     Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
+      | step    | outcome |
+      | payment | success |
     And the workflow allows pending steps
     And step "payment" has a default weight of 3
-    And step "payment" succeeds
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation               |
@@ -175,14 +163,12 @@ Feature: Declaring pending steps
 
   Scenario: Waits declared by a step that cannot be pending are refused
     Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
-      | receipt |
+      | step    | outcome |
+      | payment | success |
+      | receipt | success |
     And the workflow allows pending steps
     And step "payment" may be pending, with a pending budget of 3
-    And step "payment" succeeds
     And step "receipt" waits for the steps "payment"
-    And step "receipt" succeeds
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation               |
@@ -191,12 +177,11 @@ Feature: Declaring pending steps
   @fractional-duration
   Scenario: A duration with a fraction of a millisecond is refused, not rounded
     Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
+      | step    | outcome |
+      | payment | success |
     And the workflow allows pending steps
     And step "payment" may be pending, with a pending budget of 3
     And step "payment" has a default nbf of 1.5 ms
-    And step "payment" succeeds
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation               |
@@ -204,20 +189,17 @@ Feature: Declaring pending steps
 
   Scenario: The listing shows that the workflow allows pending steps, and each pending step's waits and settings
     Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
-      | receipt |
-      | ship    |
+      | step    | outcome |
+      | payment | success |
+      | receipt | success |
+      | ship    | success |
     And the workflow allows pending steps
     And step "payment" may be pending, with a pending budget of 3
     And step "payment" has a default nbf of 1000 ms
     And step "payment" has a default weight of 2
     And step "payment" has a pending deadline of 60000 ms
-    And step "payment" succeeds
     And step "receipt" may be pending, with a pending budget of 1
     And step "receipt" waits for the steps "payment"
-    And step "receipt" succeeds
-    And step "ship" succeeds
     When the workflow is listed
     Then the listing allows pending steps
     And the listing is:

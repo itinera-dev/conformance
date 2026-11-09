@@ -43,9 +43,10 @@ Feature: A journey that ends while steps are pending
   @proposal-0133
   Scenario: An abandoned step runs its after step hooks with the ending abandoned
     Given the step policies and their hooks:
-      | policy | hook       | requests |
-      | tx     | after step | ending   |
+      | policy | hook       |
+      | tx     | after step |
     And a workflow policy "audit" defines the hook "after journey"
+    And the hook "after step" of policy "tx" requests its ending
     And a workflow "orders" with the policies "audit" and the steps:
       | step     | policies |
       | payment  | tx       |
@@ -73,15 +74,14 @@ Feature: A journey that ends while steps are pending
       | policy | hook            | returns        |
       | done   | on step success | FinishWorkflow |
     And a workflow "orders" with the steps:
-      | step     | policies |
-      | payment  |          |
-      | shipping | done     |
+      | step     | policies | outcome |
+      | payment  |          |         |
+      | shipping | done     | success |
     And the workflow allows pending steps
     And step "payment" may be pending, with a pending budget of 3
     And step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
-    And step "shipping" succeeds
     When the workflow runs
     Then the events include, in order:
       | event             | step     | attempt | policy | hook            | status before | ending    | decided by            |
@@ -93,9 +93,9 @@ Feature: A journey that ends while steps are pending
 
   Scenario: An awaited step that fails ends the journey, and the step waiting for it is abandoned
     Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
-      | receipt |
+      | step    | outcome |
+      | payment |         |
+      | receipt | success |
     And the workflow allows pending steps
     And step "payment" may be pending, with a pending budget of 3
     And step "payment" attempts:
@@ -104,7 +104,6 @@ Feature: A journey that ends while steps are pending
       | 2       | failure | declined |
     And step "receipt" may be pending, with a pending budget of 3
     And step "receipt" waits for the steps "payment"
-    And step "receipt" succeeds
     When the workflow runs
     Then the events include, in order:
       | event          | step    | attempt | status before | decided by |
@@ -120,20 +119,19 @@ Feature: A journey that ends while steps are pending
   @proposal-0133
   Scenario: An abort while a step is pending emits no step_abandoned, and the pending step is aborted
     Given the step policies and their hooks:
-      | policy | hook       | requests |
-      | tx     | after step | ending   |
+      | policy | hook       |
+      | tx     | after step |
+    And the hook "after step" of policy "tx" requests its ending
     And a workflow "orders" with the steps:
-      | step     | policies |
-      | payment  | tx       |
-      | shipping |          |
+      | step     | policies | inputs          | outcome |
+      | payment  | tx       |                 |         |
+      | shipping |          | address: string | success |
     And the workflow allows pending steps
     And the workflow lists the reporters "trace"
     And step "payment" may be pending, with a pending budget of 3
     And step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
-    And step "shipping" requests input "address" of type string
-    And step "shipping" succeeds
     And the data bag is empty
     When the workflow runs
     Then the reporter "trace" did not receive the event "step_abandoned"

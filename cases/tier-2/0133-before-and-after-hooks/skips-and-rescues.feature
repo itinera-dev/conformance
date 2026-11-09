@@ -11,17 +11,20 @@ Feature: After hooks for a skipped attempt and around a rescue
 
   Scenario: A skipped step runs its after hooks before its contributions are discarded
     Given the step policies and their hooks:
-      | policy | hook          | requests |
-      | tx     | after attempt | ending   |
-      | tx     | after step    | ending   |
+      | policy | hook          |
+      | tx     | after attempt |
+      | tx     | after step    |
+    And the hooks request:
+      | policy | hook          | request |
+      | tx     | after attempt | ending  |
+      | tx     | after step    | ending  |
     And a workflow "orders" with the steps:
-      | step     | policies |
-      | discount | tx       |
-      | ship     |          |
+      | step     | policies | outcome |
+      | discount | tx       |         |
+      | ship     |          | success |
     And step "discount" attempts:
       | attempt | outcome | code             | contributes  |
       | 1       | skipped | no discount here | {"rate": 10} |
-    And step "ship" succeeds
     When the workflow runs
     Then the events include, in order:
       | event                   | step     | attempt | policy | hook          |
@@ -39,10 +42,11 @@ Feature: After hooks for a skipped attempt and around a rescue
 
   Scenario: After attempt runs for an attempt that goes to a rescue step, and no hook runs for the rescue step
     Given the step policies and their hooks:
-      | policy | hook           | requests |
-      | tx     | before attempt |          |
-      | tx     | after attempt  | ending   |
-      | tx     | after step     |          |
+      | policy | hook           |
+      | tx     | before attempt |
+      | tx     | after attempt  |
+      | tx     | after step     |
+    And the hook "after attempt" of policy "tx" requests its ending
     And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
@@ -73,9 +77,10 @@ Feature: After hooks for a skipped attempt and around a rescue
 
   Scenario: A step whose rescue step fails runs its after step hooks with the ending failed
     Given the step policies and their hooks:
-      | policy | hook       | requests |
-      | tx     | after step | ending   |
+      | policy | hook       |
+      | tx     | after step |
     And a workflow policy "audit" defines the hook "after journey"
+    And the hook "after step" of policy "tx" requests its ending
     And a workflow "orders" with the policies "audit" and the steps:
       | step   | policies |
       | charge | tx       |

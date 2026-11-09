@@ -50,12 +50,10 @@ Feature: Policy instances for the step hooks
     Given a step policy "broken" defines the hook "before step"
     And the policy "broken" fails when it is built
     And a workflow "orders" with the steps:
-      | step   | policies |
-      | charge |          |
-      | ship   | broken   |
+      | step   | policies | outcome |
+      | charge |          | success |
+      | ship   | broken   | success |
     And the workflow lists the reporters "trace"
-    And step "charge" succeeds
-    And step "ship" succeeds
     When the workflow runs
     Then the events include, in order:
       | event           | step   | attempt | policy | code                      |

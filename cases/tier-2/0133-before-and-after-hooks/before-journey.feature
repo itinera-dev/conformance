@@ -20,9 +20,8 @@ Feature: A before journey hook that fails the journey or fails itself
       | audit  | before journey      |              |           |
       | audit  | after journey       |              |           |
     And a workflow "orders" with the policies "trail", "check", "audit" and the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     When the workflow runs
     Then the events include, in order:
       | event           | policy | hook                | lifecycle    | code      | decided by            |
@@ -50,9 +49,8 @@ Feature: A before journey hook that fails the journey or fails itself
       | policy | hook           | returns        |
       | check  | before journey | FinishWorkflow |
     And a workflow "orders" with the policies "check" and the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     When the workflow runs
     Then the last event is "journey_aborted"
     And no step ran
@@ -68,9 +66,8 @@ Feature: A before journey hook that fails the journey or fails itself
       | audit  | after journey       |                  |
       | audit  | on workflow failure |                  |
     And a workflow "orders" with the policies "trail", "guard", "audit" and the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     When the workflow runs
     Then the hooks were called in this order:
       | policy | hook           |
