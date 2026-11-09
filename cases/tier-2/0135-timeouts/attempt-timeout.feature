@@ -125,15 +125,15 @@ Feature: The attempt timeout
     And the reporter "trace" did not receive the event "step_deferred"
 
   Scenario: The time input adapters and service providers take counts against the attempt
-    Given the input adapters:
-      | adapter | step   | key    | returns | duration |
-      | prices  | charge | amount | 42      | 600 ms   |
-    And the service providers:
-      | provider | key    | type     | scope            | duration |
-      | stock    | labels | labeller | for each attempt | 600 ms   |
+    Given the input adapter "prices" returns 42 when step "charge" requests "amount"
+    And the input adapter "prices" takes 600 ms when step "charge" requests "amount"
+    And the service provider "stock" makes a labeller for "labels", for each attempt
+    And the service provider "stock" takes 600 ms
     And a workflow "orders" with the steps:
       | step   | inputs          | services         | outcome |
       | charge | amount: integer | labels: labeller | success |
+    And the workflow binds the input adapter "prices" to the steps "charge"
+    And the workflow binds the service provider "stock"
     And step "charge" has an attempt timeout of 1000 ms
     When the workflow runs
     Then the events include, in order:
