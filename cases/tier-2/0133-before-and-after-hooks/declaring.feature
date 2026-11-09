@@ -11,17 +11,16 @@ Feature: Declaring before and after hooks
 
   Scenario: Several policies of one step and of the workflow may define the same before and after hooks
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx, lock |
     And step "charge" succeeds
-    And the step policies define the hooks:
+    And its step policies and their hooks are:
       | policy | hook          |
       | tx     | before step   |
       | tx     | after attempt |
       | lock   | before step   |
       | lock   | after attempt |
-    And step "charge" has the policies "tx", "lock"
-    And the workflow policies define the hooks:
+    And its workflow policies and their hooks are:
       | policy | hook          |
       | audit  | after journey |
       | trace  | after journey |
@@ -31,16 +30,15 @@ Feature: Declaring before and after hooks
 
   Scenario: Hook defined twice still applies to the hooks of tier 1 beside the new ones
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx, lock |
     And step "charge" succeeds
-    And the step policies define the hooks:
+    And its step policies and their hooks are:
       | policy | hook            |
       | tx     | after step      |
       | tx     | on step success |
       | lock   | after step      |
       | lock   | on step success |
-    And step "charge" has the policies "tx", "lock"
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation          |
@@ -48,12 +46,11 @@ Feature: Declaring before and after hooks
 
   Scenario: A required request for step data in after attempt is refused
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx       |
     And step "charge" succeeds
     And a step policy "tx" defines the hook "after attempt"
     And the hook "after attempt" of policy "tx" requests step data "receipt" of type string
-    And step "charge" has the policies "tx"
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation                      |
@@ -75,12 +72,11 @@ Feature: Declaring before and after hooks
 
   Scenario: A required request for the failure reason in after step is refused
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx       |
     And step "charge" succeeds
     And a step policy "tx" defines the hook "after step"
     And the hook "after step" of policy "tx" requests the failure reason
-    And step "charge" has the policies "tx"
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation                      |
@@ -88,14 +84,13 @@ Feature: Declaring before and after hooks
 
   Scenario: After hooks may require what always exists
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx       |
     And step "charge" succeeds
-    And the step policies define the hooks:
-      | policy | hook          | requests                                                      |
-      | tx     | after attempt | the step name, the attempt number, the ending, the journey ID |
-      | tx     | after step    | the number of attempts                                        |
-    And step "charge" has the policies "tx"
+    And its step policies and their hooks are:
+      | policy | hook          | requests                                      |
+      | tx     | after attempt | step name, attempt number, ending, journey ID |
+      | tx     | after step    | number of attempts                            |
     And the workflow's ID generator returns "J-1"
     When the workflow runs
     Then the hook "after attempt" of policy "tx" received the step name "charge"
@@ -107,16 +102,15 @@ Feature: Declaring before and after hooks
 
   Scenario: Before hooks may require data from the workflow, and a missing one aborts the journey
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | tx       |
     And step "charge" succeeds
     And the data bag is empty
-    And the step policies define the hooks:
+    And its step policies and their hooks are:
       | policy | hook           |
       | tx     | before attempt |
       | tx     | after attempt  |
     And the hook "before attempt" of policy "tx" requests data from the workflow "order" of type string
-    And step "charge" has the policies "tx"
     When the workflow runs
     Then the events include, in order:
       | event           | step   | policy | hook           | key   | code                  |
