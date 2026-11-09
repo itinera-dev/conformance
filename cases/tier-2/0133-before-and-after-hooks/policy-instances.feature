@@ -9,7 +9,13 @@ Feature: Policy instances for the step hooks
   `policy could not be built`, naming the step and the policy, with no attempt.
 
   Scenario: A step policy with step hooks is built once for the step and once for each attempt
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook           |
+      | tx     | before step    |
+      | tx     | after step     |
+      | tx     | before attempt |
+      | tx     | after attempt  |
+    And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" allows 1 retries
@@ -17,18 +23,17 @@ Feature: Policy instances for the step hooks
       | attempt | outcome | code        |
       | 1       | failure | unreachable |
       | 2       | success |             |
-    And its step policies and their hooks are:
-      | policy | hook           |
-      | tx     | before step    |
-      | tx     | after step     |
-      | tx     | before attempt |
-      | tx     | after attempt  |
     When the workflow runs
     Then the policy "tx" was built 3 times
     And the journey succeeded
 
   Scenario: A step policy without step hooks is built only for each attempt
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook            |
+      | tx     | before attempt  |
+      | tx     | after attempt   |
+      | audit  | on step success |
+    And a workflow "orders" with the steps:
       | step   | policies  |
       | charge | tx, audit |
     And step "charge" allows 1 retries
@@ -36,25 +41,20 @@ Feature: Policy instances for the step hooks
       | attempt | outcome | code        |
       | 1       | failure | unreachable |
       | 2       | success |             |
-    And its step policies and their hooks are:
-      | policy | hook            |
-      | tx     | before attempt  |
-      | tx     | after attempt   |
-      | audit  | on step success |
     When the workflow runs
     Then the policy "tx" was built 2 times
     And the policy "audit" was built 2 times
     And the journey succeeded
 
   Scenario: A step policy with step hooks that fails when built aborts the journey before the first attempt
-    Given a workflow "orders" with the steps:
+    Given a step policy "broken" defines the hook "before step"
+    And the policy "broken" fails when it is built
+    And a workflow "orders" with the steps:
       | step   | policies |
       | charge |          |
       | ship   | broken   |
     And step "charge" succeeds
     And step "ship" succeeds
-    And a step policy "broken" defines the hook "before step"
-    And the policy "broken" fails when it is built
     And the workflow lists the reporters "trace"
     When the workflow runs
     Then the events include, in order:

@@ -13,17 +13,17 @@ Feature: Before and after hooks that fail
   the level still run, and the first failure's error is the one carried.
 
   Scenario: A failing before step gives the step up with no attempt, and on step failure is not called
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook            | fails with |
+      | lock   | before step     | no lock    |
+      | lock   | after step      |            |
+      | lock   | on step failure |            |
+    And a workflow "orders" with the steps:
       | step   | policies |
       | charge | lock     |
       | ship   |          |
     And step "charge" succeeds
     And step "ship" succeeds
-    And its step policies and their hooks are:
-      | policy | hook            | fails with |
-      | lock   | before step     | no lock    |
-      | lock   | after step      |            |
-      | lock   | on step failure |            |
     When the workflow runs
     Then the events include, in order:
       | event              | step   | policy | hook        | cause              | error   |
@@ -41,11 +41,7 @@ Feature: Before and after hooks that fail
     And the result's failure carries the error "no lock"
 
   Scenario: A failing before attempt is the attempt's outcome fact, and the attempt goes the abnormal termination path
-    Given a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | tx, lock |
-    And step "charge" succeeds
-    And its step policies and their hooks are:
+    Given the step policies and their hooks:
       | policy | hook                         | fails with    |
       | tx     | before attempt               | no connection |
       | tx     | after attempt                |               |
@@ -53,6 +49,10 @@ Feature: Before and after hooks that fail
       | tx     | on step failure              |               |
       | lock   | before attempt               |               |
       | lock   | after attempt                |               |
+    And a workflow "orders" with the steps:
+      | step   | policies |
+      | charge | tx, lock |
+    And step "charge" succeeds
     When the workflow runs
     Then the events include, in order:
       | event              | step   | attempt | policy | hook                         | cause              | error         |
@@ -75,13 +75,14 @@ Feature: Before and after hooks that fail
     And the result's failure carries the error "no connection"
 
   Scenario: A failing before attempt is retried while the retry budget lasts, with a fresh before attempt
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook           | fails with    | on attempt |
+      | tx     | before attempt | no connection | 1          |
+    And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" allows 1 retries
     And step "charge" succeeds
-    And a step policy "tx" defines the hook "before attempt"
-    And the hook "before attempt" of policy "tx" fails with "no connection" on attempt 1
     When the workflow runs
     Then the events include, in order:
       | event              | step   | attempt | policy | hook           | cause              |
@@ -95,14 +96,15 @@ Feature: Before and after hooks that fail
     And the journey succeeded
 
   Scenario: A step with a rescue step is rescued when its before attempt fails
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook           | fails with    | on attempt |
+      | tx     | before attempt | no connection | 1          |
+    And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" has a rescue step
     And step "charge" succeeds
     And step "charge_rescue" succeeds
-    And a step policy "tx" defines the hook "before attempt"
-    And the hook "before attempt" of policy "tx" fails with "no connection" on attempt 1
     When the workflow runs
     Then the events include, in order:
       | event              | step          | attempt | cause              | rescue        |
@@ -116,7 +118,11 @@ Feature: Before and after hooks that fail
     And the journey succeeded
 
   Scenario: A failing after attempt after a success goes the abnormal termination path and is retried
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook          | fails with    | on attempt | requests    |
+      | tx     | after attempt | commit failed | 1          |             |
+      | tx     | on step retry |               |            | retry cause |
+    And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" allows 1 retries
@@ -124,10 +130,6 @@ Feature: Before and after hooks that fail
       | attempt | outcome | contributes        |
       | 1       | success | {"receipt": "R-1"} |
       | 2       | success | {"receipt": "R-2"} |
-    And its step policies and their hooks are:
-      | policy | hook          | fails with    | on attempt | requests    |
-      | tx     | after attempt | commit failed | 1          |             |
-      | tx     | on step retry |               |            | retry cause |
     And the workflow lists the reporters "trace"
     When the workflow runs
     Then the events include, in order:
@@ -148,15 +150,15 @@ Feature: Before and after hooks that fail
     And the journey succeeded
 
   Scenario: A failing after attempt after a success with no retry budget gives the step up, and nothing is committed
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook            | fails with    |
+      | tx     | after attempt   | commit failed |
+      | tx     | on step success |               |
+    And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" contributes "receipt" = "R-1"
     And step "charge" succeeds
-    And its step policies and their hooks are:
-      | policy | hook            | fails with    |
-      | tx     | after attempt   | commit failed |
-      | tx     | on step success |               |
     When the workflow runs
     Then the events include, in order:
       | event             | step   | attempt | cause             | error         |
@@ -171,14 +173,15 @@ Feature: Before and after hooks that fail
     And the result's failure carries the error "commit failed"
 
   Scenario: A failing after attempt after a failure is recorded and changes nothing
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook          | fails with      |
+      | tx     | after attempt | rollback failed |
+    And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
     And step "charge" attempts:
       | attempt | outcome | code     |
       | 1       | failure | declined |
-    And a step policy "tx" defines the hook "after attempt"
-    And the hook "after attempt" of policy "tx" fails with "rollback failed"
     When the workflow runs
     Then the events include, in order:
       | event             | step   | attempt | cause   | error           |
@@ -190,16 +193,16 @@ Feature: Before and after hooks that fail
     And the result's failure has the cause "failure"
 
   Scenario: A failing after step after a success gives the step up, and on step failure runs
-    Given a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | tx       |
-    And step "charge" contributes "receipt" = "R-1"
-    And step "charge" succeeds
-    And its step policies and their hooks are:
+    Given the step policies and their hooks:
       | policy | hook            | fails with    |
       | tx     | after step      | settle failed |
       | tx     | on step success |               |
       | tx     | on step failure |               |
+    And a workflow "orders" with the steps:
+      | step   | policies |
+      | charge | tx       |
+    And step "charge" contributes "receipt" = "R-1"
+    And step "charge" succeeds
     When the workflow runs
     Then the events include, in order:
       | event             | step   | policy | hook            | cause             | error         |
@@ -215,16 +218,15 @@ Feature: Before and after hooks that fail
     And the result's failure carries the error "settle failed"
 
   Scenario: A failing after journey after a success fails the journey
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And its workflow policies and their hooks are:
+    Given the workflow policies and their hooks:
       | policy | hook                | fails with |
       | audit  | after journey       | audit down |
       | audit  | on workflow success |            |
       | audit  | on workflow failure |            |
-    And the workflow has the policies "audit"
+    And a workflow "orders" with the policies "audit" and the steps:
+      | step   |
+      | charge |
+    And step "charge" succeeds
     When the workflow runs
     Then the events include, in order:
       | event             | policy | hook                | cause             | error      | decided by |
@@ -239,16 +241,16 @@ Feature: Before and after hooks that fail
     And the result's failure carries the error "audit down"
 
   Scenario: One of two after attempt hooks failing does not stop the other
-    Given a workflow "orders" with the steps:
+    Given the step policies and their hooks:
+      | policy | hook          | fails with |
+      | tx     | after attempt |            |
+      | audit  | after attempt | audit down |
+    And a workflow "orders" with the steps:
       | step   | policies  |
       | charge | tx, audit |
     And step "charge" attempts:
       | attempt | outcome | code     |
       | 1       | failure | declined |
-    And its step policies and their hooks are:
-      | policy | hook          | fails with |
-      | tx     | after attempt |            |
-      | audit  | after attempt | audit down |
     When the workflow runs
     Then the hooks were called in this order:
       | policy | hook          |
@@ -257,14 +259,14 @@ Feature: Before and after hooks that fail
     And the result names the failed step "charge" with the code "declined"
 
   Scenario: When several after hooks of a level fail, the first failure's error is carried, and the others receive the ending the level began with
-    Given a workflow "orders" with the steps:
-      | step   | policies  |
-      | charge | tx, audit |
-    And step "charge" succeeds
-    And its step policies and their hooks are:
+    Given the step policies and their hooks:
       | policy | hook       | fails with     | requests |
       | tx     | after step | second failure | ending   |
       | audit  | after step | first failure  |          |
+    And a workflow "orders" with the steps:
+      | step   | policies  |
+      | charge | tx, audit |
+    And step "charge" succeeds
     When the workflow runs
     Then the hooks were called in this order:
       | policy | hook       |
@@ -275,11 +277,7 @@ Feature: Before and after hooks that fail
     And the result's failure carries the error "first failure"
 
   Scenario: The after hooks of a before hook that failed still run, and those of a before hook never called do not
-    Given a workflow "orders" with the steps:
-      | step   | policies               |
-      | charge | tx, lock, meter, trail |
-    And step "charge" succeeds
-    And its step policies and their hooks are:
+    Given the step policies and their hooks:
       | policy | hook        | fails with |
       | tx     | before step |            |
       | tx     | after step  |            |
@@ -288,6 +286,10 @@ Feature: Before and after hooks that fail
       | meter  | before step |            |
       | meter  | after step  |            |
       | trail  | after step  |            |
+    And a workflow "orders" with the steps:
+      | step   | policies               |
+      | charge | tx, lock, meter, trail |
+    And step "charge" succeeds
     When the workflow runs
     Then the hooks were called in this order:
       | policy | hook        |
@@ -296,5 +298,7 @@ Feature: Before and after hooks that fail
       | trail  | after step  |
       | lock   | after step  |
       | tx     | after step  |
-    And the hook "before step" of policy "meter" was not called
-    And the hook "after step" of policy "meter" was not called
+    And the hooks received:
+      | policy | hook        | calls |
+      | meter  | before step | 0     |
+      | meter  | after step  | 0     |

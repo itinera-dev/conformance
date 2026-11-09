@@ -11,11 +11,7 @@ Feature: A before journey hook that fails the journey or fails itself
   journey with `hook failed`, and the paired `after journey` hooks still run.
 
   Scenario: FailWorkflow from before journey fails the journey before its first step
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And its workflow policies and their hooks are:
+    Given the workflow policies and their hooks:
       | policy | hook                | returns      | code      |
       | trail  | after journey       |              |           |
       | trail  | on workflow failure |              |           |
@@ -23,7 +19,10 @@ Feature: A before journey hook that fails the journey or fails itself
       | check  | after journey       |              |           |
       | audit  | before journey      |              |           |
       | audit  | after journey       |              |           |
-    And the workflow has the policies "trail", "check", "audit"
+    And a workflow "orders" with the policies "trail", "check", "audit" and the steps:
+      | step   |
+      | charge |
+    And step "charge" succeeds
     When the workflow runs
     Then the events include, in order:
       | event           | policy | hook                | lifecycle    | code      | decided by            |
@@ -47,24 +46,20 @@ Feature: A before journey hook that fails the journey or fails itself
 
   @invalid-lifecycle
   Scenario: FinishWorkflow from before journey aborts the journey with invalid lifecycle
-    Given a workflow "orders" with the steps:
+    Given the workflow policies and their hooks:
+      | policy | hook           | returns        |
+      | check  | before journey | FinishWorkflow |
+    And a workflow "orders" with the policies "check" and the steps:
       | step   |
       | charge |
     And step "charge" succeeds
-    And a workflow policy "check" defines the hook "before journey"
-    And the hook "before journey" of policy "check" returns FinishWorkflow
-    And the workflow has the policies "check"
     When the workflow runs
     Then the last event is "journey_aborted"
     And no step ran
     And the journey was aborted with the abort reason "invalid lifecycle"
 
   Scenario: A before journey hook that fails aborts the journey, and the paired after journey hooks run
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And its workflow policies and their hooks are:
+    Given the workflow policies and their hooks:
       | policy | hook                | fails with       |
       | trail  | after journey       |                  |
       | guard  | before journey      | no configuration |
@@ -72,7 +67,10 @@ Feature: A before journey hook that fails the journey or fails itself
       | audit  | before journey      |                  |
       | audit  | after journey       |                  |
       | audit  | on workflow failure |                  |
-    And the workflow has the policies "trail", "guard", "audit"
+    And a workflow "orders" with the policies "trail", "guard", "audit" and the steps:
+      | step   |
+      | charge |
+    And step "charge" succeeds
     When the workflow runs
     Then the hooks were called in this order:
       | policy | hook           |

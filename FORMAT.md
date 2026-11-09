@@ -17,6 +17,7 @@ Final for version 0.1 of the specification, agreed in [#5](https://github.com/it
 5. **Cite the source.** The feature's description names the proposal and, once it exists, the section of the specification it checks.
 6. **Screen-reader friendly.** Plain sentences and simple tables. No ASCII art, no decorative characters.
 7. **A complete stream to read.** A scenario that uses the default dispatcher and a sentence about the event stream as a whole lists at least one reporter that never fails, so that sentence has a complete stream to read ("Running the cases in a language", item 3).
+8. **The order of a scenario** (from tier 2). The `Given` part declares the building blocks first, then what binds them, from the outside in: the step policies and their hooks; the workflow policies and their hooks; the workflow, with its policies and its steps, each step with its policies; the workflow's settings; each step's settings and script, step by step in declaration order; then the caller and the runner, such as a cancellation or the recording reporter of test support. A feature with a `Background` keeps the workflow there, and its scenarios declare their policies after it. Tier 1 cases are frozen and keep their order.
 
 ## Layout
 
