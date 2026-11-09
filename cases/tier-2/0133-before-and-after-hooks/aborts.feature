@@ -72,10 +72,10 @@ Feature: After hooks after an abort
     And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
+    And the workflow lists the reporters "trace"
     And step "charge" requests input "amount" of type integer
     And step "charge" succeeds
     And the data bag is empty
-    And the workflow lists the reporters "trace"
     When the workflow runs
     Then the hook "after attempt" of policy "tx" was called 1 times
     And the last event is "journey_aborted"
