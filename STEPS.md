@@ -8,7 +8,8 @@ A **null-like value** is what a language has for no value at all, such as `null`
 
 ## Building a workflow
 
-- **`Given a workflow "<workflow>" with the steps:`** followed by a table with the column `step`, one row per step in declaration order. Declares a workflow whose steps are scripted test steps. (0002) The table may have the column `policies` (0133): a filled cell, written as policy names separated by commas, stands for `step "<step>" has the policies` with those names, in the order written; an empty cell attaches none. The policies it names may be declared by sentences after it.
+- **`Given a workflow "<workflow>" with the steps:`** followed by a table with the column `step`, one row per step in declaration order. Declares a workflow whose steps are scripted test steps. (0002) The table may have the column `policies` (0133): a filled cell, written as policy names separated by commas, stands for `step "<step>" has the policies` with those names, in the order written; an empty cell attaches none. The policies it names are declared before it, as "The order of a scenario" in FORMAT.md says.
+- **`And a workflow "<workflow>" with the policies "<policy>", "<policy>" and the steps:`**: the sentence above, followed by `the workflow has the policies` with these names, in this order. (0133)
 - **`And step "<step>" requests input "<key>" of type <type>`**: the step declares a required input. (0002)
 - **`And step "<step>" requests optional input "<key>" of type <type>`**: the step declares an optional input. (0002)
 - **`And step "<step>" contributes "<key>" = <value>`**: on every attempt, the step contributes this key and value before ending. Repeated for the same key, the contributions happen in the order written. (0002)
@@ -65,7 +66,7 @@ A hook's requests, made by the sentences below and in "Hooks, lifecycles and rol
 
 - **`And a step policy "<policy>" defines the hook "<hook>"`**: a step policy whose hook does nothing beyond what other sentences add, and returns no lifecycle. Repeated with another hook for the same policy, it adds that hook to the same policy. (0002)
 - **`And a workflow policy "<policy>" defines the hook "<hook>"`** (0002)
-- **`And its step policies and their hooks are:`** and **`And its workflow policies and their hooks are:`**, followed by a table with one row for each hook, in the columns `policy` and `hook` and any of the optional columns below. Each row is the sentence above for that policy and hook, followed by the sentence each of its filled cells stands for; an empty cell adds nothing, and a scenario writes only the columns it uses. Rows are taken in the order written. (0133)
+- **`Given the step policies and their hooks:`** and **`And the workflow policies and their hooks:`**, followed by a table with one row for each hook, in the columns `policy` and `hook` and any of the optional columns below. Each row is the sentence above for that policy and hook, followed by the sentence each of its filled cells stands for; an empty cell adds nothing, and a scenario writes only the columns it uses. Rows are taken in the order written. (0133)
   - `returns`: `FailWorkflow`, with `code`, for "returns FailWorkflow with code"; `FinishWorkflow` for "returns FinishWorkflow"; or `bypass`, with or without `code`, for "bypasses" and "bypasses with code".
   - `fails with`: the message, for "fails with", and with `on attempt` for "fails with ... on attempt".
   - `requests`: one or more of the requests that take no argument, written without their leading "the" or "its" and separated by commas, such as `ending, number of attempts`: `ending`, `number of attempts`, `optional error` and `optional cause` stand for "requests its ..." below, and the others, such as `retry cause`, `step name` or `hint`, for "requests the ...".
@@ -228,6 +229,17 @@ Sentences for the hooks of proposal 0133, `before journey`, `after journey`, `be
 - **`Then the hook "<hook>" of policy "<policy>" received the endings "<ending>", "<ending>"`**: one ending for each call of the hook, in the order of its calls, written as the specification names them: for an attempt `succeeded`, `failed`, `abnormal termination`, `skipped` or `aborted`; for a step `succeeded`, `failed`, `skipped`, `bypassed` or `aborted`; for a journey `succeeded`, `failed` or `aborted`. Later proposals add endings. (0133)
 - **`Then the hook "<hook>" of policy "<policy>" received the number of attempts <n>`** (0133)
 - **`Then the hook "<hook>" of policy "<policy>" received no error`** and **`Then the hook "<hook>" of policy "<policy>" received no cause`**: its optional request was answered absent. (0133)
+- **`Then the hooks received:`** followed by a table with one row for each hook, in the columns `policy` and `hook` and any of the optional columns below. Each filled cell stands for the sentence below; an empty cell checks nothing, and `none` is written for what was answered absent. A scenario writes only the columns it uses. (0133)
+  - `calls`: a number, for "was called <n> times", and `0` for "was not called".
+  - `endings`: endings separated by commas, for "received the endings".
+  - `number of attempts`, `attempt number`: a number, for "received the number of attempts" and "received the attempt number".
+  - `step name`, `journey ID`: for "received the step name" and "received the journey ID".
+  - `cause`: a cause, for "received the cause", or `none` for "received no cause".
+  - `error`: a message, for "received the error with the message", or `none` for "received no error".
+  - `failure reason`: only `none`, for "received no failure reason"; a failure reason with its code, message and details stays a sentence of its own.
+  - `hint`: a value, for "received the hint", or `none` for "received no hint" (0134).
+
+  Checks with structured values, such as step data or data from the workflow, stay sentences of their own.
 - **`Then the policy "<policy>" was built <n> times`**: how many instances of this policy were built in the journey, each counted when building it was called, whether it succeeded or failed. (0133)
 - **`Then the input adapter "<adapter>" was called <n> times`**: counting every call, whether it supplied a value, returned nothing or failed. (0133)
 - **`Then journey_failed names no step`**: the journey's `journey_failed` names no step, as when `before journey` returned `FailWorkflow` or `after journey` failed. (0133)

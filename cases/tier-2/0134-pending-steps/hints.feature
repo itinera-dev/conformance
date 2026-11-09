@@ -18,8 +18,9 @@ Feature: The hint a pending step attaches
       | attempt | outcome | hint                |
       | 1       | pending | {"retry after": 30} |
       | 2       | success |                     |
-    And a step policy "pace" defines the hook "on step pending"
-    And the hook "on step pending" of policy "pace" requests the hint
+    And the step policies and their hooks:
+      | policy | hook            | requests |
+      | pace   | on step pending | hint     |
     And step "payment" has the policies "pace"
     When the workflow runs
     Then the events include, in order:
@@ -33,8 +34,9 @@ Feature: The hint a pending step attaches
       | attempt | outcome |
       | 1       | pending |
       | 2       | success |
-    And a step policy "pace" defines the hook "on step pending"
-    And the hook "on step pending" of policy "pace" requests the hint
+    And the step policies and their hooks:
+      | policy | hook            | requests |
+      | pace   | on step pending | hint     |
     And step "payment" has the policies "pace"
     When the workflow runs
     Then the hook "on step pending" of policy "pace" received no hint

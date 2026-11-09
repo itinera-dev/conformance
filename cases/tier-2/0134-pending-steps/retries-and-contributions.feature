@@ -79,7 +79,7 @@ Feature: Pendings, retries, rescues and contributions
       | attempt | outcome | contributes             |
       | 1       | pending | {"status": "requested"} |
       | 2       | success |                         |
-    And its step policies and their hooks are:
+    And the step policies and their hooks:
       | policy | hook            | requests |
       | tx     | after attempt   | ending   |
       | tx     | on step pending |          |
