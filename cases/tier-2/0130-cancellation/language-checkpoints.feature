@@ -20,9 +20,10 @@ Feature: A cancellation delivered inside custom code
     And step "charge" emits step_info "calling the bank"
     And step "charge" waits for cancellation
     And step "charge_rescue" succeeds
-    And a step policy "tx" defines the hook "after attempt"
-    And a step policy "tx" defines the hook "on step abnormal termination"
-    And the hook "after attempt" of policy "tx" requests the ending
+    And the step policies define the hooks:
+      | policy | hook                         | requests   |
+      | tx     | after attempt                | the ending |
+      | tx     | on step abnormal termination |            |
     And step "charge" has the policies "tx"
     And the workflow lists the reporters "trace"
     And the caller cancels the journey on "step_info" of "charge"
@@ -85,10 +86,11 @@ Feature: A cancellation delivered inside custom code
       | step   |
       | charge |
     And step "charge" succeeds
-    And a step policy "tx" defines the hook "after attempt"
-    And a step policy "tx" defines the hook "after step"
-    And the hook "after step" of policy "tx" requests the ending
-    And a step policy "audit" defines the hook "after attempt"
+    And the step policies define the hooks:
+      | policy | hook          | requests   |
+      | tx     | after attempt |            |
+      | tx     | after step    | the ending |
+      | audit  | after attempt |            |
     And the hook "after attempt" of policy "audit" emits journey_info "auditing"
     And the hook "after attempt" of policy "audit" waits for cancellation
     And step "charge" has the policies "tx", "audit"

@@ -18,15 +18,16 @@ Feature: A cancellation honoured at an executor checkpoint
     And step "charge" contributes "receipt" = "R-1"
     And step "charge" succeeds
     And step "ship" succeeds
-    And a step policy "tx" defines the hook "after attempt"
-    And a step policy "tx" defines the hook "after step"
-    And a step policy "tx" defines the hook "on step success"
-    And the hook "after attempt" of policy "tx" requests the ending
-    And the hook "after step" of policy "tx" requests the ending
+    And the step policies define the hooks:
+      | policy | hook            | requests   |
+      | tx     | after attempt   | the ending |
+      | tx     | after step      | the ending |
+      | tx     | on step success |            |
     And step "charge" has the policies "tx"
-    And a workflow policy "audit" defines the hook "after journey"
-    And a workflow policy "audit" defines the hook "on workflow success"
-    And the hook "after journey" of policy "audit" requests the ending
+    And the workflow policies define the hooks:
+      | policy | hook                | requests   |
+      | audit  | after journey       | the ending |
+      | audit  | on workflow success |            |
     And the workflow has the policies "audit"
     And the caller cancels the journey on "step_succeeded" of "charge"
     When the workflow runs
@@ -130,8 +131,10 @@ Feature: A cancellation honoured at an executor checkpoint
       | charge |
     And step "charge" contributes "receipt" = "R-1"
     And step "charge" succeeds
-    And a step policy "tx" defines the hook "after step"
-    And a step policy "tx" defines the hook "on step success"
+    And the step policies define the hooks:
+      | policy | hook            |
+      | tx     | after step      |
+      | tx     | on step success |
     And step "charge" has the policies "tx"
     And the caller cancels the journey on "contribution_committed" of "charge"
     When the workflow runs
@@ -152,8 +155,10 @@ Feature: A cancellation honoured at an executor checkpoint
     And step "charge" attempts:
       | attempt | outcome | code     |
       | 1       | failure | declined |
-    And a step policy "tx" defines the hook "after step"
-    And a step policy "tx" defines the hook "on step failure"
+    And the step policies define the hooks:
+      | policy | hook            |
+      | tx     | after step      |
+      | tx     | on step failure |
     And step "charge" has the policies "tx"
     And a workflow policy "audit" defines the hook "on workflow failure"
     And the workflow has the policies "audit"
@@ -177,10 +182,12 @@ Feature: A cancellation honoured at an executor checkpoint
       | ship   |
     And step "charge" succeeds
     And step "ship" succeeds
-    And a step policy "done" defines the hook "on step success"
+    And the step policies define the hooks:
+      | policy | hook            |
+      | done   | on step success |
+      | tx     | before step     |
+      | tx     | after step      |
     And step "charge" has the policies "done"
-    And a step policy "tx" defines the hook "before step"
-    And a step policy "tx" defines the hook "after step"
     And step "ship" has the policies "tx"
     And the caller cancels the journey on "hook_called" of "charge"
     When the workflow runs
@@ -199,11 +206,12 @@ Feature: A cancellation honoured at an executor checkpoint
       | step   |
       | charge |
     And step "charge" succeeds
-    And a step policy "tx" defines the hook "before attempt"
-    And a step policy "tx" defines the hook "after attempt"
-    And a step policy "lock" defines the hook "before step"
-    And a step policy "lock" defines the hook "after step"
-    And the hook "after step" of policy "lock" requests the ending
+    And the step policies define the hooks:
+      | policy | hook           | requests   |
+      | tx     | before attempt |            |
+      | tx     | after attempt  |            |
+      | lock   | before step    |            |
+      | lock   | after step     | the ending |
     And step "charge" has the policies "tx", "lock"
     And the workflow lists the reporters "trace"
     And the caller cancels the journey on "attempt_started" of "charge"
