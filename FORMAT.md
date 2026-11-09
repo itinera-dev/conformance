@@ -6,7 +6,7 @@ This document is the contract for writing cases. The sentences a case may use ar
 
 ## Status
 
-Draft, agreed in [#5](https://github.com/itinera-dev/conformance/issues/5). The format is finalised together with version 0.1 of the specification.
+Final for version 0.1 of the specification, agreed in [#5](https://github.com/itinera-dev/conformance/issues/5).
 
 ## Rules
 

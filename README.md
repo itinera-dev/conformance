@@ -4,7 +4,7 @@ Test cases, written as data, that every [Itinera](https://github.com/itinera-dev
 
 ## Status
 
-Every case of tier 1, specification 0.1.0, is here. Until a first implementation passes them all, they are released as candidates, `v0.1.0-rc.N`; then they are tagged `v0.1.0`, like the specification.
+Every case of tier 1, specification 0.1.0, is here, tagged `v0.1.0` like the specification. The release candidates before it, `v0.1.0-rc.N`, stay available.
 
 ## How it works
 
