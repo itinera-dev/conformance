@@ -15,13 +15,14 @@ Feature: A before journey hook that fails the journey or fails itself
       | step   |
       | charge |
     And step "charge" succeeds
-    And a workflow policy "trail" defines the hook "after journey"
-    And a workflow policy "trail" defines the hook "on workflow failure"
-    And a workflow policy "check" defines the hook "before journey"
-    And a workflow policy "check" defines the hook "after journey"
-    And the hook "before journey" of policy "check" returns FailWorkflow with code "bad input"
-    And a workflow policy "audit" defines the hook "before journey"
-    And a workflow policy "audit" defines the hook "after journey"
+    And the workflow policies define the hooks:
+      | policy | hook                | returns      | code      |
+      | trail  | after journey       |              |           |
+      | trail  | on workflow failure |              |           |
+      | check  | before journey      | FailWorkflow | bad input |
+      | check  | after journey       |              |           |
+      | audit  | before journey      |              |           |
+      | audit  | after journey       |              |           |
     And the workflow has the policies "trail", "check", "audit"
     When the workflow runs
     Then the events include, in order:
@@ -63,13 +64,14 @@ Feature: A before journey hook that fails the journey or fails itself
       | step   |
       | charge |
     And step "charge" succeeds
-    And a workflow policy "trail" defines the hook "after journey"
-    And a workflow policy "guard" defines the hook "before journey"
-    And a workflow policy "guard" defines the hook "after journey"
-    And the hook "before journey" of policy "guard" fails with "no configuration"
-    And a workflow policy "audit" defines the hook "before journey"
-    And a workflow policy "audit" defines the hook "after journey"
-    And a workflow policy "audit" defines the hook "on workflow failure"
+    And the workflow policies define the hooks:
+      | policy | hook                | fails with       |
+      | trail  | after journey       |                  |
+      | guard  | before journey      | no configuration |
+      | guard  | after journey       |                  |
+      | audit  | before journey      |                  |
+      | audit  | after journey       |                  |
+      | audit  | on workflow failure |                  |
     And the workflow has the policies "trail", "guard", "audit"
     When the workflow runs
     Then the hooks were called in this order:

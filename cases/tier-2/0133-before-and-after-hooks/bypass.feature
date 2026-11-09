@@ -20,13 +20,14 @@ Feature: A before step hook that bypasses its step
     And the workflow declares the service provider "stock" for "labels" of type labeller, for each attempt
     And the service provider "stock" serves only the steps "discount"
     And the workflow declares the input adapter "prices" for the steps "discount"
-    And a step policy "first" defines the hook "before step"
-    And a step policy "first" defines the hook "after step"
-    And a step policy "gate" defines the hook "before step"
-    And a step policy "gate" defines the hook "after step"
-    And the hook "before step" of policy "gate" bypasses with code "no discount today"
-    And a step policy "last" defines the hook "before step"
-    And a step policy "last" defines the hook "after step"
+    And the step policies define the hooks:
+      | policy | hook        | returns | code              |
+      | first  | before step |         |                   |
+      | first  | after step  |         |                   |
+      | gate   | before step | bypass  | no discount today |
+      | gate   | after step  |         |                   |
+      | last   | before step |         |                   |
+      | last   | after step  |         |                   |
     And step "discount" has the policies "first", "gate", "last"
     When the workflow runs
     Then the events include, in order:
@@ -68,9 +69,10 @@ Feature: A before step hook that bypasses its step
       | discount |
     And step "discount" contributes "rate" = 10
     And step "discount" succeeds
-    And a step policy "gate" defines the hook "before step"
-    And the hook "before step" of policy "gate" bypasses with code "off"
-    And a step policy "gate" defines the hook "on step success"
+    And the step policies define the hooks:
+      | policy | hook            | returns | code |
+      | gate   | before step     | bypass  | off  |
+      | gate   | on step success |         |      |
     And step "discount" has the policies "gate"
     When the workflow runs
     Then the hook "on step success" of policy "gate" was not called
@@ -84,9 +86,10 @@ Feature: A before step hook that bypasses its step
       | step   |
       | charge |
     And step "charge" succeeds
-    And a step policy "gate" defines the hook "before step"
-    And a step policy "gate" defines the hook "after step"
-    And the hook "before step" of policy "gate" returns FinishWorkflow
+    And the step policies define the hooks:
+      | policy | hook        | returns        |
+      | gate   | before step | FinishWorkflow |
+      | gate   | after step  |                |
     And step "charge" has the policies "gate"
     When the workflow runs
     Then the events include, in order:

@@ -19,10 +19,11 @@ Feature: Before and after hooks that fail
       | ship   |
     And step "charge" succeeds
     And step "ship" succeeds
-    And a step policy "lock" defines the hook "before step"
-    And a step policy "lock" defines the hook "after step"
-    And a step policy "lock" defines the hook "on step failure"
-    And the hook "before step" of policy "lock" fails with "no lock"
+    And the step policies define the hooks:
+      | policy | hook            | fails with |
+      | lock   | before step     | no lock    |
+      | lock   | after step      |            |
+      | lock   | on step failure |            |
     And step "charge" has the policies "lock"
     When the workflow runs
     Then the events include, in order:
@@ -45,13 +46,14 @@ Feature: Before and after hooks that fail
       | step   |
       | charge |
     And step "charge" succeeds
-    And a step policy "tx" defines the hook "before attempt"
-    And a step policy "tx" defines the hook "after attempt"
-    And a step policy "tx" defines the hook "on step abnormal termination"
-    And a step policy "tx" defines the hook "on step failure"
-    And the hook "before attempt" of policy "tx" fails with "no connection"
-    And a step policy "lock" defines the hook "before attempt"
-    And a step policy "lock" defines the hook "after attempt"
+    And the step policies define the hooks:
+      | policy | hook                         | fails with    |
+      | tx     | before attempt               | no connection |
+      | tx     | after attempt                |               |
+      | tx     | on step abnormal termination |               |
+      | tx     | on step failure              |               |
+      | lock   | before attempt               |               |
+      | lock   | after attempt                |               |
     And step "charge" has the policies "tx", "lock"
     When the workflow runs
     Then the events include, in order:
@@ -126,10 +128,10 @@ Feature: Before and after hooks that fail
       | attempt | outcome | contributes        |
       | 1       | success | {"receipt": "R-1"} |
       | 2       | success | {"receipt": "R-2"} |
-    And a step policy "tx" defines the hook "after attempt"
-    And a step policy "tx" defines the hook "on step retry"
-    And the hook "after attempt" of policy "tx" fails with "commit failed" on attempt 1
-    And the hook "on step retry" of policy "tx" requests the retry cause
+    And the step policies define the hooks:
+      | policy | hook          | fails with    | on attempt | requests        |
+      | tx     | after attempt | commit failed | 1          |                 |
+      | tx     | on step retry |               |            | the retry cause |
     And step "charge" has the policies "tx"
     And the workflow lists the reporters "trace"
     When the workflow runs
@@ -156,9 +158,10 @@ Feature: Before and after hooks that fail
       | charge |
     And step "charge" contributes "receipt" = "R-1"
     And step "charge" succeeds
-    And a step policy "tx" defines the hook "after attempt"
-    And a step policy "tx" defines the hook "on step success"
-    And the hook "after attempt" of policy "tx" fails with "commit failed"
+    And the step policies define the hooks:
+      | policy | hook            | fails with    |
+      | tx     | after attempt   | commit failed |
+      | tx     | on step success |               |
     And step "charge" has the policies "tx"
     When the workflow runs
     Then the events include, in order:
@@ -199,10 +202,11 @@ Feature: Before and after hooks that fail
       | charge |
     And step "charge" contributes "receipt" = "R-1"
     And step "charge" succeeds
-    And a step policy "tx" defines the hook "after step"
-    And a step policy "tx" defines the hook "on step success"
-    And a step policy "tx" defines the hook "on step failure"
-    And the hook "after step" of policy "tx" fails with "settle failed"
+    And the step policies define the hooks:
+      | policy | hook            | fails with    |
+      | tx     | after step      | settle failed |
+      | tx     | on step success |               |
+      | tx     | on step failure |               |
     And step "charge" has the policies "tx"
     When the workflow runs
     Then the events include, in order:
@@ -223,10 +227,11 @@ Feature: Before and after hooks that fail
       | step   |
       | charge |
     And step "charge" succeeds
-    And a workflow policy "audit" defines the hook "after journey"
-    And a workflow policy "audit" defines the hook "on workflow success"
-    And a workflow policy "audit" defines the hook "on workflow failure"
-    And the hook "after journey" of policy "audit" fails with "audit down"
+    And the workflow policies define the hooks:
+      | policy | hook                | fails with |
+      | audit  | after journey       | audit down |
+      | audit  | on workflow success |            |
+      | audit  | on workflow failure |            |
     And the workflow has the policies "audit"
     When the workflow runs
     Then the events include, in order:
@@ -248,9 +253,10 @@ Feature: Before and after hooks that fail
     And step "charge" attempts:
       | attempt | outcome | code     |
       | 1       | failure | declined |
-    And a step policy "tx" defines the hook "after attempt"
-    And a step policy "audit" defines the hook "after attempt"
-    And the hook "after attempt" of policy "audit" fails with "audit down"
+    And the step policies define the hooks:
+      | policy | hook          | fails with |
+      | tx     | after attempt |            |
+      | audit  | after attempt | audit down |
     And step "charge" has the policies "tx", "audit"
     When the workflow runs
     Then the hooks were called in this order:
@@ -264,11 +270,10 @@ Feature: Before and after hooks that fail
       | step   |
       | charge |
     And step "charge" succeeds
-    And a step policy "tx" defines the hook "after step"
-    And the hook "after step" of policy "tx" requests the ending
-    And the hook "after step" of policy "tx" fails with "second failure"
-    And a step policy "audit" defines the hook "after step"
-    And the hook "after step" of policy "audit" fails with "first failure"
+    And the step policies define the hooks:
+      | policy | hook       | fails with     | requests   |
+      | tx     | after step | second failure | the ending |
+      | audit  | after step | first failure  |            |
     And step "charge" has the policies "tx", "audit"
     When the workflow runs
     Then the hooks were called in this order:
@@ -284,14 +289,15 @@ Feature: Before and after hooks that fail
       | step   |
       | charge |
     And step "charge" succeeds
-    And a step policy "tx" defines the hook "before step"
-    And a step policy "tx" defines the hook "after step"
-    And a step policy "lock" defines the hook "before step"
-    And a step policy "lock" defines the hook "after step"
-    And the hook "before step" of policy "lock" fails with "no lock"
-    And a step policy "meter" defines the hook "before step"
-    And a step policy "meter" defines the hook "after step"
-    And a step policy "trail" defines the hook "after step"
+    And the step policies define the hooks:
+      | policy | hook        | fails with |
+      | tx     | before step |            |
+      | tx     | after step  |            |
+      | lock   | before step | no lock    |
+      | lock   | after step  |            |
+      | meter  | before step |            |
+      | meter  | after step  |            |
+      | trail  | after step  |            |
     And step "charge" has the policies "tx", "lock", "meter", "trail"
     When the workflow runs
     Then the hooks were called in this order:

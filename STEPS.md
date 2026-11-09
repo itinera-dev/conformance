@@ -65,6 +65,13 @@ A hook's requests, made by the sentences below and in "Hooks, lifecycles and rol
 
 - **`And a step policy "<policy>" defines the hook "<hook>"`**: a step policy whose hook does nothing beyond what other sentences add, and returns no lifecycle. Repeated with another hook for the same policy, it adds that hook to the same policy. (0002)
 - **`And a workflow policy "<policy>" defines the hook "<hook>"`** (0002)
+- **`And the step policies define the hooks:`** and **`And the workflow policies define the hooks:`**, followed by a table with one row for each hook, in the columns `policy` and `hook` and any of the optional columns below. Each row is the sentence above for that policy and hook, followed by the sentence each of its filled cells stands for; an empty cell adds nothing, and a scenario writes only the columns it uses. Rows are taken in the order written. (0133)
+  - `returns`: `FailWorkflow`, with `code`, for "returns FailWorkflow with code"; `FinishWorkflow` for "returns FinishWorkflow"; or `bypass`, with or without `code`, for "bypasses" and "bypasses with code".
+  - `fails with`: the message, for "fails with", and with `on attempt` for "fails with ... on attempt".
+  - `requests`: one or more of the requests that take no argument, separated by commas, such as `the ending, the number of attempts`, each for "requests" followed by it.
+  - `takes`: a duration such as `2000 ms`, for "takes" (0135).
+
+  Other behaviours of a hook, such as requests that take an argument, `emits`, `defers` or `waits for cancellation`, stay sentences of their own after the table.
 - **`And step "<step>" has the policies "<policy>", "<policy>"`**: attaches step policies, in this order. One or more names. (0002)
 - **`And the workflow has the policies "<policy>", "<policy>"`**: attaches workflow policies, in this order. (0002)
 - **`And the hook "<hook>" of policy "<policy>" requests step data "<key>" of type <type>`**: a required request for data from the step. (0002)
