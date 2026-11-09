@@ -11,46 +11,42 @@ Feature: Input adapters attached to steps
   attached to it twice, which is "step adapted twice".
 
   Scenario: An adapter returning nothing lets the data bag's value through
+    Given the input adapter "pricing" returns 7 when step "charge" requests "amount"
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests input "amount" of type integer
-    And step "charge" requests input "currency" of type string
-    And step "charge" succeeds
+      | step   | inputs                            | outcome |
+      | charge | amount: integer, currency: string | success |
+    And the workflow binds the input adapter "pricing" to the step "charge"
     And the data bag contains:
       | key      | value |
       | amount   | 42    |
       | currency | "EUR" |
-    And the workflow declares the input adapter "pricing" for the steps "charge"
-    And the input adapter "pricing" returns 7 for "amount"
     When the workflow runs
-    Then step "charge" was built with input "amount" = 7
-    And step "charge" was built with input "currency" = "EUR"
+    Then the steps were built with:
+      | step   | input    | value |
+      | charge | amount   | 7     |
+      | charge | currency | "EUR" |
 
   Scenario: One adapter serves two steps
+    Given the input adapter "pricing" returns 7 when step "charge" requests "amount"
+    And the input adapter "pricing" returns 7 when step "refund" requests "amount"
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | refund |
-    And step "charge" requests input "amount" of type integer
-    And step "refund" requests input "amount" of type integer
-    And step "charge" succeeds
-    And step "refund" succeeds
-    And the workflow declares the input adapter "pricing" for the steps "charge", "refund"
-    And the input adapter "pricing" returns 7 for "amount"
+      | step   | inputs          | outcome |
+      | charge | amount: integer | success |
+      | refund | amount: integer | success |
+    And the workflow binds the input adapter "pricing" to the steps "charge", "refund"
     When the workflow runs
-    Then step "charge" was built with input "amount" = 7
-    And step "refund" was built with input "amount" = 7
+    Then the steps were built with:
+      | step   | input  | value |
+      | charge | amount | 7     |
+      | refund | amount | 7     |
 
   Scenario: An adapter's missing required data from the workflow aborts the journey
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests input "amount" of type integer
-    And step "charge" succeeds
-    And the data bag is empty
-    And the workflow declares the input adapter "pricing" for the steps "charge"
+      | step   | inputs          | outcome |
+      | charge | amount: integer | success |
+    And the workflow binds the input adapter "pricing" to the step "charge"
     And the input adapter "pricing" requests data from the workflow "price" of type integer
+    And the data bag is empty
     When the workflow runs
     Then the events include, in order:
       | event           | step   | key   | adapter | code                  |
@@ -59,11 +55,10 @@ Feature: Input adapters attached to steps
 
   Scenario: Two adapters on one step are refused
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And the workflow declares the input adapter "pricing" for the steps "charge"
-    And the workflow declares the input adapter "discounts" for the steps "charge"
+      | step   | outcome |
+      | charge | success |
+    And the workflow binds the input adapter "pricing" to the step "charge"
+    And the workflow binds the input adapter "discounts" to the step "charge"
     When the workflow runs
     Then admission is refused with the violations:
       | violation          |
@@ -72,10 +67,9 @@ Feature: Input adapters attached to steps
 
   Scenario: An adapter attached to a step that does not exist is refused
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And the workflow declares the input adapter "pricing" for the steps "ship"
+      | step   | outcome |
+      | charge | success |
+    And the workflow binds the input adapter "pricing" to the step "ship"
     When the workflow runs
     Then admission is refused with the violations:
       | violation                       |
@@ -85,11 +79,9 @@ Feature: Input adapters attached to steps
   @proposal-0116
   Scenario: Two adapters with the same name are refused, even on different steps
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | refund |
-    And step "charge" succeeds
-    And step "refund" succeeds
+      | step   | outcome |
+      | charge | success |
+      | refund | success |
     And the workflow declares the input adapter "pricing" for the steps "charge"
     And the workflow declares the input adapter "pricing" for the steps "refund"
     When the workflow runs
@@ -100,15 +92,13 @@ Feature: Input adapters attached to steps
 
   @proposal-0116 @proposal-0095
   Scenario: An adapter and a service provider may have the same name
+    Given the input adapter "pricing" returns 7 when step "charge" requests "amount"
+    Given the service provider "pricing" makes a labeller for "payments", once per journey
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests input "amount" of type integer
-    And step "charge" requests the service "payments" of type labeller
-    And step "charge" succeeds
-    And the workflow declares the input adapter "pricing" for the steps "charge"
-    And the input adapter "pricing" returns 7 for "amount"
-    And the workflow declares the service provider "pricing" for "payments" of type labeller, once per journey
+      | step   | inputs          | services           | outcome |
+      | charge | amount: integer | payments: labeller | success |
+    And the workflow binds the input adapter "pricing" to the step "charge"
+    And the workflow binds the service provider "pricing"
     When the workflow runs
     Then step "charge" was built with input "amount" = 7
     And the service provider "pricing" was called 1 times
@@ -117,10 +107,9 @@ Feature: Input adapters attached to steps
   @proposal-0116
   Scenario: An adapter that names one step twice is refused
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And the workflow declares the input adapter "pricing" for the steps "charge", "charge"
+      | step   | outcome |
+      | charge | success |
+    And the workflow binds the input adapter "pricing" to the steps "charge", "charge"
     When the workflow runs
     Then admission is refused with the violations:
       | violation          |
@@ -129,13 +118,11 @@ Feature: Input adapters attached to steps
 
   @spec-defect-0087
   Scenario: A value of the wrong type from an adapter names the adapter
+    Given the input adapter "pricing" returns "ten" when step "charge" requests "amount"
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests input "amount" of type integer
-    And step "charge" succeeds
-    And the workflow declares the input adapter "pricing" for the steps "charge"
-    And the input adapter "pricing" returns "ten" for "amount"
+      | step   | inputs          | outcome |
+      | charge | amount: integer | success |
+    And the workflow binds the input adapter "pricing" to the step "charge"
     When the workflow runs
     Then the events include, in order:
       | event                  | step   | key    | adapter | code       |
@@ -146,16 +133,14 @@ Feature: Input adapters attached to steps
 
   @spec-defect-0087
   Scenario: A value of the wrong type from the data bag does not name the adapter that returned nothing
+    Given the input adapter "pricing" returns nothing when step "charge" requests "amount"
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests input "amount" of type integer
-    And step "charge" succeeds
+      | step   | inputs          | outcome |
+      | charge | amount: integer | success |
+    And the workflow binds the input adapter "pricing" to the step "charge"
     And the data bag contains:
       | key    | value |
       | amount | "ten" |
-    And the workflow declares the input adapter "pricing" for the steps "charge"
-    And the input adapter "pricing" returns nothing for "amount"
     When the workflow runs
     Then the events include, in order:
       | event           | step   | key    | code       |
@@ -165,14 +150,12 @@ Feature: Input adapters attached to steps
 
   @spec-defect-0087
   Scenario: Required data missing from the data bag does not name the adapter that returned nothing
+    Given the input adapter "pricing" returns nothing when step "charge" requests "amount"
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests input "amount" of type integer
-    And step "charge" succeeds
+      | step   | inputs          | outcome |
+      | charge | amount: integer | success |
+    And the workflow binds the input adapter "pricing" to the step "charge"
     And the data bag is empty
-    And the workflow declares the input adapter "pricing" for the steps "charge"
-    And the input adapter "pricing" returns nothing for "amount"
     When the workflow runs
     Then the events include, in order:
       | event           | step   | key    | code                  |
@@ -182,16 +165,14 @@ Feature: Input adapters attached to steps
 
   @spec-defect-0092
   Scenario: An adapter's own requests are resolved in the order it declares them
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests input "amount" of type integer
-    And step "charge" succeeds
-    And the data bag is empty
-    And the workflow declares the input adapter "pricing" for the steps "charge"
+    Given the input adapter "pricing" returns 7 when step "charge" requests "amount"
     And the input adapter "pricing" requests data from the workflow "price" of type integer
     And the input adapter "pricing" requests data from the workflow "quantity" of type integer
-    And the input adapter "pricing" returns 7 for "amount"
+    Given a workflow "orders" with the steps:
+      | step   | inputs          | outcome |
+      | charge | amount: integer | success |
+    And the workflow binds the input adapter "pricing" to the step "charge"
+    And the data bag is empty
     When the workflow runs
     Then the events include, in order:
       | event           | step   | key   | adapter | code                  |
