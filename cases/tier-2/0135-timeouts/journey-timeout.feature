@@ -23,15 +23,17 @@ Feature: The journey timeout
       | attempt | outcome | takes   | contributes        |
       | 1       | success | 6000 ms | {"receipt": "R-1"} |
     And step "ship" succeeds
-    And a step policy "tx" defines the hook "after attempt"
-    And a step policy "tx" defines the hook "after step"
-    And a step policy "tx" defines the hook "on step success"
-    And a step policy "tx" defines the hook "on step failure"
-    And the hook "after attempt" of policy "tx" requests the ending
-    And the hook "after step" of policy "tx" requests the ending
+    And the step policies define the hooks:
+      | policy | hook            | requests   |
+      | tx     | after attempt   | the ending |
+      | tx     | after step      | the ending |
+      | tx     | on step success |            |
+      | tx     | on step failure |            |
     And step "charge" has the policies "tx"
-    And a workflow policy "audit" defines the hook "after journey"
-    And a workflow policy "audit" defines the hook "on workflow failure"
+    And the workflow policies define the hooks:
+      | policy | hook                |
+      | audit  | after journey       |
+      | audit  | on workflow failure |
     And the workflow has the policies "audit"
     When the workflow runs
     Then the events include, in order:

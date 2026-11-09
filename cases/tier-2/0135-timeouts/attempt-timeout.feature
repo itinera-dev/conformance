@@ -34,12 +34,12 @@ Feature: The attempt timeout
     And step "charge" attempts:
       | attempt | outcome | takes   | contributes        |
       | 1       | success | 1001 ms | {"receipt": "R-1"} |
-    And a step policy "tx" defines the hook "after attempt"
-    And a step policy "tx" defines the hook "after step"
-    And a step policy "tx" defines the hook "on step success"
-    And a step policy "tx" defines the hook "on step failure"
-    And the hook "after attempt" of policy "tx" requests the ending
-    And the hook "after step" of policy "tx" requests the ending
+    And the step policies define the hooks:
+      | policy | hook            | requests   |
+      | tx     | after attempt   | the ending |
+      | tx     | after step      | the ending |
+      | tx     | on step success |            |
+      | tx     | on step failure |            |
     And step "charge" has the policies "tx"
     When the workflow runs
     Then the events include, in order:
