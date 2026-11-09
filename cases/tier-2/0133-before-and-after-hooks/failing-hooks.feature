@@ -125,12 +125,12 @@ Feature: Before and after hooks that fail
     And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
+    And the workflow lists the reporters "trace"
     And step "charge" allows 1 retries
     And step "charge" attempts:
       | attempt | outcome | contributes        |
       | 1       | success | {"receipt": "R-1"} |
       | 2       | success | {"receipt": "R-2"} |
-    And the workflow lists the reporters "trace"
     When the workflow runs
     Then the events include, in order:
       | event                  | step   | attempt | key     | policy | hook          | cause             | error         |

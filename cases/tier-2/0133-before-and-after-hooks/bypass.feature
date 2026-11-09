@@ -22,12 +22,12 @@ Feature: A before step hook that bypasses its step
       | step     | policies          |
       | discount | first, gate, last |
       | ship     |                   |
-    And step "discount" requests the service "labels" of type labeller
-    And step "discount" succeeds
-    And step "ship" succeeds
     And the workflow declares the service provider "stock" for "labels" of type labeller, for each attempt
     And the service provider "stock" serves only the steps "discount"
     And the workflow declares the input adapter "prices" for the steps "discount"
+    And step "discount" requests the service "labels" of type labeller
+    And step "discount" succeeds
+    And step "ship" succeeds
     When the workflow runs
     Then the events include, in order:
       | event           | step     | attempt | policy | hook        | lifecycle | code              | decided by        |
