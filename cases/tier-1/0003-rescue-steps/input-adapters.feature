@@ -31,11 +31,11 @@ Feature: Input adapters for rescue steps
 
   @proposal-0098
   Scenario: An adapter attached to a rescue step receives the rescue step's name
+    Given the input adapter "callers" requests the step name and returns it for "caller"
     Given a workflow "orders" with the steps:
       | step   | inputs         | rescue |
       | charge | caller: string | yes    |
     And the workflow binds the input adapter "callers" to the steps "charge", "charge_rescue"
-    And the input adapter "callers" requests the step name and returns it for "caller"
     And step "charge" attempts:
       | attempt | outcome | code    |
       | 1       | failure | expired |
