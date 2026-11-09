@@ -8,14 +8,16 @@ Feature: Steps that wait for pending steps
   step then becomes eligible in the scheduled pass, where its first attempt
   comes.
 
-  Scenario: A step waits for a pending step, and runs once it has succeeded
+  Background:
     Given a workflow "orders" with the steps:
       | step    |
       | payment |
       | receipt |
     And the workflow allows pending steps
     And step "payment" may be pending, with a pending budget of 3
-    And step "payment" attempts:
+
+  Scenario: A step waits for a pending step, and runs once it has succeeded
+    Given step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
       | 2       | success |
@@ -37,13 +39,7 @@ Feature: Steps that wait for pending steps
     And the journey succeeded
 
   Scenario: An awaited step that skips releases the step waiting for it
-    Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
-      | receipt |
-    And the workflow allows pending steps
-    And step "payment" may be pending, with a pending budget of 3
-    And step "payment" attempts:
+    Given step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
       | 2       | skipped |
@@ -60,13 +56,7 @@ Feature: Steps that wait for pending steps
     And the journey succeeded
 
   Scenario: A step whose awaited step is already done is not waiting
-    Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
-      | receipt |
-    And the workflow allows pending steps
-    And step "payment" may be pending, with a pending budget of 3
-    And step "payment" succeeds
+    Given step "payment" succeeds
     And step "receipt" may be pending, with a pending budget of 3
     And step "receipt" waits for the steps "payment"
     And step "receipt" succeeds
@@ -78,13 +68,7 @@ Feature: Steps that wait for pending steps
 
   @proposal-0133
   Scenario: A bypassed awaited step is done, so the step waiting for it runs in the ordered pass
-    Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
-      | receipt |
-    And the workflow allows pending steps
-    And step "payment" may be pending, with a pending budget of 3
-    And step "payment" succeeds
+    Given step "payment" succeeds
     And a step policy "gate" defines the hook "before step"
     And the hook "before step" of policy "gate" bypasses with code "paid already"
     And step "payment" has the policies "gate"
@@ -103,13 +87,7 @@ Feature: Steps that wait for pending steps
 
   @proposal-0133
   Scenario: A waiting step's before step hooks run before step_waiting
-    Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
-      | receipt |
-    And the workflow allows pending steps
-    And step "payment" may be pending, with a pending budget of 3
-    And step "payment" attempts:
+    Given step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
       | 2       | success |

@@ -12,12 +12,14 @@ Feature: The pending budget, the pending deadline and on step pending
   lifecycle`, and a negative delay an `unexpected result`. The runner's clock
   starts at 2026-01-01T00:00:00.000Z and moves only when the executor waits.
 
-  Scenario: On step pending defers with a new nbf and a new weight
+  Background:
     Given a workflow "orders" with the steps:
       | step    |
       | payment |
     And the workflow allows pending steps
-    And step "payment" may be pending, with a pending budget of 3
+
+  Scenario: On step pending defers with a new nbf and a new weight
+    Given step "payment" may be pending, with a pending budget of 3
     And step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
@@ -36,11 +38,7 @@ Feature: The pending budget, the pending deadline and on step pending
     And the journey succeeded
 
   Scenario: On step pending that returns nothing keeps the defaults
-    Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
-    And the workflow allows pending steps
-    And step "payment" may be pending, with a pending budget of 3
+    Given step "payment" may be pending, with a pending budget of 3
     And step "payment" has a default nbf of 1000 ms
     And step "payment" has a default weight of 4
     And step "payment" attempts:
@@ -57,11 +55,7 @@ Feature: The pending budget, the pending deadline and on step pending
     And the journey succeeded
 
   Scenario: The pending after the budget gives the step up, without calling on step pending
-    Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
-    And the workflow allows pending steps
-    And step "payment" may be pending, with a pending budget of 1
+    Given step "payment" may be pending, with a pending budget of 1
     And step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
@@ -89,11 +83,7 @@ Feature: The pending budget, the pending deadline and on step pending
     And the result's failure carries no error
 
   Scenario: A pending whose nbf falls after the deadline gives the step up
-    Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
-    And the workflow allows pending steps
-    And step "payment" may be pending, with a pending budget of 5
+    Given step "payment" may be pending, with a pending budget of 5
     And step "payment" has a default nbf of 2000 ms
     And step "payment" has a pending deadline of 3000 ms
     And step "payment" attempts:
@@ -114,11 +104,7 @@ Feature: The pending budget, the pending deadline and on step pending
     And step "payment" ended as failed after 2 attempts
 
   Scenario: FailWorkflow from on step pending gives the step up, and on step failure is not called
-    Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
-    And the workflow allows pending steps
-    And step "payment" may be pending, with a pending budget of 3
+    Given step "payment" may be pending, with a pending budget of 3
     And step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
@@ -139,11 +125,7 @@ Feature: The pending budget, the pending deadline and on step pending
 
   @invalid-lifecycle
   Scenario: FinishWorkflow from on step pending aborts the journey with invalid lifecycle
-    Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
-    And the workflow allows pending steps
-    And step "payment" may be pending, with a pending budget of 3
+    Given step "payment" may be pending, with a pending budget of 3
     And step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
@@ -155,11 +137,7 @@ Feature: The pending budget, the pending deadline and on step pending
 
   @negative-delay
   Scenario: A negative nbf from on step pending aborts the journey with unexpected result
-    Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
-    And the workflow allows pending steps
-    And step "payment" may be pending, with a pending budget of 3
+    Given step "payment" may be pending, with a pending budget of 3
     And step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
@@ -170,11 +148,7 @@ Feature: The pending budget, the pending deadline and on step pending
     Then the journey was aborted with the abort reason "unexpected result"
 
   Scenario: On step pending receives the step's name and the attempt number
-    Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
-    And the workflow allows pending steps
-    And step "payment" may be pending, with a pending budget of 3
+    Given step "payment" may be pending, with a pending budget of 3
     And step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
