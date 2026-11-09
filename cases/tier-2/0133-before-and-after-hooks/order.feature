@@ -75,9 +75,8 @@ Feature: The order of the hooks before and after a journey, a step and an attemp
       | trace  | before journey |
       | trace  | after journey  |
     And a workflow "orders" with the policies "audit", "trace" and the steps:
-      | step   | policies |
-      | charge | tx, lock |
-    And step "charge" succeeds
+      | step   | policies | outcome |
+      | charge | tx, lock | success |
     When the workflow runs
     Then the hooks were called in this order:
       | policy | hook           |
@@ -103,16 +102,15 @@ Feature: The order of the hooks before and after a journey, a step and an attemp
       | tx     | after attempt  |
       | tx     | after step     |
     And a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | tx       |
-      | ship   | tx       |
+      | step   | policies | outcome |
+      | charge | tx       |         |
+      | ship   | tx       | success |
     And step "charge" allows 2 retries
     And step "charge" attempts:
       | attempt | outcome | code        |
       | 1       | failure | unreachable |
       | 2       | failure | unreachable |
       | 3       | success |             |
-    And step "ship" succeeds
     When the workflow runs
     Then the hooks received:
       | policy | hook           | calls |
@@ -125,11 +123,9 @@ Feature: The order of the hooks before and after a journey, a step and an attemp
   Scenario: The step's after step hooks run before the journey moves to the next step
     Given a step policy "tx" defines the hook "after step"
     And a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | tx       |
-      | ship   |          |
-    And step "charge" succeeds
-    And step "ship" succeeds
+      | step   | policies | outcome |
+      | charge | tx       | success |
+      | ship   |          | success |
     When the workflow runs
     Then the events include, in order:
       | event           | step   | attempt | policy | hook       |
@@ -173,9 +169,8 @@ Feature: The order of the hooks before and after a journey, a step and an attemp
       | trail  | after step    |
     And a workflow policy "log" defines the hook "after journey"
     And a workflow "orders" with the policies "log" and the steps:
-      | step   | policies |
-      | charge | trail    |
-    And step "charge" succeeds
+      | step   | policies | outcome |
+      | charge | trail    | success |
     When the workflow runs
     Then the hooks were called in this order:
       | policy | hook          |

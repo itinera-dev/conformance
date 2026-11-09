@@ -16,13 +16,10 @@ Feature: Hooks before and after in test support
       | gate   | before step | bypass  | no discount today |
       | wrap   | before step | bypass  |                   |
     And a workflow "orders" with the steps:
-      | step     | policies |
-      | discount | gate     |
-      | gift     | wrap     |
-      | ship     |          |
-    And step "discount" succeeds
-    And step "gift" succeeds
-    And step "ship" succeeds
+      | step     | policies | outcome |
+      | discount | gate     | success |
+      | gift     | wrap     | success |
+      | ship     |          | success |
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:
@@ -37,9 +34,8 @@ Feature: Hooks before and after in test support
       | policy | hook        | fails with |
       | lock   | before step | no lock    |
     And a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | lock     |
-    And step "charge" succeeds
+      | step   | policies | outcome |
+      | charge | lock     | success |
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:
@@ -53,9 +49,8 @@ Feature: Hooks before and after in test support
       | policy | hook           | fails with    |
       | tx     | before attempt | no connection |
     And a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | tx       |
-    And step "charge" succeeds
+      | step   | policies | outcome |
+      | charge | tx       | success |
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:
@@ -69,9 +64,8 @@ Feature: Hooks before and after in test support
       | policy | hook          | fails with    |
       | tx     | after attempt | commit failed |
     And a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | tx       |
-    And step "charge" succeeds
+      | step   | policies | outcome |
+      | charge | tx       | success |
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:
@@ -86,9 +80,8 @@ Feature: Hooks before and after in test support
       | policy | hook       | fails with    |
       | tx     | after step | settle failed |
     And a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | tx       |
-    And step "charge" succeeds
+      | step   | policies | outcome |
+      | charge | tx       | success |
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:
@@ -103,9 +96,8 @@ Feature: Hooks before and after in test support
       | policy | hook           | returns      | code      |
       | check  | before journey | FailWorkflow | bad input |
     And a workflow "orders" with the policies "check" and the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:
@@ -117,9 +109,8 @@ Feature: Hooks before and after in test support
       | policy | hook           | fails with        |
       | check  | before journey | rules unavailable |
     And a workflow "orders" with the policies "check" and the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:
@@ -132,9 +123,8 @@ Feature: Hooks before and after in test support
       | policy | hook          | fails with |
       | audit  | after journey | audit down |
     And a workflow "orders" with the policies "audit" and the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:

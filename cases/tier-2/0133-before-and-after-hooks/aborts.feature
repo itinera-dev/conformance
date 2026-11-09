@@ -12,22 +12,25 @@ Feature: After hooks after an abort
 
   Scenario: An abort during an attempt runs the after hooks of every level once, nested
     Given the step policies and their hooks:
-      | policy | hook            | requests |
-      | tx     | before step     |          |
-      | tx     | before attempt  |          |
-      | tx     | after attempt   | ending   |
-      | tx     | after step      | ending   |
-      | tx     | on step failure |          |
+      | policy | hook            |
+      | tx     | before step     |
+      | tx     | before attempt  |
+      | tx     | after attempt   |
+      | tx     | after step      |
+      | tx     | on step failure |
     And the workflow policies and their hooks:
-      | policy | hook                | requests |
-      | audit  | before journey      |          |
-      | audit  | after journey       | ending   |
-      | audit  | on workflow failure |          |
+      | policy | hook                |
+      | audit  | before journey      |
+      | audit  | after journey       |
+      | audit  | on workflow failure |
+    And the hooks request:
+      | policy | hook          | request |
+      | tx     | after attempt | ending  |
+      | tx     | after step    | ending  |
+      | audit  | after journey | ending  |
     And a workflow "orders" with the policies "audit" and the steps:
-      | step   | policies |
-      | charge | tx       |
-    And step "charge" requests input "amount" of type integer
-    And step "charge" succeeds
+      | step   | policies | inputs          | outcome |
+      | charge | tx       | amount: integer | success |
     And the data bag is empty
     When the workflow runs
     Then the hooks were called in this order:
@@ -51,13 +54,13 @@ Feature: After hooks after an abort
   Scenario: After an abort, the after hooks' requests for data are answered absent
     Given a step policy "tx" defines the hook "after attempt"
     And a workflow policy "audit" defines the hook "after journey"
-    And the hook "after attempt" of policy "tx" requests optional data from the workflow "order" of type string
-    And the hook "after journey" of policy "audit" requests optional data from the workflow "order" of type string
+    And the hooks request:
+      | policy | hook          | request                | key   | type   | optional |
+      | tx     | after attempt | data from the workflow | order | string | yes      |
+      | audit  | after journey | data from the workflow | order | string | yes      |
     And a workflow "orders" with the policies "audit" and the steps:
-      | step   | policies |
-      | charge | tx       |
-    And step "charge" requests input "amount" of type integer
-    And step "charge" succeeds
+      | step   | policies | inputs          | outcome |
+      | charge | tx       | amount: integer | success |
     And the data bag contains:
       | key   | value |
       | order | "A-1" |
@@ -70,11 +73,9 @@ Feature: After hooks after an abort
     Given a step policy "tx" defines the hook "after attempt"
     And the hook "after attempt" of policy "tx" emits journey_info "rolled back"
     And a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | tx       |
+      | step   | policies | inputs          | outcome |
+      | charge | tx       | amount: integer | success |
     And the workflow lists the reporters "trace"
-    And step "charge" requests input "amount" of type integer
-    And step "charge" succeeds
     And the data bag is empty
     When the workflow runs
     Then the hook "after attempt" of policy "tx" was called 1 times
@@ -89,10 +90,8 @@ Feature: After hooks after an abort
       | tx     | after step    |            |
       | audit  | after attempt | audit down |
     And a workflow "orders" with the steps:
-      | step   | policies  |
-      | charge | tx, audit |
-    And step "charge" requests input "amount" of type integer
-    And step "charge" succeeds
+      | step   | policies  | inputs          | outcome |
+      | charge | tx, audit | amount: integer | success |
     And the data bag is empty
     When the workflow runs
     Then the hooks were called in this order:
@@ -110,9 +109,8 @@ Feature: After hooks after an abort
       | closer | after attempt   |
     And the policy "broken" fails when it is built
     And a workflow "orders" with the steps:
-      | step   | policies       |
-      | charge | broken, closer |
-    And step "charge" succeeds
+      | step   | policies       | outcome |
+      | charge | broken, closer | success |
     When the workflow runs
     Then the hook "after attempt" of policy "closer" was not called
     And the journey was aborted with the abort reason "policy could not be built"
@@ -124,16 +122,17 @@ Feature: After hooks after an abort
       | tx     | after step    |
       | audit  | after attempt |
     And the workflow policies and their hooks:
-      | policy | hook          | requests |
-      | log    | after journey | ending   |
-    And the hook "after attempt" of policy "audit" requests optional data from the workflow "order" of type integer
+      | policy | hook          |
+      | log    | after journey |
+    And the hooks request:
+      | policy | hook          | request                | key   | type    | optional |
+      | log    | after journey | ending                 |       |         |          |
+      | audit  | after attempt | data from the workflow | order | integer | yes      |
     And a workflow "orders" with the policies "log" and the steps:
-      | step   | policies  |
-      | charge | tx, audit |
-      | ship   |           |
+      | step   | policies  | outcome |
+      | charge | tx, audit | success |
+      | ship   |           | success |
     And step "charge" contributes "receipt" = "R-1"
-    And step "charge" succeeds
-    And step "ship" succeeds
     And the data bag contains:
       | key   | value |
       | order | "A-1" |
