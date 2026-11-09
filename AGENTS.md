@@ -4,7 +4,7 @@ The manual for anyone, human or agent, writing or changing conformance cases. Th
 
 ## What to read
 
-- [FORMAT.md](FORMAT.md): how a case is written, its tags and its tables.
+- [FORMAT.md](FORMAT.md): how a case is written, its tags and its tables, and, in "Writing a scenario", how a tier 2 scenario is laid out.
 - [STEPS.md](STEPS.md): the catalogue. A case may use only its sentences.
 
 ## Writing cases

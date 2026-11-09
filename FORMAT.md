@@ -17,7 +17,15 @@ Final for version 0.1 of the specification, agreed in [#5](https://github.com/it
 5. **Cite the source.** The feature's description names the proposal and, once it exists, the section of the specification it checks.
 6. **Screen-reader friendly.** Plain sentences and simple tables. No ASCII art, no decorative characters.
 7. **A complete stream to read.** A scenario that uses the default dispatcher and a sentence about the event stream as a whole lists at least one reporter that never fails, so that sentence has a complete stream to read ("Running the cases in a language", item 3).
-8. **The order of a scenario** (from tier 2). The `Given` part declares the building blocks first, then what binds them, from the outside in: the step policies and their hooks; the workflow policies and their hooks; the workflow, with its policies and its steps, each step with its policies; the workflow's settings, its input adapters and service providers; each step's settings and script, step by step in declaration order; then the caller and the runner, such as a cancellation or the recording reporter of test support. A feature with a `Background` keeps the workflow there, and its scenarios declare their policies after it. Tier 1 cases are frozen and keep their order.
+
+## Writing a scenario
+
+From tier 2, every scenario is written this way. Tier 1 cases are frozen and keep their form.
+
+1. **Script, declare, check.** A case scripts only its own test code: steps, hooks, input adapters and service providers, and what each returns, fails with or takes. It declares what that code requests. It checks what the framework supplied in the `Then` part, and never scripts it.
+2. **Define, then bind.** The `Given` part first defines the building blocks: the step policies and their hooks, the workflow policies and theirs, what the hooks request, the input adapters and the service providers. Then the workflow binds them, with its policies and its steps, each step with its policies, inputs, services and outcome. Then come the workflow's settings, each step's settings and script, step by step in declaration order, and last the caller and the runner, such as a cancellation or the recording reporter of test support. A feature with a `Background` keeps the workflow there, and its scenarios define their building blocks after it.
+3. **One fact per row.** A table has one row per hook, request, adapter and step, binding or attempt, so a cell holds a list only where a row cannot say it, such as a step's inputs. A table's columns are those its sentence defines, and a scenario writes only the columns it uses. An empty cell adds or checks nothing; `none` means answered absent.
+4. **Tables from two up.** A single fact of a kind keeps its sentence; two or more go in that kind's table.
 
 ## Layout
 

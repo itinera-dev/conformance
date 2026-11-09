@@ -9,11 +9,9 @@ Feature: Cancellation in test support
 
   Scenario: The path of a journey cancelled after a step returns
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
-    And step "charge" succeeds
-    And step "ship" succeeds
+      | step   | outcome |
+      | charge | success |
+      | ship   | success |
     And the instance has the recording reporter of test support
     And the caller cancels the journey on "step_succeeded" of "charge"
     When the workflow runs
@@ -48,9 +46,8 @@ Feature: Cancellation in test support
 
   Scenario: The path of a journey cancelled before its first step names no step
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the instance has the recording reporter of test support
     And the caller cancels the journey on "journey_started"
     When the workflow runs
@@ -62,9 +59,8 @@ Feature: Cancellation in test support
   @language-checkpoint
   Scenario: A scripted attempt that waits for cancellation, in a scripted run whose journey is cancelled
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the script says:
       | step   | attempt | emits     | emit message | ending                |
       | charge | 1       | step_info | working      | wait for cancellation |

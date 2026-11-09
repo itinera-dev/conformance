@@ -13,16 +13,15 @@ Feature: The ordered pass and the scheduled pass
 
   Scenario: The ordered pass moves past a pending step, and the scheduled pass returns to it
     Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
-      | invoice |
+      | step    | outcome |
+      | payment |         |
+      | invoice | success |
     And the workflow allows pending steps
     And step "payment" may be pending, with a pending budget of 3
     And step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
       | 2       | success |
-    And step "invoice" succeeds
     When the workflow runs
     Then the events include, in order:
       | event             | step    | attempt | pass      | steps   | status before | round | decided by |
@@ -44,9 +43,8 @@ Feature: The ordered pass and the scheduled pass
 
   Scenario: A journey with no pending step has only the ordered pass
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     When the workflow runs
     Then the events are exactly:
       | event             | step   | attempt | pass    |
@@ -60,9 +58,8 @@ Feature: The ordered pass and the scheduled pass
   Scenario: The ordered pass starts after the before journey hooks
     Given a workflow policy "audit" defines the hook "before journey"
     And a workflow "orders" with the policies "audit" and the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     When the workflow runs
     Then the events include, in order:
       | event           | step   | attempt | policy | hook           | pass    |
@@ -77,20 +74,19 @@ Feature: The ordered pass and the scheduled pass
       | policy | hook           | returns      | code      |
       | check  | before journey | FailWorkflow | bad input |
     And a workflow "orders" with the policies "check" and the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And the workflow lists the reporters "trace"
-    And step "charge" succeeds
     When the workflow runs
     Then the reporter "trace" did not receive the event "pass_started"
     And the journey failed
 
   Scenario: The scheduled pass starts only once the ordered pass has reached its end
     Given a workflow "orders" with the steps:
-      | step     |
-      | payment  |
-      | invoice  |
-      | shipping |
+      | step     | outcome |
+      | payment  |         |
+      | invoice  |         |
+      | shipping | success |
     And the workflow allows pending steps
     And the workflow lists the reporters "trace"
     And step "payment" may be pending, with a pending budget of 3
@@ -103,7 +99,6 @@ Feature: The ordered pass and the scheduled pass
       | attempt | outcome |
       | 1       | pending |
       | 2       | success |
-    And step "shipping" succeeds
     When the workflow runs
     Then the events include, in order:
       | event          | step     | attempt | pass      | steps            |

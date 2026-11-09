@@ -14,16 +14,15 @@ Feature: A dropped journey and on journey dropped
   Scenario: A dropped journey runs on journey dropped once, and nothing else
     Given a step policy "tx" defines the hook "after step"
     And the workflow policies and their hooks:
-      | policy | hook               | requests   |
-      | guard  | on journey dropped | journey ID |
-      | guard  | after journey      |            |
+      | policy | hook               |
+      | guard  | on journey dropped |
+      | guard  | after journey      |
+    And the hook "on journey dropped" of policy "guard" requests the journey ID
     And a workflow "orders" with the policies "guard" and the steps:
-      | step   | policies |
-      | charge | tx       |
-      | ship   |          |
+      | step   | policies | outcome |
+      | charge | tx       | success |
+      | ship   |          | success |
     And the workflow lists the reporters "trace"
-    And step "charge" succeeds
-    And step "ship" succeeds
     And the workflow's ID generator returns "J-1"
     And the caller drops the journey on "step_succeeded" of "charge"
     When the workflow runs
@@ -40,10 +39,9 @@ Feature: A dropped journey and on journey dropped
     Given a workflow policy "guard" defines the hook "on journey dropped"
     And the hook "on journey dropped" of policy "guard" requests the role "alerts" and calls its operation "page"
     And a workflow "orders" with the policies "guard" and the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And the workflow provides the role "alerts" with the operation "page"
-    And step "charge" succeeds
     And the caller drops the journey on "attempt_started" of "charge"
     When the workflow runs
     Then the operation "page" of the role "alerts" was called 1 times
@@ -73,10 +71,8 @@ Feature: A dropped journey and on journey dropped
   Scenario: On journey dropped does not run when the journey is aborted
     Given a workflow policy "guard" defines the hook "on journey dropped"
     And a workflow "orders" with the policies "guard" and the steps:
-      | step   |
-      | charge |
-    And step "charge" requests input "amount" of type integer
-    And step "charge" succeeds
+      | step   | inputs          | outcome |
+      | charge | amount: integer | success |
     And the data bag is empty
     When the workflow runs
     Then the hook "on journey dropped" of policy "guard" was not called
@@ -85,9 +81,8 @@ Feature: A dropped journey and on journey dropped
   Scenario: On journey dropped does not run when the journey is cancelled
     Given a workflow policy "guard" defines the hook "on journey dropped"
     And a workflow "orders" with the policies "guard" and the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the caller cancels the journey on "step_succeeded" of "charge"
     When the workflow runs
     Then the hook "on journey dropped" of policy "guard" was not called
@@ -99,9 +94,8 @@ Feature: A dropped journey and on journey dropped
       | guard  | on journey dropped |
       | alarm  | on journey dropped |
     And a workflow "orders" with the policies "guard", "alarm" and the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation          |
@@ -112,9 +106,8 @@ Feature: A dropped journey and on journey dropped
     Given a workflow policy "guard" defines the hook "on journey dropped"
     And the hook "on journey dropped" of policy "guard" is asynchronous
     And a workflow "orders" with the policies "guard" and the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation              |
@@ -125,10 +118,9 @@ Feature: A dropped journey and on journey dropped
     Given a workflow policy "guard" defines the hook "on journey dropped"
     And the hook "on journey dropped" of policy "guard" requests the role "alerts" and calls its operation "page"
     And a workflow "orders" with the policies "guard" and the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And the workflow provides the role "alerts" with the operation "page"
-    And step "charge" succeeds
     And the operation "page" of the role "alerts" is asynchronous
     When the workflow is admitted
     Then admission is refused with the violations:

@@ -15,9 +15,9 @@ Feature: Choosing which step to try next in the scheduled pass
 
   Scenario: A step is tried again only once its nbf has passed, and the executor waits for it
     Given a workflow "orders" with the steps:
-      | step    |
-      | payment |
-      | invoice |
+      | step    | outcome |
+      | payment |         |
+      | invoice | success |
     And the workflow allows pending steps
     And step "payment" may be pending, with a pending budget of 3
     And step "payment" has a default nbf of 5000 ms
@@ -25,7 +25,6 @@ Feature: Choosing which step to try next in the scheduled pass
       | attempt | outcome |
       | 1       | pending |
       | 2       | success |
-    And step "invoice" succeeds
     When the workflow runs
     Then the events include, in order:
       | event           | step    | attempt | nbf  | nbf at                   | weight | deferrals left | until                    | timestamp                |
@@ -115,10 +114,10 @@ Feature: Choosing which step to try next in the scheduled pass
 
   Scenario: A light step is lifted by the weight of a heavy step that waits for it
     Given a workflow "orders" with the steps:
-      | step   |
-      | audit  |
-      | report |
-      | notify |
+      | step   | outcome |
+      | audit  |         |
+      | report |         |
+      | notify | success |
     And the workflow allows pending steps
     And step "audit" may be pending, with a pending budget of 3
     And step "audit" attempts:
@@ -133,7 +132,6 @@ Feature: Choosing which step to try next in the scheduled pass
     And step "notify" may be pending, with a pending budget of 3
     And step "notify" has a default weight of 10
     And step "notify" waits for the steps "audit"
-    And step "notify" succeeds
     When the workflow runs
     Then the events include, in order:
       | event          | step   | attempt | steps                 | status before | round | effective weight | lifted from |

@@ -13,9 +13,10 @@ Feature: A cancellation delivered inside custom code
   @proposal-0133
   Scenario: A cancellation delivered inside a step ends its attempt with no outcome fact
     Given the step policies and their hooks:
-      | policy | hook                         | requests |
-      | tx     | after attempt                | ending   |
-      | tx     | on step abnormal termination |          |
+      | policy | hook                         |
+      | tx     | after attempt                |
+      | tx     | on step abnormal termination |
+    And the hook "after attempt" of policy "tx" requests its ending
     And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
@@ -44,14 +45,12 @@ Feature: A cancellation delivered inside custom code
 
   Scenario: A cancellation delivered inside a service provider cancels the journey
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | services         | outcome |
+      | charge | labels: labeller | success |
     And the workflow declares the service provider "stock" for "labels" of type labeller, for each attempt
     And the service provider "stock" emits journey_info "reserving"
     And the service provider "stock" waits for cancellation
     And the workflow lists the reporters "trace"
-    And step "charge" requests the service "labels" of type labeller
-    And step "charge" succeeds
     And the caller cancels the journey on "journey_info"
     When the workflow runs
     Then the events include, in order:
@@ -67,10 +66,9 @@ Feature: A cancellation delivered inside custom code
     And the hook "on step success" of policy "notify" emits journey_info "sending"
     And the hook "on step success" of policy "notify" waits for cancellation
     And a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | notify   |
+      | step   | policies | outcome |
+      | charge | notify   | success |
     And the workflow lists the reporters "trace"
-    And step "charge" succeeds
     And the caller cancels the journey on "journey_info"
     When the workflow runs
     Then the events include, in order:
@@ -83,16 +81,16 @@ Feature: A cancellation delivered inside custom code
   @proposal-0133
   Scenario: A cancellation delivered inside an after hook during the normal flow runs the rest of its level in cleanup
     Given the step policies and their hooks:
-      | policy | hook          | requests |
-      | tx     | after attempt |          |
-      | tx     | after step    | ending   |
-      | audit  | after attempt |          |
+      | policy | hook          |
+      | tx     | after attempt |
+      | tx     | after step    |
+      | audit  | after attempt |
+    And the hook "after step" of policy "tx" requests its ending
     And the hook "after attempt" of policy "audit" emits journey_info "auditing"
     And the hook "after attempt" of policy "audit" waits for cancellation
     And a workflow "orders" with the steps:
-      | step   | policies  |
-      | charge | tx, audit |
-    And step "charge" succeeds
+      | step   | policies  | outcome |
+      | charge | tx, audit | success |
     And the caller cancels the journey on "journey_info"
     When the workflow runs
     Then the hooks were called in this order:

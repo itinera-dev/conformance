@@ -18,16 +18,14 @@ Feature: A before step hook that bypasses its step
       | gate   | after step  |         |                   |
       | last   | before step |         |                   |
       | last   | after step  |         |                   |
+    And the service providers:
+      | provider | key    | type     | scope            | step     |
+      | stock    | labels | labeller | for each attempt | discount |
     And a workflow "orders" with the steps:
-      | step     | policies          |
-      | discount | first, gate, last |
-      | ship     |                   |
-    And the workflow declares the service provider "stock" for "labels" of type labeller, for each attempt
-    And the service provider "stock" serves only the steps "discount"
+      | step     | policies          | services         | outcome |
+      | discount | first, gate, last | labels: labeller | success |
+      | ship     |                   |                  | success |
     And the workflow declares the input adapter "prices" for the steps "discount"
-    And step "discount" requests the service "labels" of type labeller
-    And step "discount" succeeds
-    And step "ship" succeeds
     When the workflow runs
     Then the events include, in order:
       | event           | step     | attempt | policy | hook        | lifecycle | code              | decided by        |
@@ -53,9 +51,8 @@ Feature: A before step hook that bypasses its step
       | policy | hook        | returns |
       | gate   | before step | bypass  |
     And a workflow "orders" with the steps:
-      | step     | policies |
-      | discount | gate     |
-    And step "discount" succeeds
+      | step     | policies | outcome |
+      | discount | gate     | success |
     When the workflow runs
     Then the events include, in order:
       | event             | step     | decided by        |
@@ -70,10 +67,9 @@ Feature: A before step hook that bypasses its step
       | gate   | before step     | bypass  | off  |
       | gate   | on step success |         |      |
     And a workflow "orders" with the steps:
-      | step     | policies |
-      | discount | gate     |
+      | step     | policies | outcome |
+      | discount | gate     | success |
     And step "discount" contributes "rate" = 10
-    And step "discount" succeeds
     When the workflow runs
     Then the hook "on step success" of policy "gate" was not called
     And no contribution of "rate" was committed
@@ -87,9 +83,8 @@ Feature: A before step hook that bypasses its step
       | gate   | before step | FinishWorkflow |
       | gate   | after step  |                |
     And a workflow "orders" with the steps:
-      | step   | policies |
-      | charge | gate     |
-    And step "charge" succeeds
+      | step   | policies | outcome |
+      | charge | gate     | success |
     When the workflow runs
     Then the events include, in order:
       | event           | step   | policy | hook        | code              |
