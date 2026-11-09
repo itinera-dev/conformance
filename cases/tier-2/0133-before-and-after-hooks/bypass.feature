@@ -18,14 +18,13 @@ Feature: A before step hook that bypasses its step
       | gate   | after step  |         |                   |
       | last   | before step |         |                   |
       | last   | after step  |         |                   |
-    And the service providers:
-      | provider | key    | type     | scope            | step     |
-      | stock    | labels | labeller | for each attempt | discount |
+    And the service provider "stock" makes a labeller for "labels", for each attempt
     And a workflow "orders" with the steps:
       | step     | policies          | services         | outcome |
       | discount | first, gate, last | labels: labeller | success |
       | ship     |                   |                  | success |
-    And the workflow declares the input adapter "prices" for the steps "discount"
+    And the workflow binds the service provider "stock" to the steps "discount"
+    And the workflow binds the input adapter "prices" to the steps "discount"
     When the workflow runs
     Then the events include, in order:
       | event           | step     | attempt | policy | hook        | lifecycle | code              | decided by        |
