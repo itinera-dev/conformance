@@ -21,10 +21,10 @@ Feature: A dropped journey and on journey dropped
       | step   | policies |
       | charge | tx       |
       | ship   |          |
+    And the workflow lists the reporters "trace"
     And step "charge" succeeds
     And step "ship" succeeds
     And the workflow's ID generator returns "J-1"
-    And the workflow lists the reporters "trace"
     And the caller drops the journey on "step_succeeded" of "charge"
     When the workflow runs
     Then the hooks received:
@@ -42,8 +42,8 @@ Feature: A dropped journey and on journey dropped
     And a workflow "orders" with the policies "guard" and the steps:
       | step   |
       | charge |
-    And step "charge" succeeds
     And the workflow provides the role "alerts" with the operation "page"
+    And step "charge" succeeds
     And the caller drops the journey on "attempt_started" of "charge"
     When the workflow runs
     Then the operation "page" of the role "alerts" was called 1 times
@@ -127,8 +127,8 @@ Feature: A dropped journey and on journey dropped
     And a workflow "orders" with the policies "guard" and the steps:
       | step   |
       | charge |
-    And step "charge" succeeds
     And the workflow provides the role "alerts" with the operation "page"
+    And step "charge" succeeds
     And the operation "page" of the role "alerts" is asynchronous
     When the workflow is admitted
     Then admission is refused with the violations:

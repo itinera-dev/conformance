@@ -21,6 +21,7 @@ Feature: Cleanup after a cancellation, and when a cancellation counts
       | payment | tx       |
       | receipt | tx       |
     And the workflow allows pending steps
+    And the workflow lists the reporters "trace"
     And step "payment" may be pending, with a pending budget of 3
     And step "payment" has a default nbf of 60000 ms
     And step "payment" attempts:
@@ -30,7 +31,6 @@ Feature: Cleanup after a cancellation, and when a cancellation counts
     And step "receipt" may be pending, with a pending budget of 3
     And step "receipt" waits for the steps "payment"
     And step "receipt" succeeds
-    And the workflow lists the reporters "trace"
     And the caller cancels the journey on "journey_waiting"
     When the workflow runs
     Then the events include, in order:
@@ -55,8 +55,8 @@ Feature: Cleanup after a cancellation, and when a cancellation counts
     And a workflow "orders" with the steps:
       | step   | policies  |
       | charge | tx, audit |
-    And step "charge" succeeds
     And the workflow lists the reporters "trace"
+    And step "charge" succeeds
     And the caller cancels the journey on "step_succeeded" of "charge"
     When the workflow runs
     Then the events include, in order:
@@ -74,8 +74,8 @@ Feature: Cleanup after a cancellation, and when a cancellation counts
     And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
-    And step "charge" succeeds
     And the workflow lists the reporters "trace", "audit"
+    And step "charge" succeeds
     And the reporter "audit" throws on "journey_info"
     And the caller cancels the journey on "step_succeeded" of "charge"
     When the workflow runs
@@ -106,8 +106,8 @@ Feature: Cleanup after a cancellation, and when a cancellation counts
     And a workflow "orders" with the policies "audit" and the steps:
       | step   |
       | charge |
-    And step "charge" succeeds
     And the workflow lists the reporters "trace"
+    And step "charge" succeeds
     And the caller cancels the journey on "journey_info"
     When the workflow runs
     Then the hook "on workflow success" of policy "audit" was called 1 times
@@ -119,10 +119,10 @@ Feature: Cleanup after a cancellation, and when a cancellation counts
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
+    And the workflow lists the reporters "trace"
     And step "charge" requests input "amount" of type integer
     And step "charge" succeeds
     And the data bag is empty
-    And the workflow lists the reporters "trace"
     And the caller cancels the journey on "journey_aborted"
     When the workflow runs
     Then the reporter "trace" did not receive the event "journey_cancelled"

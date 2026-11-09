@@ -71,11 +71,11 @@ Feature: A cancellation honoured at an executor checkpoint
     And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx       |
+    And the workflow lists the reporters "trace"
     And step "charge" allows 2 retries
     And step "charge" attempts:
       | attempt | outcome | code        |
       | 1       | failure | unreachable |
-    And the workflow lists the reporters "trace"
     And the caller cancels the journey on "step_failed" of "charge"
     When the workflow runs
     Then the events include, in order:
@@ -91,11 +91,11 @@ Feature: A cancellation honoured at an executor checkpoint
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
+    And the workflow lists the reporters "trace"
     And step "charge" allows 2 retries
     And step "charge" attempts:
       | attempt | outcome | code        |
       | 1       | failure | unreachable |
-    And the workflow lists the reporters "trace"
     And the caller cancels the journey on "step_retrying" of "charge"
     When the workflow runs
     Then the events include, in order:
@@ -211,8 +211,8 @@ Feature: A cancellation honoured at an executor checkpoint
     And a workflow "orders" with the steps:
       | step   | policies |
       | charge | tx, lock |
-    And step "charge" succeeds
     And the workflow lists the reporters "trace"
+    And step "charge" succeeds
     And the caller cancels the journey on "attempt_started" of "charge"
     When the workflow runs
     Then the events include, in order:
@@ -234,12 +234,12 @@ Feature: A cancellation honoured at an executor checkpoint
     Given a workflow "orders" with the steps:
       | step   |
       | charge |
+    And the workflow lists the reporters "trace"
     And step "charge" has a rescue step
     And step "charge" attempts:
       | attempt | outcome | code    |
       | 1       | failure | expired |
     And step "charge_rescue" succeeds
-    And the workflow lists the reporters "trace"
     And the caller cancels the journey on "step_succeeded" of "charge_rescue"
     When the workflow runs
     Then the events include, in order:
