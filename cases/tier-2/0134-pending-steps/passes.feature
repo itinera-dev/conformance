@@ -58,12 +58,11 @@ Feature: The ordered pass and the scheduled pass
 
   @proposal-0133
   Scenario: The ordered pass starts after the before journey hooks
-    Given a workflow "orders" with the steps:
+    Given a workflow policy "audit" defines the hook "before journey"
+    And a workflow "orders" with the policies "audit" and the steps:
       | step   |
       | charge |
     And step "charge" succeeds
-    And a workflow policy "audit" defines the hook "before journey"
-    And the workflow has the policies "audit"
     When the workflow runs
     Then the events include, in order:
       | event           | step   | attempt | policy | hook           | pass    |
@@ -74,13 +73,13 @@ Feature: The ordered pass and the scheduled pass
 
   @proposal-0133
   Scenario: A journey that fails in its before journey hooks has no pass
-    Given a workflow "orders" with the steps:
+    Given the workflow policies and their hooks:
+      | policy | hook           | returns      | code      |
+      | check  | before journey | FailWorkflow | bad input |
+    And a workflow "orders" with the policies "check" and the steps:
       | step   |
       | charge |
     And step "charge" succeeds
-    And a workflow policy "check" defines the hook "before journey"
-    And the hook "before journey" of policy "check" returns FailWorkflow with code "bad input"
-    And the workflow has the policies "check"
     And the workflow lists the reporters "trace"
     When the workflow runs
     Then the reporter "trace" did not receive the event "pass_started"
