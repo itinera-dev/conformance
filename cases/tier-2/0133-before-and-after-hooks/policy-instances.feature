@@ -17,10 +17,12 @@ Feature: Policy instances for the step hooks
       | attempt | outcome | code        |
       | 1       | failure | unreachable |
       | 2       | success |             |
-    And a step policy "tx" defines the hook "before step"
-    And a step policy "tx" defines the hook "after step"
-    And a step policy "tx" defines the hook "before attempt"
-    And a step policy "tx" defines the hook "after attempt"
+    And the step policies define the hooks:
+      | policy | hook           |
+      | tx     | before step    |
+      | tx     | after step     |
+      | tx     | before attempt |
+      | tx     | after attempt  |
     And step "charge" has the policies "tx"
     When the workflow runs
     Then the policy "tx" was built 3 times
@@ -35,9 +37,11 @@ Feature: Policy instances for the step hooks
       | attempt | outcome | code        |
       | 1       | failure | unreachable |
       | 2       | success |             |
-    And a step policy "tx" defines the hook "before attempt"
-    And a step policy "tx" defines the hook "after attempt"
-    And a step policy "audit" defines the hook "on step success"
+    And the step policies define the hooks:
+      | policy | hook            |
+      | tx     | before attempt  |
+      | tx     | after attempt   |
+      | audit  | on step success |
     And step "charge" has the policies "tx", "audit"
     When the workflow runs
     Then the policy "tx" was built 2 times

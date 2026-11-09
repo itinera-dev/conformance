@@ -19,16 +19,20 @@ Feature: The order of the hooks before and after a journey, a step and an attemp
       | attempt | outcome | code        | contributes        |
       | 1       | failure | unreachable |                    |
       | 2       | success |             | {"receipt": "R-1"} |
-    And a step policy "tx" defines the hook "before step"
-    And a step policy "tx" defines the hook "before attempt"
-    And a step policy "tx" defines the hook "after attempt"
-    And a step policy "tx" defines the hook "after step"
-    And a step policy "tx" defines the hook "on step retry"
-    And a step policy "tx" defines the hook "on step success"
+    And the step policies define the hooks:
+      | policy | hook            |
+      | tx     | before step     |
+      | tx     | before attempt  |
+      | tx     | after attempt   |
+      | tx     | after step      |
+      | tx     | on step retry   |
+      | tx     | on step success |
     And step "charge" has the policies "tx"
-    And a workflow policy "audit" defines the hook "before journey"
-    And a workflow policy "audit" defines the hook "after journey"
-    And a workflow policy "audit" defines the hook "on workflow success"
+    And the workflow policies define the hooks:
+      | policy | hook                |
+      | audit  | before journey      |
+      | audit  | after journey       |
+      | audit  | on workflow success |
     And the workflow has the policies "audit"
     When the workflow runs
     Then the events include, in order:
@@ -60,19 +64,23 @@ Feature: The order of the hooks before and after a journey, a step and an attemp
       | step   |
       | charge |
     And step "charge" succeeds
-    And a step policy "tx" defines the hook "before step"
-    And a step policy "tx" defines the hook "before attempt"
-    And a step policy "tx" defines the hook "after attempt"
-    And a step policy "tx" defines the hook "after step"
-    And a step policy "lock" defines the hook "before step"
-    And a step policy "lock" defines the hook "before attempt"
-    And a step policy "lock" defines the hook "after attempt"
-    And a step policy "lock" defines the hook "after step"
+    And the step policies define the hooks:
+      | policy | hook           |
+      | tx     | before step    |
+      | tx     | before attempt |
+      | tx     | after attempt  |
+      | tx     | after step     |
+      | lock   | before step    |
+      | lock   | before attempt |
+      | lock   | after attempt  |
+      | lock   | after step     |
     And step "charge" has the policies "tx", "lock"
-    And a workflow policy "audit" defines the hook "before journey"
-    And a workflow policy "audit" defines the hook "after journey"
-    And a workflow policy "trace" defines the hook "before journey"
-    And a workflow policy "trace" defines the hook "after journey"
+    And the workflow policies define the hooks:
+      | policy | hook           |
+      | audit  | before journey |
+      | audit  | after journey  |
+      | trace  | before journey |
+      | trace  | after journey  |
     And the workflow has the policies "audit", "trace"
     When the workflow runs
     Then the hooks were called in this order:
@@ -103,10 +111,12 @@ Feature: The order of the hooks before and after a journey, a step and an attemp
       | 2       | failure | unreachable |
       | 3       | success |             |
     And step "ship" succeeds
-    And a step policy "tx" defines the hook "before step"
-    And a step policy "tx" defines the hook "before attempt"
-    And a step policy "tx" defines the hook "after attempt"
-    And a step policy "tx" defines the hook "after step"
+    And the step policies define the hooks:
+      | policy | hook           |
+      | tx     | before step    |
+      | tx     | before attempt |
+      | tx     | after attempt  |
+      | tx     | after step     |
     And step "charge" has the policies "tx"
     And step "ship" has the policies "tx"
     When the workflow runs
@@ -139,12 +149,16 @@ Feature: The order of the hooks before and after a journey, a step and an attemp
     And step "charge" attempts:
       | attempt | outcome | code     |
       | 1       | failure | declined |
-    And a step policy "tx" defines the hook "after attempt"
-    And a step policy "tx" defines the hook "after step"
-    And a step policy "tx" defines the hook "on step failure"
+    And the step policies define the hooks:
+      | policy | hook            |
+      | tx     | after attempt   |
+      | tx     | after step      |
+      | tx     | on step failure |
     And step "charge" has the policies "tx"
-    And a workflow policy "audit" defines the hook "after journey"
-    And a workflow policy "audit" defines the hook "on workflow failure"
+    And the workflow policies define the hooks:
+      | policy | hook                |
+      | audit  | after journey       |
+      | audit  | on workflow failure |
     And the workflow has the policies "audit"
     When the workflow runs
     Then the events include, in order:
@@ -164,8 +178,10 @@ Feature: The order of the hooks before and after a journey, a step and an attemp
       | step   |
       | charge |
     And step "charge" succeeds
-    And a step policy "trail" defines the hook "after attempt"
-    And a step policy "trail" defines the hook "after step"
+    And the step policies define the hooks:
+      | policy | hook          |
+      | trail  | after attempt |
+      | trail  | after step    |
     And step "charge" has the policies "trail"
     And a workflow policy "log" defines the hook "after journey"
     And the workflow has the policies "log"

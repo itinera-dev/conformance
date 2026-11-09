@@ -65,8 +65,10 @@ Feature: The pending budget, the pending deadline and on step pending
     And step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
-    And a step policy "pace" defines the hook "on step pending"
-    And a step policy "pace" defines the hook "on step failure"
+    And the step policies define the hooks:
+      | policy | hook            |
+      | pace   | on step pending |
+      | pace   | on step failure |
     And step "payment" has the policies "pace"
     When the workflow runs
     Then the events include, in order:
@@ -120,9 +122,10 @@ Feature: The pending budget, the pending deadline and on step pending
     And step "payment" attempts:
       | attempt | outcome |
       | 1       | pending |
-    And a step policy "pace" defines the hook "on step pending"
-    And a step policy "pace" defines the hook "on step failure"
-    And the hook "on step pending" of policy "pace" returns FailWorkflow with code "too slow"
+    And the step policies define the hooks:
+      | policy | hook            | returns      | code     |
+      | pace   | on step pending | FailWorkflow | too slow |
+      | pace   | on step failure |              |          |
     And step "payment" has the policies "pace"
     When the workflow runs
     Then the events include, in order:
