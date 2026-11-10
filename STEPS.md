@@ -8,8 +8,14 @@ A **null-like value** is what a language has for no value at all, such as `null`
 
 ## Building a workflow
 
-- **`Given a workflow "<workflow>" with the steps:`** followed by a table with the column `step`, one row per step in declaration order. Declares a workflow whose steps are scripted test steps. (0002) The table may have the column `policies` (0133): a filled cell, written as policy names separated by commas, stands for `step "<step>" has the policies` with those names, in the order written; an empty cell attaches none. The policies it names are declared before it, as "Writing a scenario" in FORMAT.md says. It may also have the columns `inputs` and `services` (0133): the step's requests, written `key: type` and separated by commas, as in `amount: integer`, standing for "requests input" and "requests the service"; and `outcome` (0133): `success` for "succeeds", or `failure` with the column `code` for "fails with code", for a step whose every attempt ends the same way.
-- **`And a workflow "<workflow>" with the policies "<policy>", "<policy>" and the steps:`**: the sentence above, followed by `the workflow has the policies` with these names, in this order. (0133)
+- **`Given a workflow "<workflow>" with the steps:`** followed by a table with the column `step`, one row per step in declaration order. Declares a workflow whose steps are scripted test steps. (0002) The table may also have these columns, each standing for the sentences named, for its step (0.1.1):
+  - `policies`: policy names separated by commas, for "step ... has the policies" with those names, in the order written. The policies are defined before the workflow, as "Writing a scenario" in FORMAT.md says.
+  - `inputs` and `services`: the step's requests, written `key: type` and separated by commas, as in `amount: integer`, for "requests input" and "requests the service", in the order written. Optional inputs stay sentences of their own.
+  - `outcome`: `success` for "succeeds", for a step whose every attempt succeeds; or `failure`, with the column `code`, for a step whose every attempt ends with a failure of that code, as an `attempts` row with that outcome and code would script it.
+  - `rescue`: `yes` for "has a rescue step". The rescue step, `<step>_rescue`, is then scripted by its own sentences.
+
+  An empty cell adds nothing.
+- **`Given a workflow "<workflow>" with the policies "<policy>", "<policy>" and the steps:`**: the sentence above, followed by "the workflow has the policies" with these names, in this order. (0.1.1)
 - **`And step "<step>" requests input "<key>" of type <type>`**: the step declares a required input. (0002)
 - **`And step "<step>" requests optional input "<key>" of type <type>`**: the step declares an optional input. (0002)
 - **`And step "<step>" contributes "<key>" = <value>`**: on every attempt, the step contributes this key and value before ending. Repeated for the same key, the contributions happen in the order written. (0002)
@@ -56,11 +62,12 @@ An input adapter's own requests are declared in the order their sentences are wr
 - **`And the input adapter "<adapter>" requests data from the workflow "<key>" of type <type>`**: a required request, read from the data bag. (0060)
 - **`And the input adapter "<adapter>" requests the step name and returns it for "<key>"`**: the adapter requests the name of the step being built and, when called for that input, returns that name as a string. (0098)
 - **`And the input adapter "<adapter>" requests the data bag`**: the adapter declares read access to the data bag. Reads through it emit nothing and abort nothing. (0091)
-- **`Given the input adapter "<adapter>" returns <value> when step "<step>" requests "<key>"`**, **`Given the input adapter "<adapter>" fails with "<message>" when step "<step>" requests "<key>"`** and **`Given the input adapter "<adapter>" takes <duration> when step "<step>" requests "<key>"`** (0135): defines what the adapter does when it is called for that step and that key, as "returns", "fails with" and "takes" above do for every step. `<value>` may be `nothing`, for "returns nothing". An adapter that answers differently for different steps tells them apart without requesting the step name. These sentences define the adapter; the sentence below binds it. (0133)
-- **`And the workflow binds the input adapter "<adapter>" to the step "<step>"`** and **`And the workflow binds the input adapter "<adapter>" to the steps "<step>", "<step>"`**: the same as "the workflow declares the input adapter ... for the steps" above, written after the workflow, as "Writing a scenario" in FORMAT.md says. (0133)
 - **`And the input adapter "<adapter>" returns "<key>" of type <type>, read from the data bag, for "<input>"`**: when called for that input, the adapter reads that key through its access, and returns the value if it found one of that type, or nothing otherwise. (0091)
 - **`And the input adapter "<adapter>" writes "<key>" = <value> through its data bag access`**: on every call, the adapter writes through its access, as far as the language allows, then goes on. (0091)
 - **`And the input adapter "<adapter>" keeps its data bag access when called for step "<step>", and returns "<key>" of type <type>, read through that kept access, for "<input>" when called for step "<step>"`**: the adapter keeps the access it was given for the first step's inputs, and later reads through that kept access, not the one it is given for the second step. (0091)
+- **`Given the input adapter "<adapter>" returns <value> when step "<step>" requests "<key>"`** and **`Given the input adapter "<adapter>" fails with "<message>" when step "<step>" requests "<key>"`**: defines what the adapter does when it is called for that step and that key, as "returns" and "fails with" above do for every step. `<value>` may be `nothing`, for "returns nothing". An adapter that answers differently for different steps tells them apart without requesting the step name. These sentences define the adapter, before the workflow; the sentence below binds it. (0.1.1) The same definition may also say **`Given the input adapter "<adapter>" takes <duration> when step "<step>" requests "<key>"`**, for "takes". (0135)
+- **Defining an input adapter by its other sentences.** An input adapter none of the sentences above defines, such as one that only requests the data bag and reads from it, is defined by its first sentence of this section, such as "the input adapter ... requests the data bag", written before the workflow. Its other sentences follow, and the workflow binds it as above. (0.1.1)
+- **`And the workflow binds the input adapter "<adapter>" to the step "<step>"`** and **`And the workflow binds the input adapter "<adapter>" to the steps "<step>", "<step>"`**: the same as "the workflow declares the input adapter ... for the steps" above, written after the workflow, as "Writing a scenario" in FORMAT.md says. (0.1.1)
 
 ## Policies
 
@@ -68,15 +75,14 @@ A hook's requests, made by the sentences below and in "Hooks, lifecycles and rol
 
 - **`And a step policy "<policy>" defines the hook "<hook>"`**: a step policy whose hook does nothing beyond what other sentences add, and returns no lifecycle. Repeated with another hook for the same policy, it adds that hook to the same policy. (0002)
 - **`And a workflow policy "<policy>" defines the hook "<hook>"`** (0002)
-- **`Given the step policies and their hooks:`** and **`And the workflow policies and their hooks:`**, followed by a table with one row for each hook, in the columns `policy` and `hook` and any of the optional columns below. Each row is the sentence above for that policy and hook, followed by the sentence each of its filled cells stands for; an empty cell adds nothing, and a scenario writes only the columns it uses. Rows are taken in the order written. (0133)
-  - `returns`: `FailWorkflow`, with `code`, for "returns FailWorkflow with code"; `FinishWorkflow` for "returns FinishWorkflow"; or `bypass`, with or without `code`, for "bypasses" and "bypasses with code".
-  - `fails with`: the message, for "fails with", and with `on attempt` for "fails with ... on attempt".
-  - `duration`: a duration such as `2000 ms`, for "takes" (0135).
-
-  What a hook requests goes in the table below; other behaviours of a hook, such as `emits`, `defers` or `waits for cancellation`, stay sentences of their own.
-- **`And the hooks request:`** followed by a table with one row for each request, in the columns `policy`, `hook` and `request`, and optionally `key`, `type` and `optional`. Each row stands for the request sentence of that hook named by `request`: `ending`, `number of attempts`, `error` and `cause` for "requests its ..." (0133); `failure reason`, `failure cause`, `retry cause`, `error`, `step name`, `attempt number`, `journey ID` and `hint` (0134) for "requests the ..."; `step data` and `data from the workflow`, with `key` and `type`, for "requests step data" and "requests data from the workflow". `optional` is `yes` for the optional form of the request, as in "requests the optional failure reason", and empty otherwise. Where a request exists in both a "the" and an "its" form, the form the catalogue defines for that hook is meant. Rows are taken in the order written. (0133)
 - **`And step "<step>" has the policies "<policy>", "<policy>"`**: attaches step policies, in this order. One or more names. (0002)
 - **`And the workflow has the policies "<policy>", "<policy>"`**: attaches workflow policies, in this order. (0002)
+- **`Given the step policies and their hooks:`** and **`Given the workflow policies and their hooks:`**, followed by a table with one row for each hook, in the columns `policy` and `hook` and any of the optional columns below. Each row is "a step policy ... defines the hook" or "a workflow policy ... defines the hook" for that policy and hook, followed by the sentence each of its filled cells stands for; an empty cell adds nothing, and a scenario writes only the columns it uses. Rows are taken in the order written. (0.1.1)
+  - `returns`: `FailWorkflow`, with `code`, for "returns FailWorkflow with code"; `FinishWorkflow` for "returns FinishWorkflow"; or `bypass`, with or without `code`, for "bypasses" and "bypasses with code" (0133).
+  - `fails with`: the message, for "fails with", and with `on attempt` for "fails with ... on attempt" (0133).
+  - `duration`: a duration such as `2000 ms`, for "takes" (0135).
+
+  What a hook requests goes in the table below; other behaviours of a hook, such as `throws`, `emits`, `defers`, `waits for cancellation` or what it contributes, stay sentences of their own.
 - **`And the hook "<hook>" of policy "<policy>" requests step data "<key>" of type <type>`**: a required request for data from the step. (0002)
 - **`And the hook "<hook>" of policy "<policy>" requests optional step data "<key>" of type <type>`** (0002)
 - **`And the hook "<hook>" of policy "<policy>" changes the step data "<key>" it received to <value>`**: the hook changes the value it received, in place, as far as the language allows. (0027)
@@ -86,6 +92,7 @@ A hook's requests, made by the sentences below and in "Hooks, lifecycles and rol
 - **`And the hook "<hook>" of policy "<policy>" requests the failure cause`**: why the failure hook was called: `failure`, `retries exhausted` or `abnormal termination`. (0008, 0024)
 - **`And the hook "<hook>" of policy "<policy>" requests the retry cause`**: why the retry hook was called: `failure` or `abnormal termination`, or `before hook failed` or `after hook failed` (0133). (0008, 0106)
 - **`And the hook "<hook>" of policy "<policy>" requests the error`**: a required request for the error that ended the attempt, in an abnormal termination. (0008, 0083)
+- **`Given the hooks request:`** followed by a table with one row for each request, in the columns `policy`, `hook` and `request`, and optionally `key`, `type` and `optional`. Each row stands for the request sentence of that hook named by `request`: `failure reason`, `failure cause`, `retry cause`, `error`, `step name`, `attempt number`, `journey ID` and `hint` (0134) for "requests the ..."; `ending`, `number of attempts`, `error` and `cause` for "requests its ..." (0133); `step data` and `data from the workflow`, with `key` and `type`, for "requests step data" and "requests data from the workflow". `optional` is `yes` for the optional form of the request, as in "requests the optional failure reason", and empty otherwise. Where a request exists in both a "the" and an "its" form, the form the catalogue defines for that hook is meant (0133). Rows are taken in the order written, and a hook's requests are declared in that order. (0.1.1)
 
 ## Services
 
@@ -95,8 +102,8 @@ Every instance a provider makes is labelled with the provider's name and how man
 - **`And the workflow declares the service provider "<provider>" for "<key>" of type <service type>, once per journey`**: a provider of journey scope, attached to no step unless the sentence below attaches it. (0095)
 - **`And the workflow declares the service provider "<provider>" for "<key>" of type <service type>, for each attempt`**: a provider of attempt scope, attached to no step unless the sentence below attaches it. (0095)
 - **`And the service provider "<provider>" serves only the steps "<step>", "<step>"`**: attaches the provider to these steps, one or more, each as often as it is named; a rescue step is named `<step>_rescue`. (0095, 0098, 0116)
-- **`Given the service provider "<provider>" makes a <service type> for "<key>", for each attempt`** and **`Given the service provider "<provider>" makes a <service type> for "<key>", once per journey`**: defines a provider of that scope, as "the workflow declares the service provider" above does, without declaring it in the workflow yet; the provider's other sentences, such as "takes" or "fails with", may follow. (0133)
-- **`And the workflow binds the service provider "<provider>"`** , **`And the workflow binds the service provider "<provider>" to the step "<step>"`** and **`And the workflow binds the service provider "<provider>" to the steps "<step>", "<step>"`**: declares the defined provider in the workflow, attached to no step, or attached to these steps as "serves only the steps" does. Written after the workflow. (0133)
+- **`Given the service provider "<provider>" makes a <service type> for "<key>", for each attempt`** and **`Given the service provider "<provider>" makes a <service type> for "<key>", once per journey`**: defines a provider of that scope, as "the workflow declares the service provider" above does, without declaring it in the workflow yet; the provider's other sentences, such as what it requests or "fails with", may follow. (0.1.1)
+- **`And the workflow binds the service provider "<provider>"`**, **`And the workflow binds the service provider "<provider>" to the step "<step>"`** and **`And the workflow binds the service provider "<provider>" to the steps "<step>", "<step>"`**: declares the defined provider in the workflow, attached to no step, or attached to these steps as "serves only the steps" does. Written after the workflow. (0.1.1)
 - **`And the service provider "<provider>" requests the step name`** (0095)
 - **`And the service provider "<provider>" requests the attempt number`** (0095)
 - **`And the service provider "<provider>" requests the journey ID`** (0095)
@@ -114,6 +121,7 @@ Every instance a provider makes is labelled with the provider's name and how man
 - **`And the services the provider "<provider>" makes fail with "<message>" when used`**: the operation of every instance this provider makes fails, by throwing or returning an error whose message is this text. (0095)
 - **`Then the service provider "<provider>" was called <n> times`**: counting every call, whether it made an instance or failed; a provider never called was called 0 times. (0095)
 - **`Then step "<step>" was given the service "<key>" labelled "<label>" for attempt <n>`**: the step built for that attempt received an instance with this label. (0095)
+- **`Then the steps were given the services:`** followed by a table with the columns `step`, `service`, `label` and `attempt`, one row for each instance: each row stands for "step ... was given the service ... labelled ... for attempt ...". (0.1.1)
 - **`Then the service provider "<provider>" received the step name "<step>"`**: on at least one call. (0095)
 - **`Then the service provider "<provider>" received the attempt number <n>`**: on at least one call. (0095)
 - **`Then the service provider "<provider>" received the journey ID "<id>"`** (0095)
@@ -145,6 +153,7 @@ Implementations of `labeller`, used only in these sentences: `first labeller`, w
 - **`Then the journey failed`** (0008)
 - **`Then step "<step>" ended as <status> after <n> attempts`**: the step's final status, one of `succeeded`, `failed`, `skipped`, `bypassed` (0133), `abandoned` (0134), `not executed`, `rescuing` or `aborted`, and how many attempts it took, both read from the event stream; an attempt counts from its `attempt_started`. The status is `aborted` when `journey_aborted` names the step and no `step_succeeded`, `step_skipped` or `step_given_up` of that step came before it: a step whose status was already final when the journey was aborted keeps it. A step whose last decision is `step_rescuing` or `step_rescued`, with no `attempt_started` of it after that decision, is `rescuing`, or `aborted` when the journey was aborted. (0008, spec#48, 0065, spec#89, 0003)
 - **`Then step "<step>" ended as aborted`**: the journey was aborted while this step was executing or about to be retried: `journey_aborted` names it, and no `step_succeeded`, `step_skipped` or `step_given_up` of that step came before it; or while it was being rescued: its last decision is `step_rescuing` or `step_rescued`, with no `attempt_started` of it after that decision, and the journey was aborted. (0009, 0065, spec#89, 0003)
+- **`Then the steps ended as:`** followed by a table with the columns `step` and `status`, and optionally `attempts`: each row stands for "step ... ended as ... after ... attempts". The `attempts` cell may be left empty only when the status is `aborted`: the row then stands for "step ... ended as aborted", which does not count attempts. (0.1.1)
 - **`Then the journey ID is a UUID v4`** (0009)
 - **`Then the journey ID is "<id>"`** (0009)
 - **`Then the journey_started event lists the initial keys "<key>", "<key>" without their values`**: one or more keys; the event carries exactly these keys and none of their values. (0009)
@@ -173,6 +182,7 @@ Implementations of `labeller`, used only in these sentences: `first labeller`, w
 - **`Then step "<step>" was built with rescued step data "<key>" = <value>`** and **`Then step "<step>" was built with rescued step data "<key>" absent`**: what the rescue step received for its request of data from the step it rescues. (0003)
 - **`Then step "<step>" received the failure reason with code "<code>", message "<message>" and details <details>`** and **`Then step "<step>" received the error with the message "<message>"`**: what the rescue step received for its request of the failure reason or the error. (0003)
 - **`Then step "<step>" was built for attempt <n> with input "<key>" = <value>`**: the step built for that attempt received this value. (0091)
+- **`Then the steps were built with:`** followed by a table with the columns `step`, `input` and `value`, and optionally `attempt`: each row stands for "step ... was built with input ... = ...", with `absent` as the value for "was built with input ... absent", or, with `attempt` filled, for "step ... was built for attempt ... with input ... = ...". `value` is JSON. (0.1.1)
 - **`Then the hook "<hook>" of policy "<policy>" received step data "<key>" = <value>`** (0002)
 - **`Then the hook "<hook>" of policy "<policy>" received step data "<key>" absent`** (0002)
 - **`Then the hook "<hook>" of policy "<policy>" received the step name "<step>"`**: on at least one call, the hook received this step name. (0002)
@@ -215,6 +225,15 @@ What happened:
 - **`Then the hook "<hook>" of policy "<policy>" received data from the workflow "<key>" absent`** (0010)
 - **`Then the hook "<hook>" of policy "<policy>" received the attempt number <n>`** (0010)
 - **`Then the hook "<hook>" of policy "<policy>" received the journey ID "<id>"`** (0010)
+- **`Then the hooks received:`** followed by a table with one row for each hook, in the columns `policy` and `hook` and any of the optional columns below. Each filled cell stands for the sentence below; an empty cell checks nothing, and `none` is written for what was answered absent. A scenario writes only the columns it uses. (0.1.1)
+  - `calls`: a number, for "was called <n> times", and `0` for "was not called".
+  - `attempt number`: a number, for "received the attempt number".
+  - `step name`, `journey ID`: for "received the step name" and "received the journey ID".
+  - `cause`: a cause, for "received the cause".
+  - `error`: a message, for "received the error with the message".
+  - `failure reason`: only `none`, for "received no failure reason"; a failure reason with its code, message and details stays a sentence of its own.
+
+  Checks with structured values, such as step data or data from the workflow, stay sentences of their own.
 - **`Then the result names the step "<step>" whose hook failed the journey, with the code "<code>"`**: the journey failed by `FailWorkflow` with a reason of this code, and `journey_failed` names this step. (0010, 0065)
 - **`Then the contribution of "<key>" is recorded as made by the hook "<hook>" of policy "<policy>"`**: the events record that this contribution came from that hook, not from a step. (0010)
 - **`Then the operation "<operation>" of the role "<role>" was called <n> times`** (0010)
@@ -308,6 +327,7 @@ The checkpoints a `journey_cancelled` names (0130): `before step`, `before attem
 - **`Then the reporter "<reporter>" received no event`** (0011)
 - **`Then the reporter "<reporter>" received the event "<event>" <n> times`** (0049)
 - **`Then the reporter "<reporter>" did not receive the event "<event>"`** (spec#47)
+- **`Then the reporters received:`** followed by a table with the columns `reporter`, `event` and `received`: each row stands for "the reporter ... received the event ..." when `received` is `yes`, for "the reporter ... did not receive the event ..." when it is `no`, and for "received the event ... <n> times" when it is a number. (0.1.1)
 - **`Then every event carries the journey ID "<id>" and the workflow name "<workflow>", with increasing sequence numbers`** (0011)
 - **`Then no engine event carries the value of "<key>"`**: no event of the engine catalogue contains the value of this key, anywhere. (0011)
 - **`Then no event carries the message "<message>"`** (0057, 0064)

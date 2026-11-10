@@ -20,7 +20,7 @@ Final for version 0.1 of the specification, agreed in [#5](https://github.com/it
 
 ## Writing a scenario
 
-From tier 2, every scenario is written this way. Tier 1 cases are frozen and keep their form.
+Every scenario is written this way, in every tier, from version 0.1.1, which restated tier 1 in this form.
 
 1. **Script, declare, check.** A case scripts only its own test code: steps, hooks, input adapters and service providers, and what each returns, fails with or takes. It declares what that code requests. It checks what the framework supplied in the `Then` part, and never scripts it.
 2. **Define, then bind.** The `Given` part first defines the building blocks: the step policies and their hooks, the workflow policies and theirs, what the hooks request, the input adapters and the service providers. Then the workflow binds them, with its policies and its steps, each step with its policies, inputs, services and outcome, followed by the bindings of its input adapters and service providers. Then come the workflow's settings, each step's settings and script, step by step in declaration order, and last the caller and the runner, such as a cancellation or the recording reporter of test support. A feature with a `Background` keeps the workflow there, and its scenarios define their building blocks after it. Each building block opens with `Given`: an input adapter, a service provider, the step policies, the workflow policies, what the hooks request, and the workflow; the sentences that continue a block, and everything after the workflow, use `And`.
@@ -103,7 +103,7 @@ This repository is tagged with the specification's versions, in three parts, for
 
 - **Release candidates.** Until a version is proven by a first implementation passing all its cases, each change to the cases is released as a new candidate: `v0.1.0-rc.1`, `v0.1.0-rc.2`, and so on. Implementations pin the latest candidate.
 - **Proven.** The version is then tagged `v0.1.0`, here and in the specification.
-- **Afterwards.** Corrections of spec defects are released as patch versions, such as `v0.1.1`, and accepted proposals as minor versions, such as `v0.2.0`. See "The behaviour specification" in the specification's [PROCESS.md](https://github.com/itinera-dev/spec/blob/main/PROCESS.md).
+- **Afterwards.** Corrections of spec defects, and restatements of the cases that change no case's meaning, are released as patch versions, such as `v0.1.1`, and accepted proposals as minor versions, such as `v0.2.0`. A restatement keeps every feature file's path and every scenario's name. See "The behaviour specification" in the specification's [PROCESS.md](https://github.com/itinera-dev/spec/blob/main/PROCESS.md).
 
 ## Running the cases in a language
 
