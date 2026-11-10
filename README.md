@@ -12,6 +12,7 @@ Every case of tier 1, specification 0.1.0, is here, tagged `v0.1.0` like the spe
 - **The format** is in [FORMAT.md](FORMAT.md): tags, values and types, event tables, versions, and how a language runs the cases through its manifest, `conformance.json`, or one named for the language in a repository holding several.
 - **The sentences** a case may use form a closed catalogue, [STEPS.md](STEPS.md). Each language implements every sentence once, in its runner.
 - **Tags** give each case's tier, proposal and required capabilities. A language claims a tier only when every case of that tier and the tiers before it passes.
+- **The scenario pages** at <https://itinera-dev.org/conformance/cases/> show every feature of every version as a page, with an anchor for each scenario and an index for each tag, such as `@proposal-0010` (FORMAT.md, "The scenario pages").
 - **Each language** implements a small runner that loads the cases, runs them and produces a report.
 
 The process is described in [PROCESS.md](https://github.com/itinera-dev/spec/blob/main/PROCESS.md).
