@@ -142,7 +142,7 @@ A repository may hold more than one language over one implementation, such as Ko
 
 ## The scenario pages
 
-This repository publishes its cases on its GitHub Pages site, `https://itinera-dev.github.io/conformance/`, so that anyone can read a scenario, or link to it, without cloning the repository or signing in to GitHub. The pages are built from the feature files alone, and need no language and no run.
+This repository publishes its cases on its GitHub Pages site, `https://itinera-dev.org/conformance/`, so that anyone can read a scenario, or link to it, without cloning the repository or signing in to GitHub. The pages are built from the feature files alone, and need no language and no run.
 
 1. **One set per version.** Every tag of this repository, such as `v0.1.1` or `v0.1.0-rc.20`, has its pages under `cases/<tag>/`, and `main` has its pages under `cases/main/`. Since a tag never moves, the pages of a tag never change and their addresses are permanent. The pages of `main` follow the branch and say that they are not a released version.
 2. **One page per feature file**, at the file's path below `cases/` with `.html` for `.feature`: `cases/tier-1/0008-steps/outcomes.feature` at `v0.1.1` is `cases/v0.1.1/tier-1/0008-steps/outcomes.html`. The page holds the feature's name, tags and description, its `Background`, each `Rule` with its scenarios, each scenario with its tags and steps, data tables as tables whose first row is the header, doc strings as preformatted text, each outline's `Examples`, and a link to the file on GitHub at that version. Comments in the file are left out.
