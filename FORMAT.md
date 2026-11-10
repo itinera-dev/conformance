@@ -18,6 +18,15 @@ Final for version 0.1 of the specification, agreed in [#5](https://github.com/it
 6. **Screen-reader friendly.** Plain sentences and simple tables. No ASCII art, no decorative characters.
 7. **A complete stream to read.** A scenario that uses the default dispatcher and a sentence about the event stream as a whole lists at least one reporter that never fails, so that sentence has a complete stream to read ("Running the cases in a language", item 3).
 
+## Writing a scenario
+
+Every scenario is written this way, in every tier, from version 0.1.1, which restated tier 1 in this form.
+
+1. **Script, declare, check.** A case scripts only its own test code: steps, hooks, input adapters and service providers, and what each returns, fails with or takes. It declares what that code requests. It checks what the framework supplied in the `Then` part, and never scripts it.
+2. **Define, then bind.** The `Given` part first defines the building blocks: the step policies and their hooks, the workflow policies and theirs, what the hooks request, the input adapters and the service providers. Then the workflow binds them, with its policies and its steps, each step with its policies, inputs, services and outcome, followed by the bindings of its input adapters and service providers. Then come the workflow's settings, each step's settings and script, step by step in declaration order, and last the caller and the runner, such as a cancellation or the recording reporter of test support. A feature with a `Background` keeps the workflow there, and its scenarios define their building blocks after it. Each building block opens with `Given`: an input adapter, a service provider, the step policies, the workflow policies, what the hooks request, and the workflow; the sentences that continue a block, and everything after the workflow, use `And`.
+3. **One fact per row.** A table has one row per hook, request, step or attempt, so a cell holds a list only where a row cannot say it, such as a step's inputs. A table's columns are those its sentence defines, and a scenario writes only the columns it uses. An empty cell adds or checks nothing; `none` means answered absent.
+4. **Tables from two up.** A single fact of a kind keeps its sentence; two or more go in that kind's table. Input adapters and service providers are the exception: each fact is a sentence, defining them before the workflow and binding them after it, such as `the input adapter "prices" returns 42 when step "charge" requests "amount"` and `the workflow binds the input adapter "prices" to the steps "charge"`.
+
 ## Layout
 
 - `cases/tier-N/NNNN-short-name/` holds the cases of one proposal, where `NNNN` is the proposal's number.
@@ -85,7 +94,7 @@ This repository is tagged with the specification's versions, in three parts, for
 
 - **Release candidates.** Until a version is proven by a first implementation passing all its cases, each change to the cases is released as a new candidate: `v0.1.0-rc.1`, `v0.1.0-rc.2`, and so on. Implementations pin the latest candidate.
 - **Proven.** The version is then tagged `v0.1.0`, here and in the specification.
-- **Afterwards.** Corrections of spec defects are released as patch versions, such as `v0.1.1`, and accepted proposals as minor versions, such as `v0.2.0`. See "The behaviour specification" in the specification's [PROCESS.md](https://github.com/itinera-dev/spec/blob/main/PROCESS.md).
+- **Afterwards.** Corrections of spec defects, and restatements of the cases that change no case's meaning, are released as patch versions, such as `v0.1.1`, and accepted proposals as minor versions, such as `v0.2.0`. A restatement keeps every feature file's path and every scenario's name. See "The behaviour specification" in the specification's [PROCESS.md](https://github.com/itinera-dev/spec/blob/main/PROCESS.md).
 
 ## Running the cases in a language
 
