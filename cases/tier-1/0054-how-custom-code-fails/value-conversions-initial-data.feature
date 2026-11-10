@@ -10,9 +10,8 @@ Feature: A value conversion that fails in the instance's initial data
   @proposal-0113
   Scenario: Initial data whose conversion fails is refused by run, listing the key
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the data bag contains a throwing record as "order"
     When the workflow runs
     Then run was refused
@@ -22,11 +21,10 @@ Feature: A value conversion that fails in the instance's initial data
   @proposal-0113
   Scenario: Initial global metadata whose conversion fails is refused by run, listing the key
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And the workflow instance is created with a throwing record as global metadata "customer"
+      | step   | outcome |
+      | charge | success |
     And the workflow lists the reporters "audit"
+    And the workflow instance is created with a throwing record as global metadata "customer"
     And the executor uses its default dispatcher
     When the workflow runs
     Then run was refused

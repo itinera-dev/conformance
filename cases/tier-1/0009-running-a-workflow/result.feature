@@ -7,33 +7,32 @@ Feature: The journey result
 
   Scenario: A successful journey's data bag holds the initial data and every committed contribution
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
+      | step   | outcome |
+      | charge | success |
+      | ship   | success |
+    And step "charge" contributes "receipt" = "R-1"
+    And step "ship" contributes "tracking" = "T-9"
     And the data bag contains:
       | key    | value |
       | amount | 42    |
-    And step "charge" contributes "receipt" = "R-1"
-    And step "charge" succeeds
-    And step "ship" contributes "tracking" = "T-9"
-    And step "ship" succeeds
     When the workflow runs
     Then the result's data bag contains:
       | key      | value |
       | amount   | 42    |
       | receipt  | "R-1" |
       | tracking | "T-9" |
-    And step "charge" ended as succeeded after 1 attempts
-    And step "ship" ended as succeeded after 1 attempts
+    And the steps ended as:
+      | step   | status    | attempts |
+      | charge | succeeded | 1        |
+      | ship   | succeeded | 1        |
     And the journey succeeded
 
   Scenario: A failed journey's result names the failed step and keeps the data bag as it stood
     Given a workflow "orders" with the steps:
-      | step    |
-      | reserve |
-      | charge  |
+      | step    | outcome |
+      | reserve | success |
+      | charge  |         |
     And step "reserve" contributes "reservation" = "X-1"
-    And step "reserve" succeeds
     And step "charge" attempts:
       | attempt | outcome | code     |
       | 1       | failure | declined |
@@ -47,18 +46,18 @@ Feature: The journey result
   @proposal-0085
   Scenario: An aborted journey's result names the step and the abort reason
     Given a workflow "orders" with the steps:
-      | step    |
-      | reserve |
-      | charge  |
-      | ship    |
+      | step    | outcome |
+      | reserve | success |
+      | charge  |         |
+      | ship    | success |
     And step "reserve" contributes "reservation" = "X-1"
-    And step "reserve" succeeds
     And step "charge" cannot be built because its constructor fails with "no connection"
-    And step "ship" succeeds
     When the workflow runs
     Then the result names the step "charge" as where the journey was aborted, with the abort reason "step could not be built"
-    And step "charge" ended as aborted
-    And step "ship" ended as not executed after 0 attempts
+    And the steps ended as:
+      | step   | status       | attempts |
+      | charge | aborted      |          |
+      | ship   | not executed | 0        |
     And the result carries no data bag
     And the journey was aborted
 
@@ -75,11 +74,10 @@ Feature: The journey result
   @proposal-0085 @proposal-0083
   Scenario: An aborted journey's result carries its error and no data bag
     Given a workflow "orders" with the steps:
-      | step    |
-      | reserve |
-      | charge  |
+      | step    | outcome |
+      | reserve | success |
+      | charge  |         |
     And step "reserve" contributes "reservation" = "X-1"
-    And step "reserve" succeeds
     And step "charge" cannot be built because its constructor fails with "no connection"
     When the workflow runs
     Then the journey was aborted with the abort reason "step could not be built"
