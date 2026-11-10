@@ -40,13 +40,12 @@ Feature: A script is checked before the journey
 
   Scenario: No attempt is needed after one that cannot be followed
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
+      | step   | outcome |
+      | charge |         |
+      | ship   | success |
     And step "charge" allows 2 retries
     And step "charge" does not retry abnormal terminations
     And step "ship" allows 2 retries
-    And step "ship" succeeds
     And the script says:
       | step   | attempt | ending               | message |
       | charge | 1       | abnormal termination | timeout |
@@ -57,31 +56,28 @@ Feature: A script is checked before the journey
   @spec-defect-0127
   Scenario: No attempt is needed after a rescue step that fails
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
-    And step "charge" has a rescue step
-    And step "charge" succeeds
+      | step   | outcome | rescue |
+      | charge | success | yes    |
+      | ship   | success |        |
     And step "charge_rescue" succeeds
-    And step "ship" succeeds
     And the script says:
       | step          | attempt | ending  | code       |
       | charge        | 1       | failure | expired    |
       | charge_rescue | 1       | failure | no-refresh |
     When the workflow runs with the script
     Then the journey failed
-    And step "charge" ended as rescuing after 1 attempts
+    And the steps ended as:
+      | step   | status       | attempts |
+      | charge | rescuing     | 1        |
+      | ship   | not executed | 0        |
     And the scripted run's record of step "charge" holds the attempts 1
     And the scripted run's record of step "charge_rescue" holds the attempts 1
-    And step "ship" ended as not executed after 0 attempts
 
   @spec-defect-0127
   Scenario: No attempt is needed after a rescue step that ends in an abnormal termination
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
-    And step "charge" succeeds
+      | step   | outcome | rescue |
+      | charge | success | yes    |
     And step "charge_rescue" succeeds
     And the script says:
       | step          | attempt | ending               | message      |
@@ -95,10 +91,8 @@ Feature: A script is checked before the journey
   @spec-defect-0127
   Scenario: An attempt described after a rescue step that fails never runs
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
-    And step "charge" succeeds
+      | step   | outcome | rescue |
+      | charge | success | yes    |
     And step "charge_rescue" succeeds
     And the script says:
       | step          | attempt | ending  | code       |
@@ -112,10 +106,8 @@ Feature: A script is checked before the journey
   @spec-defect-0127
   Scenario: The attempt after a rescue step that succeeds is still needed
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
-    And step "charge" succeeds
+      | step   | outcome | rescue |
+      | charge | success | yes    |
     And step "charge_rescue" succeeds
     And the script says:
       | step          | attempt | ending  | code    |
@@ -130,10 +122,8 @@ Feature: A script is checked before the journey
   @spec-defect-0127
   Scenario: The attempt after a rescue step that runs for real is still needed
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
-    And step "charge" succeeds
+      | step   | outcome | rescue |
+      | charge | success | yes    |
     And step "charge_rescue" succeeds
     And the script says:
       | step          | attempt | ending   | code    |
@@ -148,9 +138,8 @@ Feature: A script is checked before the journey
   @spec-defect-0127
   Scenario: No attempt is needed after a real run that fails and a rescue step that fails
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
+      | step   | rescue |
+      | charge | yes    |
     And step "charge" attempts:
       | attempt | outcome | code    |
       | 1       | failure | expired |
@@ -166,14 +155,11 @@ Feature: A script is checked before the journey
 
   Scenario: A script that leaves out an attempt or a rescue step stops the test, naming each
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
-    And step "charge" has a rescue step
-    And step "charge" succeeds
+      | step   | outcome | rescue |
+      | charge | success | yes    |
+      | ship   | success |        |
     And step "charge_rescue" succeeds
     And step "ship" allows 1 retries
-    And step "ship" succeeds
     And the script says:
       | step   | attempt | ending  | code    |
       | charge | 1       | failure | expired |
@@ -188,11 +174,9 @@ Feature: A script is checked before the journey
 
   Scenario: A test that asks for every step to be scripted stops when one is not
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
-    And step "charge" succeeds
-    And step "ship" succeeds
+      | step   | outcome |
+      | charge | success |
+      | ship   | success |
     And the script says:
       | step   | attempt | ending  |
       | charge | 1       | success |
@@ -205,9 +189,8 @@ Feature: A script is checked before the journey
 
   Scenario: A script that names a step the workflow does not have stops the test
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the script says:
       | step   | attempt | ending  |
       | refund | 1       | success |
@@ -219,12 +202,10 @@ Feature: A script is checked before the journey
 
   Scenario: A script that names a step twice stops the test
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
+      | step   | outcome |
+      | charge | success |
+      | ship   | success |
     And step "charge" allows 1 retries
-    And step "charge" succeeds
-    And step "ship" succeeds
     And the script says:
       | step   | attempt | ending  | code     |
       | charge | 1       | failure | declined |
@@ -238,10 +219,9 @@ Feature: A script is checked before the journey
 
   Scenario: A script with a gap in a step's attempts stops the test
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" allows 2 retries
-    And step "charge" succeeds
     And the script says:
       | step   | attempt | ending  | code     |
       | charge | 1       | failure | declined |
@@ -254,10 +234,8 @@ Feature: A script is checked before the journey
 
   Scenario: A script that makes a rescue step skip stops the test
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
-    And step "charge" succeeds
+      | step   | outcome | rescue |
+      | charge | success | yes    |
     And step "charge_rescue" succeeds
     And the script says:
       | step          | attempt | ending  | code    |
@@ -273,10 +251,9 @@ Feature: A script is checked before the journey
   @undeclared-handles
   Scenario: A script that contributes for a step that declares no contributor stops the test
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" declares no contributor and no reporter
-    And step "charge" succeeds
     And the script says:
       | step   | attempt | contributes    | ending  |
       | charge | 1       | {"charged": 1} | success |
@@ -289,10 +266,9 @@ Feature: A script is checked before the journey
   @undeclared-handles
   Scenario: A script that emits for a step that declares no reporter stops the test
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" declares no contributor and no reporter
-    And step "charge" succeeds
     And the script says:
       | step   | attempt | emits     | emit message | ending  |
       | charge | 1       | step_info | charging     | success |
@@ -305,10 +281,9 @@ Feature: A script is checked before the journey
   @undeclared-handles
   Scenario: A script that sets global metadata for a step that declares no reporter stops the test
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" declares no contributor and no reporter
-    And step "charge" succeeds
     And the script says:
       | step   | attempt | sets global metadata | ending  |
       | charge | 1       | {"user_id": "u-7"}   | success |
@@ -321,10 +296,9 @@ Feature: A script is checked before the journey
   @proposal-0119
   Scenario: A script that describes an attempt twice stops the test
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" allows 1 retries
-    And step "charge" succeeds
     And the script says:
       | step   | attempt | ending  | code     |
       | charge | 1       | failure | declined |
@@ -338,10 +312,9 @@ Feature: A script is checked before the journey
   @proposal-0119
   Scenario: Every attempt chosen after a numbered one describes attempt 1 again
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" allows 1 retries
-    And step "charge" succeeds
     And the script says:
       | step   | attempt | ending  | code     |
       | charge | 1       | failure | declined |
@@ -355,10 +328,9 @@ Feature: A script is checked before the journey
   @proposal-0119
   Scenario: A numbered attempt chosen after every attempt describes it again
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" allows 1 retries
-    And step "charge" succeeds
     And the script says:
       | step   | attempt | ending  | code     |
       | charge | every   | failure | declined |
@@ -372,10 +344,9 @@ Feature: A script is checked before the journey
   @proposal-0119
   Scenario: The remaining attempts chosen twice describe the first of them again
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" allows 2 retries
-    And step "charge" succeeds
     And the script says:
       | step   | attempt   | ending  | code     |
       | charge | 1         | failure | declined |
@@ -390,9 +361,8 @@ Feature: A script is checked before the journey
   @proposal-0119 @attempt-zero
   Scenario: A script that describes attempt 0 stops the test
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the script says:
       | step   | attempt | ending  |
       | charge | 0       | success |
@@ -405,9 +375,8 @@ Feature: A script is checked before the journey
   @proposal-0119 @attempt-negative
   Scenario: A script that describes a negative attempt stops the test
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the script says:
       | step   | attempt | ending  |
       | charge | -1      | success |
@@ -420,9 +389,8 @@ Feature: A script is checked before the journey
   @proposal-0119 @attempt-fraction
   Scenario: A script that describes a fraction of an attempt stops the test
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the script says:
       | step   | attempt | ending  |
       | charge | 1.5     | success |
@@ -435,10 +403,9 @@ Feature: A script is checked before the journey
   @proposal-0119
   Scenario: A script that describes an attempt past the retry budget stops the test
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" allows 1 retries
-    And step "charge" succeeds
     And the script says:
       | step   | attempt | ending  | code     |
       | charge | 1       | failure | declined |
@@ -453,10 +420,8 @@ Feature: A script is checked before the journey
   @proposal-0119
   Scenario: A step with a rescue step can have no third attempt
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
-    And step "charge" succeeds
+      | step   | outcome | rescue |
+      | charge | success | yes    |
     And step "charge_rescue" succeeds
     And the script says:
       | step   | attempt | ending  | code     |
@@ -472,10 +437,8 @@ Feature: A script is checked before the journey
   @proposal-0119
   Scenario: A rescue step can have no second attempt
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
-    And step "charge" succeeds
+      | step   | outcome | rescue |
+      | charge | success | yes    |
     And step "charge_rescue" succeeds
     And the script says:
       | step          | attempt | ending  | code    |
@@ -492,10 +455,9 @@ Feature: A script is checked before the journey
   @proposal-0119
   Scenario: The remaining attempts of a step whose every attempt is described stop the test
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" allows 1 retries
-    And step "charge" succeeds
     And the script says:
       | step   | attempt   | ending  | code     |
       | charge | 1         | failure | declined |
@@ -510,10 +472,9 @@ Feature: A script is checked before the journey
   @proposal-0119
   Scenario: An attempt the step can never have is named rather than a gap before it
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" allows 1 retries
-    And step "charge" succeeds
     And the script says:
       | step   | attempt | ending  |
       | charge | 5       | success |
@@ -526,10 +487,9 @@ Feature: A script is checked before the journey
   @proposal-0119
   Scenario: An attempt the step can never have is named rather than one described already
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" allows 1 retries
-    And step "charge" succeeds
     And the script says:
       | step   | attempt | ending  | code     |
       | charge | every   | failure | declined |
@@ -543,10 +503,9 @@ Feature: A script is checked before the journey
   @proposal-0119
   Scenario: A numbered attempt chosen after the remaining attempts describes it again
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" allows 2 retries
-    And step "charge" succeeds
     And the script says:
       | step   | attempt   | ending  | code     |
       | charge | 1         | failure | declined |

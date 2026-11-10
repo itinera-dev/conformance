@@ -10,13 +10,10 @@ Feature: A scripted run records each attempt handed to its step
 
   Scenario: The record holds every attempt, scripted or real, with its inputs
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
-    And step "charge" requests input "amount" of type integer
-    And step "charge" succeeds
+      | step   | inputs          | outcome |
+      | charge | amount: integer | success |
+      | ship   |                 | success |
     And step "charge" allows 1 retries
-    And step "ship" succeeds
     And the data bag contains:
       | key    | value |
       | amount | 40    |
@@ -32,11 +29,9 @@ Feature: A scripted run records each attempt handed to its step
 
   Scenario: A step that never runs has no attempt in the record
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
-    And step "charge" succeeds
-    And step "ship" succeeds
+      | step   | outcome |
+      | charge | success |
+      | ship   | success |
     And the script says:
       | step   | attempt | ending  | code     |
       | charge | 1       | failure | declined |
@@ -57,13 +52,12 @@ Feature: A scripted run records each attempt handed to its step
     And the scripted run's record of step "charge" holds the attempts 1
 
   Scenario: A failing service provider keeps the attempt out of the record
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests the service "payments" of type labeller
-    And step "charge" succeeds
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
     And the service provider "payments" fails with "gateway down"
+    Given a workflow "orders" with the steps:
+      | step   | services           | outcome |
+      | charge | payments: labeller | success |
+    And the workflow binds the service provider "payments"
     And the script says:
       | step   | attempt | ending  |
       | charge | 1       | success |
@@ -73,10 +67,8 @@ Feature: A scripted run records each attempt handed to its step
 
   Scenario: A missing required input keeps the attempt out of the record
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests input "amount" of type integer
-    And step "charge" succeeds
+      | step   | inputs          | outcome |
+      | charge | amount: integer | success |
     And the data bag is empty
     And the script says:
       | step   | attempt | ending  |
@@ -87,10 +79,8 @@ Feature: A scripted run records each attempt handed to its step
 
   Scenario: A rescue step's attempt reads the contributions it requested from the failed attempt
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
-    And step "charge" succeeds
+      | step   | outcome | rescue |
+      | charge | success | yes    |
     And step "charge_rescue" requests rescued step data "card" of type string
     And step "charge_rescue" succeeds
     And the script says:
@@ -105,9 +95,8 @@ Feature: A scripted run records each attempt handed to its step
   @proposal-0119
   Scenario: Reading the record of a step the workflow does not have stops the test
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the script says:
       | step   | attempt | ending  |
       | charge | 1       | success |
@@ -118,10 +107,9 @@ Feature: A scripted run records each attempt handed to its step
   @proposal-0119
   Scenario: Reading an attempt the record does not hold reads nothing
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" allows 1 retries
-    And step "charge" succeeds
     And the script says:
       | step   | attempt | ending  |
       | charge | 1       | success |
@@ -132,9 +120,8 @@ Feature: A scripted run records each attempt handed to its step
   @proposal-0119 @attempt-zero
   Scenario: Reading attempt 0 of a step's record reads nothing
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the script says:
       | step   | attempt | ending  |
       | charge | 1       | success |
