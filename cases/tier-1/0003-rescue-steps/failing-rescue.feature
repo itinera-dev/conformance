@@ -10,22 +10,18 @@ Feature: A rescue step that does not succeed
 
   @proposal-0134
   Scenario: A rescue step that fails fails the journey, and the step does not run again
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
-    And step "charge" has a rescue step
+    Given a step policy "alarm" defines the hook "on step failure"
+    Given a workflow policy "report" defines the hook "on workflow failure"
+    Given a workflow "orders" with the policies "report" and the steps:
+      | step   | policies | outcome | rescue |
+      | charge | alarm    |         | yes    |
+      | ship   |          | success |        |
     And step "charge" attempts:
       | attempt | outcome | code    |
       | 1       | failure | expired |
     And step "charge_rescue" attempts:
       | attempt | outcome | code       |
       | 1       | failure | no-refresh |
-    And step "ship" succeeds
-    And a step policy "alarm" defines the hook "on step failure"
-    And step "charge" has the policies "alarm"
-    And a workflow policy "report" defines the hook "on workflow failure"
-    And the workflow has the policies "report"
     When the workflow runs
     Then the events are exactly:
       | event           | step          | attempt | code       | policy | hook                | cause   | rescue        | decided by |
@@ -40,17 +36,18 @@ Feature: A rescue step that does not succeed
       | hook_called     |               |         |            | report | on workflow failure |         |               |            |
       | journey_failed  | charge_rescue |         | no-refresh |        |                     | failure |               | default    |
     And the hook "on step failure" of policy "alarm" was not called
-    And step "charge" ended as rescuing after 1 attempts
-    And step "charge_rescue" ended as failed after 1 attempts
-    And step "ship" ended as not executed after 0 attempts
+    And the steps ended as:
+      | step          | status       | attempts |
+      | charge        | rescuing     | 1        |
+      | charge_rescue | failed       | 1        |
+      | ship          | not executed | 0        |
     And the result names the failed step "charge_rescue" with the code "no-refresh"
 
   @proposal-0083
   Scenario: A rescue step that ends in an abnormal termination fails the journey with its error
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
+      | step   | rescue |
+      | charge | yes    |
     And step "charge" attempts:
       | attempt | outcome | code    |
       | 1       | failure | expired |
@@ -71,9 +68,8 @@ Feature: A rescue step that does not succeed
   @rescue-skip
   Scenario: A rescue step that skips aborts the journey
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
+      | step   | rescue |
+      | charge | yes    |
     And step "charge" attempts:
       | attempt | outcome | code    |
       | 1       | failure | expired |
@@ -89,15 +85,16 @@ Feature: A rescue step that does not succeed
     And the last event is "journey_aborted"
     And no contribution of "token" was committed
     And the result names the step "charge_rescue" as where the journey was aborted, with the abort reason "rescue skipped"
-    And step "charge_rescue" ended as skipped after 1 attempts
-    And step "charge" ended as aborted
+    And the steps ended as:
+      | step          | status  | attempts |
+      | charge_rescue | skipped | 1        |
+      | charge        | aborted |          |
 
   @proposal-0083
   Scenario: An abort while the rescue step is built names the rescue step
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
+      | step   | rescue |
+      | charge | yes    |
     And step "charge" attempts:
       | attempt | outcome | code    |
       | 1       | failure | expired |
@@ -105,26 +102,29 @@ Feature: A rescue step that does not succeed
     When the workflow runs
     Then the result names the step "charge_rescue" as where the journey was aborted, with the abort reason "step could not be built"
     And the result's abort carries the error "no client"
-    And step "charge_rescue" ended as aborted
-    And step "charge" ended as aborted
+    And the steps ended as:
+      | step          | status  |
+      | charge_rescue | aborted |
+      | charge        | aborted |
 
   @proposal-0055
   Scenario: An abort while the rescue step runs names the rescue step
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | rescue |
+      | charge | yes    |
     And the workflow lists the reporters "audit", "fragile"
-    And the executor uses its default dispatcher
     And the reporter "fragile" throws on "step_info"
-    And step "charge" has a rescue step
     And step "charge" attempts:
       | attempt | outcome | code    |
       | 1       | failure | expired |
     And step "charge_rescue" emits step_info "refreshing"
     And step "charge_rescue" succeeds
+    And the executor uses its default dispatcher
     When the workflow runs
     Then the result names the step "charge_rescue" as where the journey was aborted, with the abort reason "reporter failed"
     And the reporter "audit" did not receive the event "step_rescued"
-    And step "charge_rescue" ended as aborted after 1 attempts
-    And step "charge" ended as aborted
+    And the steps ended as:
+      | step          | status  | attempts |
+      | charge_rescue | aborted | 1        |
+      | charge        | aborted |          |
     And the last event is "journey_aborted"

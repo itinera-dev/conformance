@@ -7,9 +7,8 @@ Feature: Global metadata reaches every reporter
 
   Scenario: Every reporter receives the journey ID as its first entry, before any event
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the workflow's ID generator returns "order-42"
     And the workflow lists the reporters "audit"
     And the executor uses its default dispatcher
@@ -20,15 +19,14 @@ Feature: Global metadata reaches every reporter
 
   Scenario: The initial global metadata reaches the reporters after the journey ID, in the order it was set, before any event
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the workflow's ID generator returns "order-42"
+    And the workflow lists the reporters "audit"
     And the workflow instance is created with the global metadata:
       | key    | value     |
       | tenant | "acme"    |
       | region | "eu-west" |
-    And the workflow lists the reporters "audit"
     And the executor uses its default dispatcher
     When the workflow runs
     Then the reporter "audit" received the global metadata:
@@ -42,14 +40,12 @@ Feature: Global metadata reaches every reporter
 
   Scenario: An entry a step sets reaches the reporters at once, and global_metadata_set records its key and the step, not its value
     Given a workflow "orders" with the steps:
-      | step   |
-      | lookup |
-      | charge |
-    And step "lookup" sets the global metadata "user_id" to "u-7"
-    And step "lookup" succeeds
-    And step "charge" succeeds
+      | step   | outcome |
+      | lookup | success |
+      | charge | success |
     And the workflow's ID generator returns "order-42"
     And the workflow lists the reporters "audit"
+    And step "lookup" sets the global metadata "user_id" to "u-7"
     And the executor uses its default dispatcher
     When the workflow runs
     Then the reporter "audit" received the global metadata:
@@ -68,12 +64,12 @@ Feature: Global metadata reaches every reporter
     Given a workflow "orders" with the steps:
       | step   |
       | lookup |
+    And the workflow's ID generator returns "order-42"
+    And the workflow lists the reporters "audit"
     And step "lookup" sets the global metadata "user_id" to "u-7"
     And step "lookup" attempts:
       | attempt | outcome | code      |
       | 1       | failure | not found |
-    And the workflow's ID generator returns "order-42"
-    And the workflow lists the reporters "audit"
     And the executor uses its default dispatcher
     When the workflow runs
     Then the journey failed
@@ -89,15 +85,13 @@ Feature: Global metadata reaches every reporter
 
   Scenario: Setting a key again passes its new value to the reporters
     Given a workflow "orders" with the steps:
-      | step    |
-      | lookup  |
-      | refresh |
-    And step "lookup" sets the global metadata "user_id" to "u-7"
-    And step "lookup" succeeds
-    And step "refresh" sets the global metadata "user_id" to "u-8"
-    And step "refresh" succeeds
+      | step    | outcome |
+      | lookup  | success |
+      | refresh | success |
     And the workflow's ID generator returns "order-42"
     And the workflow lists the reporters "audit"
+    And step "lookup" sets the global metadata "user_id" to "u-7"
+    And step "refresh" sets the global metadata "user_id" to "u-8"
     And the executor uses its default dispatcher
     When the workflow runs
     Then the reporter "audit" received the global metadata:
@@ -107,13 +101,11 @@ Feature: Global metadata reaches every reporter
       | user_id    | "u-8"      | attempt_started |
 
   Scenario: An entry a hook sets records the policy and hook that set it
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And a step policy "audit" defines the hook "on step success"
+    Given a step policy "audit" defines the hook "on step success"
     And the hook "on step success" of policy "audit" sets the global metadata "charged" to true
-    And step "charge" has the policies "audit"
+    Given a workflow "orders" with the steps:
+      | step   | policies | outcome |
+      | charge | audit    | success |
     And the workflow's ID generator returns "order-42"
     And the workflow lists the reporters "log"
     And the executor uses its default dispatcher
@@ -129,13 +121,12 @@ Feature: Global metadata reaches every reporter
       | hook_called         | charge | 1       |         | audit  | on step success |                        |
 
   Scenario: An entry a service provider sets records the provider that set it
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests the service "payments" of type labeller
-    And step "charge" succeeds
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
     And the service provider "payments" sets the global metadata "gateway" to "main"
+    Given a workflow "orders" with the steps:
+      | step   | services           | outcome |
+      | charge | payments: labeller | success |
+    And the workflow binds the service provider "payments"
     And the workflow's ID generator returns "order-42"
     And the workflow lists the reporters "audit"
     And the executor uses its default dispatcher
@@ -152,14 +143,13 @@ Feature: Global metadata reaches every reporter
 
   Scenario: The default dispatcher passes every entry to every reporter
     Given a workflow "orders" with the steps:
-      | step   |
-      | lookup |
+      | step   | outcome |
+      | lookup | success |
+    And the workflow lists the reporters "audit", "metrics"
     And step "lookup" sets the global metadata "user_id" to "u-7"
-    And step "lookup" succeeds
     And the workflow instance is created with the global metadata:
       | key    | value  |
       | tenant | "acme" |
-    And the workflow lists the reporters "audit", "metrics"
     And the executor uses its default dispatcher
     When the workflow runs
     Then the reporters "audit", "metrics" received the same global metadata

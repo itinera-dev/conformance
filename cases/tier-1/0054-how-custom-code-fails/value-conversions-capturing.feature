@@ -15,10 +15,9 @@ Feature: A value conversion that fails while a value is captured
   @proposal-0113
   Scenario: A contribution whose conversion fails aborts the journey with "not a value"
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" contributes a throwing record as "order"
-    And step "charge" succeeds
     When the workflow runs
     Then the journey was aborted with the abort reason "not a value"
     And the events include, in order:
@@ -29,10 +28,9 @@ Feature: A value conversion that fails while a value is captured
   @proposal-0113
   Scenario: Event data whose conversion fails aborts the journey, and the event is not delivered
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" emits step_info "order checked" with a throwing record as data
-    And step "charge" succeeds
     When the workflow runs
     Then the journey was aborted with the abort reason "not a value"
     And no event carries the message "order checked"
@@ -40,12 +38,11 @@ Feature: A value conversion that fails while a value is captured
   @proposal-0113
   Scenario: Global metadata whose conversion fails aborts the journey and reaches no reporter
     Given a workflow "orders" with the steps:
-      | step   |
-      | lookup |
-    And step "lookup" sets the global metadata "customer" to a throwing record
-    And step "lookup" succeeds
+      | step   | outcome |
+      | lookup | success |
     And the workflow's ID generator returns "order-42"
     And the workflow lists the reporters "audit"
+    And step "lookup" sets the global metadata "customer" to a throwing record
     And the executor uses its default dispatcher
     When the workflow runs
     Then the journey was aborted with the abort reason "not a value"
@@ -69,13 +66,12 @@ Feature: A value conversion that fails while a value is captured
 
   @proposal-0113 @proposal-0134
   Scenario: A service provider's data whose conversion fails aborts the journey, and no service event follows
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests the service "payments" of type labeller
-    And step "charge" succeeds
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
     And the service provider "payments" supplies a throwing record as data with each instance
+    Given a workflow "orders" with the steps:
+      | step   | services           | outcome |
+      | charge | payments: labeller | success |
+    And the workflow binds the service provider "payments"
     When the workflow runs
     Then the journey was aborted with the abort reason "not a value"
     And the events are exactly:
@@ -88,13 +84,11 @@ Feature: A value conversion that fails while a value is captured
 
   @proposal-0113
   Scenario: An input adapter's supply whose conversion fails aborts with "step could not be built"
+    Given the input adapter "pricing" returns a throwing record for "order"
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests input "order" of type throwing record
-    And step "charge" succeeds
-    And the workflow declares the input adapter "pricing" for the steps "charge"
-    And the input adapter "pricing" returns a throwing record for "order"
+      | step   | inputs                 | outcome |
+      | charge | order: throwing record | success |
+    And the workflow binds the input adapter "pricing" to the step "charge"
     When the workflow runs
     Then the journey was aborted with the abort reason "step could not be built"
     And the events include, in order:

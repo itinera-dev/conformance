@@ -11,16 +11,15 @@ Feature: Events record facts and decisions
 
   @proposal-0106
   Scenario: A retried failure is a fact, then a decision to retry after the retry hook
+    Given a step policy "watch" defines the hook "on step retry"
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | watch    |
     And step "charge" allows 1 retries
     And step "charge" attempts:
       | attempt | outcome | code        |
       | 1       | failure | unreachable |
       | 2       | success |             |
-    And a step policy "watch" defines the hook "on step retry"
-    And step "charge" has the policies "watch"
     When the workflow runs
     Then the events include, in order:
       | event             | step   | attempt | code        | policy | hook          | lifecycle | cause   | decided by |
@@ -48,16 +47,15 @@ Feature: Events record facts and decisions
 
   @proposal-0106
   Scenario: Retries exhausted give the step up before the failure hook is called
+    Given a step policy "alarm" defines the hook "on step failure"
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | alarm    |
     And step "charge" allows 1 retries
     And step "charge" attempts:
       | attempt | outcome | code        |
       | 1       | failure | unreachable |
       | 2       | failure | unreachable |
-    And a step policy "alarm" defines the hook "on step failure"
-    And step "charge" has the policies "alarm"
     When the workflow runs
     Then the events include, in order:
       | event          | step   | attempt | policy | hook            | cause             | decided by |
@@ -83,16 +81,16 @@ Feature: Events record facts and decisions
 
   @proposal-0106
   Scenario: FailWorkflow from a retry hook gives the step up and fails the journey, both decided by the hook
+    Given the step policies and their hooks:
+      | policy | hook          | returns      | code    |
+      | stop   | on step retry | FailWorkflow | give up |
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | stop     |
     And step "charge" allows 3 retries
     And step "charge" attempts:
       | attempt | outcome | code        |
       | 1       | failure | unreachable |
-    And a step policy "stop" defines the hook "on step retry"
-    And the hook "on step retry" of policy "stop" returns FailWorkflow with code "give up"
-    And step "charge" has the policies "stop"
     When the workflow runs
     Then the events include, in order:
       | event          | step   | attempt | policy | hook          | lifecycle    | code    | cause        | decided by          |
@@ -101,15 +99,13 @@ Feature: Events record facts and decisions
       | journey_failed | charge |         |        |               |              | give up |              | stop, on step retry |
 
   Scenario: FinishWorkflow from a success hook decides the journey's success
+    Given the step policies and their hooks:
+      | policy   | hook            | returns        |
+      | shortcut | on step success | FinishWorkflow |
     Given a workflow "orders" with the steps:
-      | step   |
-      | check  |
-      | charge |
-    And step "check" succeeds
-    And step "charge" succeeds
-    And a step policy "shortcut" defines the hook "on step success"
-    And the hook "on step success" of policy "shortcut" returns FinishWorkflow
-    And step "check" has the policies "shortcut"
+      | step   | policies | outcome |
+      | check  | shortcut | success |
+      | charge |          | success |
     When the workflow runs
     Then the events include, in order:
       | event             | step  | attempt | policy   | hook            | lifecycle      | decided by                |

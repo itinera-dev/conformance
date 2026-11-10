@@ -6,9 +6,9 @@ Feature: A journey's path lists its flow as plain sentences
 
   Scenario: A failure that is retried, then successes
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
+      | step   | outcome |
+      | charge |         |
+      | ship   | success |
     And step "charge" attempts:
       | attempt | outcome | code     |
       | 1       | failure | declined |
@@ -16,7 +16,6 @@ Feature: A journey's path lists its flow as plain sentences
     And step "charge" allows 1 retries
     And step "charge" contributes "charged" = 40
     And step "ship" emits step_info "shipping"
-    And step "ship" succeeds
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:
@@ -116,9 +115,8 @@ Feature: A journey's path lists its flow as plain sentences
 
   Scenario: A rescue
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
+      | step   | rescue |
+      | charge | yes    |
     And step "charge" attempts:
       | attempt | outcome | code    |
       | 1       | failure | expired |
@@ -136,16 +134,16 @@ Feature: A journey's path lists its flow as plain sentences
       | journey succeeded                  |
 
   Scenario: A step given up by a hook's FailWorkflow
+    Given the step policies and their hooks:
+      | policy      | hook          | returns      | code  |
+      | fraud_check | on step retry | FailWorkflow | fraud |
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies    |
+      | charge | fraud_check |
     And step "charge" attempts:
       | attempt | outcome | code     |
       | 1       | failure | declined |
     And step "charge" allows 1 retries
-    And a step policy "fraud_check" defines the hook "on step retry"
-    And the hook "on step retry" of policy "fraud_check" returns FailWorkflow with code "fraud"
-    And step "charge" has the policies "fraud_check"
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:
@@ -155,15 +153,13 @@ Feature: A journey's path lists its flow as plain sentences
       | journey failed at charge: fraud                |
 
   Scenario: A journey a hook finished early
+    Given the step policies and their hooks:
+      | policy     | hook            | returns        |
+      | early_exit | on step success | FinishWorkflow |
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
-    And step "charge" succeeds
-    And step "ship" succeeds
-    And a step policy "early_exit" defines the hook "on step success"
-    And the hook "on step success" of policy "early_exit" returns FinishWorkflow
-    And step "charge" has the policies "early_exit"
+      | step   | policies   | outcome |
+      | charge | early_exit | success |
+      | ship   |            | success |
     And the instance has the recording reporter of test support
     When the workflow runs
     Then the path is:
@@ -173,10 +169,8 @@ Feature: A journey's path lists its flow as plain sentences
 
   Scenario: An abort that concerns a step names it
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests input "amount" of type integer
-    And step "charge" succeeds
+      | step   | inputs          | outcome |
+      | charge | amount: integer | success |
     And the data bag is empty
     And the instance has the recording reporter of test support
     When the workflow runs
@@ -186,9 +180,8 @@ Feature: A journey's path lists its flow as plain sentences
 
   Scenario: An abort that concerns no step names none
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the workflow lists the reporters "audit"
     And the reporter "audit" throws on "journey_started"
     And the executor uses its default dispatcher
@@ -200,9 +193,8 @@ Feature: A journey's path lists its flow as plain sentences
 
   Scenario: A refused run has an empty path
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the executor is given a dispatcher factory that fails
     And the instance has the recording reporter of test support
     When the workflow runs

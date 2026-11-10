@@ -11,16 +11,14 @@ Feature: A step that fails is rescued, then runs again
   @proposal-0134
   Scenario: A step that reports a failure is rescued and runs again
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
-    And step "charge" has a rescue step
+      | step   | outcome | rescue |
+      | charge |         | yes    |
+      | ship   | success |        |
     And step "charge" attempts:
       | attempt | outcome | code    |
       | 1       | failure | expired |
       | 2       | success |         |
     And step "charge_rescue" succeeds
-    And step "ship" succeeds
     When the workflow runs
     Then the events are exactly:
       | event             | step          | attempt | code    | cause   | rescue        | decided by |
@@ -37,16 +35,17 @@ Feature: A step that fails is rescued, then runs again
       | attempt_started   | ship          | 1       |         |         |               |            |
       | step_succeeded    | ship          | 1       |         |         |               |            |
       | journey_succeeded |               |         |         |         |               | default    |
-    And step "charge" ended as succeeded after 2 attempts
-    And step "charge_rescue" ended as succeeded after 1 attempts
+    And the steps ended as:
+      | step          | status    | attempts |
+      | charge        | succeeded | 2        |
+      | charge_rescue | succeeded | 1        |
     And the journey succeeded
 
   @proposal-0106
   Scenario: An abnormal termination is rescued, not retried
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
+      | step   | rescue |
+      | charge | yes    |
     And step "charge" attempts:
       | attempt | outcome | message |
       | 1       | error   | timeout |
@@ -66,9 +65,8 @@ Feature: A step that fails is rescued, then runs again
   @proposal-0106
   Scenario: An abnormal termination is rescued when the step does not retry abnormal terminations
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
+      | step   | rescue |
+      | charge | yes    |
     And step "charge" does not retry abnormal terminations
     And step "charge" attempts:
       | attempt | outcome | message |
@@ -89,22 +87,22 @@ Feature: A step that fails is rescued, then runs again
   @proposal-0091
   Scenario: The rescue step's contributions reach the step's second attempt
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And the data bag contains:
-      | key   | value |
-      | token | "old" |
-    And step "charge" has a rescue step
-    And step "charge" requests input "token" of type string
+      | step   | inputs        | rescue |
+      | charge | token: string | yes    |
     And step "charge" attempts:
       | attempt | outcome | code    |
       | 1       | failure | expired |
       | 2       | success |         |
     And step "charge_rescue" contributes "token" = "new"
     And step "charge_rescue" succeeds
+    And the data bag contains:
+      | key   | value |
+      | token | "old" |
     When the workflow runs
-    Then step "charge" was built for attempt 1 with input "token" = "old"
-    And step "charge" was built for attempt 2 with input "token" = "new"
+    Then the steps were built with:
+      | step   | attempt | input | value |
+      | charge | 1       | token | "old" |
+      | charge | 2       | token | "new" |
     And the events include, in order:
       | event                  | step          | attempt | key   | source        |
       | step_succeeded         | charge_rescue | 1       |       |               |
@@ -117,9 +115,8 @@ Feature: A step that fails is rescued, then runs again
 
   Scenario: The failed attempt's contributions are never committed
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
+      | step   | rescue |
+      | charge | yes    |
     And step "charge" attempts:
       | attempt | outcome | code    | contributes  |
       | 1       | failure | expired | {"draft": 1} |

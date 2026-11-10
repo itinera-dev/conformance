@@ -20,13 +20,12 @@ Feature: Building a step
     And the journey succeeded
 
   Scenario: A step that cannot be built aborts the journey without retrying
+    Given a step policy "policy" defines the hook "on step retry"
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | policy   |
     And step "charge" allows 3 retries
     And step "charge" cannot be built because its constructor fails with "no connection"
-    And a step policy "policy" defines the hook "on step retry"
-    And step "charge" has the policies "policy"
     When the workflow runs
     Then the hook "on step retry" of policy "policy" was not called
     And the journey was aborted

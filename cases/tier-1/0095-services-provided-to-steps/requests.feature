@@ -11,45 +11,49 @@ Feature: What a service provider requests
 
   @proposal-0106
   Scenario: An attempt-scoped provider receives the step's name and the attempt number
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
+    And the service provider "payments" requests the step name
+    And the service provider "payments" requests the attempt number
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests the service "payments" of type labeller
+      | step   | services           |
+      | charge | payments: labeller |
+    And the workflow binds the service provider "payments"
     And step "charge" allows 1 retries
     And step "charge" attempts:
       | attempt | outcome | code        |
       | 1       | failure | unreachable |
       | 2       | success |             |
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
-    And the service provider "payments" requests the step name
-    And the service provider "payments" requests the attempt number
     When the workflow runs
     Then the service provider "payments" received the step name "charge"
     And the service provider "payments" received the attempt number 1
     And the service provider "payments" received the attempt number 2
 
   Scenario: A provider of either scope receives the journey ID
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests the service "payments" of type labeller
-    And step "charge" succeeds
-    And step "charge" requests the service "stock" of type labeller
-    And the workflow's ID generator returns "order-1"
-    And the workflow declares the service provider "payments" for "payments" of type labeller, once per journey
+    Given the service provider "payments" makes a labeller for "payments", once per journey
     And the service provider "payments" requests the journey ID
-    And the workflow declares the service provider "stock" for "stock" of type labeller, for each attempt
+    Given the service provider "stock" makes a labeller for "stock", for each attempt
     And the service provider "stock" requests the journey ID
+    Given a workflow "orders" with the steps:
+      | step   | services                            | outcome |
+      | charge | payments: labeller, stock: labeller | success |
+    And the workflow binds the service provider "payments"
+    And the workflow binds the service provider "stock"
+    And the workflow's ID generator returns "order-1"
     When the workflow runs
     Then the service provider "payments" received the journey ID "order-1"
     And the service provider "stock" received the journey ID "order-1"
 
   @proposal-0106
   Scenario: A provider chooses the instance from data a retry hook contributed
+    Given a step policy "fallback" defines the hook "on step retry"
+    And the hook "on step retry" of policy "fallback" contributes "gateway" = "backup"
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
+    And the service provider "payments" requests data from the workflow "gateway" of type string
+    And the service provider "payments" labels each instance with the value it received for "gateway"
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests the service "payments" of type labeller
+      | step   | policies | services           |
+      | charge | fallback | payments: labeller |
+    And the workflow binds the service provider "payments"
     And step "charge" allows 1 retries
     And step "charge" attempts:
       | attempt | outcome | code        |
@@ -58,27 +62,22 @@ Feature: What a service provider requests
     And the data bag contains:
       | key     | value  |
       | gateway | "main" |
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
-    And the service provider "payments" requests data from the workflow "gateway" of type string
-    And the service provider "payments" labels each instance with the value it received for "gateway"
-    And a step policy "fallback" defines the hook "on step retry"
-    And the hook "on step retry" of policy "fallback" contributes "gateway" = "backup"
-    And step "charge" has the policies "fallback"
     When the workflow runs
-    Then step "charge" was given the service "payments" labelled "main" for attempt 1
-    And step "charge" was given the service "payments" labelled "backup" for attempt 2
+    Then the steps were given the services:
+      | step   | service  | label  | attempt |
+      | charge | payments | main   | 1       |
+      | charge | payments | backup | 2       |
     And the journey succeeded
 
   @proposal-0134
   Scenario: A provider's missing required data aborts the journey before it is called
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests the service "payments" of type labeller
-    And step "charge" succeeds
-    And the data bag is empty
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
     And the service provider "payments" requests data from the workflow "gateway" of type string
+    Given a workflow "orders" with the steps:
+      | step   | services           | outcome |
+      | charge | payments: labeller | success |
+    And the workflow binds the service provider "payments"
+    And the data bag is empty
     When the workflow runs
     Then the events are exactly:
       | event           | step   | attempt | key     | provider | code                  |
@@ -91,16 +90,15 @@ Feature: What a service provider requests
     And step "charge" ended as aborted after 1 attempts
 
   Scenario: A provider's data of the wrong type aborts the journey before it is called
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
+    And the service provider "payments" requests data from the workflow "gateway" of type string
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests the service "payments" of type labeller
-    And step "charge" succeeds
+      | step   | services           | outcome |
+      | charge | payments: labeller | success |
+    And the workflow binds the service provider "payments"
     And the data bag contains:
       | key     | value |
       | gateway | 7     |
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
-    And the service provider "payments" requests data from the workflow "gateway" of type string
     When the workflow runs
     Then the events include, in order:
       | event           | step   | key     | provider | code       |
@@ -110,14 +108,13 @@ Feature: What a service provider requests
 
   @proposal-0134
   Scenario: A provider's absent optional data emits optional_input_absent naming the provider
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests the service "payments" of type labeller
-    And step "charge" succeeds
-    And the data bag is empty
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
     And the service provider "payments" requests optional data from the workflow "gateway" of type string
+    Given a workflow "orders" with the steps:
+      | step   | services           | outcome |
+      | charge | payments: labeller | success |
+    And the workflow binds the service provider "payments"
+    And the data bag is empty
     When the workflow runs
     Then the service provider "payments" received data from the workflow "gateway" absent
     And the events are exactly:
@@ -131,28 +128,26 @@ Feature: What a service provider requests
       | journey_succeeded     |        |         |          |          |
 
   Scenario: Services are resolved after the step's inputs
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests input "amount" of type integer
-    And step "charge" requests the service "payments" of type labeller
-    And step "charge" succeeds
+      | step   | inputs          | services           | outcome |
+      | charge | amount: integer | payments: labeller | success |
+    And the workflow binds the service provider "payments"
     And the data bag is empty
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
     When the workflow runs
     Then the result names the step "charge" as where the journey was aborted, with the abort reason "required data missing"
     And the service provider "payments" was called 0 times
 
   @proposal-0134
   Scenario: A step's input events come before its service events
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
+    And the workflow binds the service provider "payments"
     And step "charge" requests optional input "note" of type string
     And step "charge" requests the service "payments" of type labeller
-    And step "charge" succeeds
     And the data bag is empty
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
     When the workflow runs
     Then the events are exactly:
       | event                 | step   | attempt | key      | provider |
@@ -165,14 +160,13 @@ Feature: What a service provider requests
       | journey_succeeded     |        |         |          |          |
 
   Scenario: Services are resolved in the order the step declares them
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
+    Given the service provider "stock" makes a labeller for "stock", for each attempt
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests the service "stock" of type labeller
-    And step "charge" requests the service "payments" of type labeller
-    And step "charge" succeeds
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
-    And the workflow declares the service provider "stock" for "stock" of type labeller, for each attempt
+      | step   | services                            | outcome |
+      | charge | stock: labeller, payments: labeller | success |
+    And the workflow binds the service provider "payments"
+    And the workflow binds the service provider "stock"
     When the workflow runs
     Then the events include, in order:
       | event            | step   | key      | provider |

@@ -6,13 +6,13 @@ Feature: Policies
   can request the name of the step it acts on.
 
   Scenario: Two step policies defining the same hook on one step are refused at admission
+    Given the step policies and their hooks:
+      | policy  | hook            |
+      | audit   | on step success |
+      | metrics | on step success |
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And a step policy "audit" defines the hook "on step success"
-    And a step policy "metrics" defines the hook "on step success"
-    And step "charge" has the policies "audit", "metrics"
+      | step   | policies       | outcome |
+      | charge | audit, metrics | success |
     When the workflow runs
     Then admission is refused with the violations:
       | violation         |
@@ -20,13 +20,13 @@ Feature: Policies
     And no step ran
 
   Scenario: Two workflow policies defining the same hook are refused at admission
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And a workflow policy "notify" defines the hook "on workflow success"
-    And a workflow policy "archive" defines the hook "on workflow success"
-    And the workflow has the policies "notify", "archive"
+    Given the workflow policies and their hooks:
+      | policy  | hook                |
+      | notify  | on workflow success |
+      | archive | on workflow success |
+    Given a workflow "orders" with the policies "notify", "archive" and the steps:
+      | step   | outcome |
+      | charge | success |
     When the workflow runs
     Then admission is refused with the violations:
       | violation         |
@@ -34,16 +34,17 @@ Feature: Policies
     And no step ran
 
   Scenario: Every violation is reported together
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And a step policy "audit" defines the hook "on step success"
-    And a step policy "metrics" defines the hook "on step success"
-    And step "charge" has the policies "audit", "metrics"
-    And a workflow policy "notify" defines the hook "on workflow success"
-    And a workflow policy "archive" defines the hook "on workflow success"
-    And the workflow has the policies "notify", "archive"
+    Given the step policies and their hooks:
+      | policy  | hook            |
+      | audit   | on step success |
+      | metrics | on step success |
+    Given the workflow policies and their hooks:
+      | policy  | hook                |
+      | notify  | on workflow success |
+      | archive | on workflow success |
+    Given a workflow "orders" with the policies "notify", "archive" and the steps:
+      | step   | policies       | outcome |
+      | charge | audit, metrics | success |
     When the workflow is admitted
     Then admission is refused with the violations:
       | violation         |
@@ -51,27 +52,23 @@ Feature: Policies
       | hook defined twice |
 
   Scenario: Policies defining different hooks on one step are accepted
+    Given the step policies and their hooks:
+      | policy | hook            |
+      | audit  | on step success |
+      | alarm  | on step failure |
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And a step policy "audit" defines the hook "on step success"
-    And a step policy "alarm" defines the hook "on step failure"
-    And step "charge" has the policies "audit", "alarm"
+      | step   | policies     | outcome |
+      | charge | audit, alarm | success |
     When the workflow runs
     Then the journey succeeded
 
   Scenario: A step policy receives the name of the step it acts on
+    Given a step policy "audit" defines the hook "on step success"
+    Given the hook "on step success" of policy "audit" requests the step name
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
-    And step "charge" succeeds
-    And step "ship" succeeds
-    And a step policy "audit" defines the hook "on step success"
-    And the hook "on step success" of policy "audit" requests the step name
-    And step "charge" has the policies "audit"
-    And step "ship" has the policies "audit"
+      | step   | policies | outcome |
+      | charge | audit    | success |
+      | ship   | audit    | success |
     When the workflow runs
     Then the hook "on step success" of policy "audit" received the step name "charge"
     And the hook "on step success" of policy "audit" received the step name "ship"
