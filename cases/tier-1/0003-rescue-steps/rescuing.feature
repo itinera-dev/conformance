@@ -5,7 +5,10 @@ Feature: A step that fails is rescued, then runs again
   step just before it; once the rescue step succeeds, the step runs once more,
   as its next attempt. Amended by proposal 0106: an abnormal termination is
   rescued although abnormal terminations are retried by default.
+  Amended by proposal 0134: the ordered pass starts with the fact
+  `pass_started`, right after `journey_started`.
 
+  @proposal-0134
   Scenario: A step that reports a failure is rescued and runs again
     Given a workflow "orders" with the steps:
       | step   | outcome | rescue |
@@ -20,6 +23,7 @@ Feature: A step that fails is rescued, then runs again
     Then the events are exactly:
       | event             | step          | attempt | code    | cause   | rescue        | decided by |
       | journey_started   |               |         |         |         |               |            |
+      | pass_started      |               |         |         |         |               |            |
       | attempt_started   | charge        | 1       |         |         |               |            |
       | step_failed       | charge        | 1       | expired |         |               |            |
       | step_rescuing     | charge        | 1       |         | failure | charge_rescue | default    |

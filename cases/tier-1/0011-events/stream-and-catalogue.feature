@@ -4,6 +4,8 @@ Feature: The event stream and the engine catalogue
   of events, the catalogue's events and what they carry, and that engine events
   never carry data values. Amended by proposal 0106: step_failed carries no
   retriable flag.
+  Amended by proposal 0134: the ordered pass starts with the fact
+  `pass_started`, right after `journey_started`.
 
   Scenario: Every event carries the journey ID and the workflow name, with increasing sequence numbers
     Given a workflow "orders" with the steps:
@@ -13,6 +15,7 @@ Feature: The event stream and the engine catalogue
     When the workflow runs
     Then every event carries the journey ID "order-7" and the workflow name "orders", with increasing sequence numbers
 
+  @proposal-0134
   Scenario: A complete journey produces exactly the catalogue's events, in order
     Given a step policy "audit" defines the hook "on step success"
     Given a workflow "orders" with the steps:
@@ -23,6 +26,7 @@ Feature: The event stream and the engine catalogue
     Then the events are exactly:
       | event                  | step   | key     | attempt | policy | hook            | lifecycle | source |
       | journey_started        |        |         |         |        |                 |           |        |
+      | pass_started           |        |         |         |        |                 |           |        |
       | attempt_started        | charge |         | 1       |        |                 |           |        |
       | step_succeeded         | charge |         | 1       |        |                 |           |        |
       | contribution_committed | charge | receipt | 1       |        |                 |           | charge |

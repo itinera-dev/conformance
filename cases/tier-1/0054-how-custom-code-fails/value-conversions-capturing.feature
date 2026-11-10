@@ -9,6 +9,8 @@ Feature: A value conversion that fails while a value is captured
   they name for something that is not a value. Either abort may carry the
   conversion's error, which these cases do not check. Only a language that
   claims the capability value-conversions runs these cases.
+  Amended by proposal 0134: the ordered pass starts with the fact
+  `pass_started`, right after `journey_started`.
 
   @proposal-0113
   Scenario: A contribution whose conversion fails aborts the journey with "not a value"
@@ -62,7 +64,7 @@ Feature: A value conversion that fails while a value is captured
     When the workflow runs
     Then the journey was aborted with the abort reason "not a value"
 
-  @proposal-0113
+  @proposal-0113 @proposal-0134
   Scenario: A service provider's data whose conversion fails aborts the journey, and no service event follows
     Given the service provider "payments" makes a labeller for "payments", for each attempt
     And the service provider "payments" supplies a throwing record as data with each instance
@@ -75,6 +77,7 @@ Feature: A value conversion that fails while a value is captured
     And the events are exactly:
       | event           | step   | attempt | provider | code        |
       | journey_started |        |         |          |             |
+      | pass_started    |        |         |          |             |
       | attempt_started | charge | 1       |          |             |
       | journey_aborted | charge |         | payments | not a value |
     And no step ran

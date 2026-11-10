@@ -5,7 +5,10 @@ Feature: A rescue step that does not succeed
   it and the rescued step never runs again. A rescue step must not skip: a skip
   aborts the journey with `rescue skipped`. An abort while the rescue step runs
   names the rescue step.
+  Amended by proposal 0134: the ordered pass starts with the fact
+  `pass_started`, right after `journey_started`.
 
+  @proposal-0134
   Scenario: A rescue step that fails fails the journey, and the step does not run again
     Given a step policy "alarm" defines the hook "on step failure"
     Given a workflow policy "report" defines the hook "on workflow failure"
@@ -23,6 +26,7 @@ Feature: A rescue step that does not succeed
     Then the events are exactly:
       | event           | step          | attempt | code       | policy | hook                | cause   | rescue        | decided by |
       | journey_started |               |         |            |        |                     |         |               |            |
+      | pass_started    |               |         |            |        |                     |         |               |            |
       | attempt_started | charge        | 1       |            |        |                     |         |               |            |
       | step_failed     | charge        | 1       | expired    |        |                     |         |               |            |
       | step_rescuing   | charge        | 1       |            |        |                     | failure | charge_rescue | default    |

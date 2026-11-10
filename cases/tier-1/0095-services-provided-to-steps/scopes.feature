@@ -5,7 +5,10 @@ Feature: The scope of a service provider
   attempt of the journey; a provider of attempt scope is called for every
   attempt that needs its service; a provider is never called in a journey in
   which no step it serves runs.
+  Amended by proposal 0134: the ordered pass starts with the fact
+  `pass_started`, right after `journey_started`.
 
+  @proposal-0134
   Scenario: A journey-scoped service requested by two steps is provided once
     Given the service provider "stock" makes a labeller for "stock", once per journey
     Given a workflow "orders" with the steps:
@@ -22,6 +25,7 @@ Feature: The scope of a service provider
     And the events are exactly:
       | event             | step    | attempt | key   | provider |
       | journey_started   |         |         |       |          |
+      | pass_started      |         |         |       |          |
       | attempt_started   | reserve | 1       |       |          |
       | service_provided  | reserve | 1       | stock | stock    |
       | step_succeeded    | reserve | 1       |       |          |
@@ -29,7 +33,7 @@ Feature: The scope of a service provider
       | step_succeeded    | ship    | 1       |       |          |
       | journey_succeeded |         |         |       |          |
 
-  @proposal-0106
+  @proposal-0106 @proposal-0134
   Scenario: A journey-scoped service serves every attempt of a retried step
     Given the service provider "payments" makes a labeller for "payments", once per journey
     Given a workflow "orders" with the steps:
@@ -50,6 +54,7 @@ Feature: The scope of a service provider
     And the events are exactly:
       | event             | step   | attempt | key      | provider |
       | journey_started   |        |         |          |          |
+      | pass_started      |        |         |          |          |
       | attempt_started   | charge | 1       |          |          |
       | service_provided  | charge | 1       | payments | payments |
       | step_failed       | charge | 1       |          |          |
@@ -58,7 +63,7 @@ Feature: The scope of a service provider
       | step_succeeded    | charge | 2       |          |          |
       | journey_succeeded |        |         |          |          |
 
-  @proposal-0106
+  @proposal-0106 @proposal-0134
   Scenario: An attempt-scoped service is provided for every attempt
     Given the service provider "payments" makes a labeller for "payments", for each attempt
     Given a workflow "orders" with the steps:
@@ -79,6 +84,7 @@ Feature: The scope of a service provider
     And the events are exactly:
       | event             | step   | attempt | key      | provider |
       | journey_started   |        |         |          |          |
+      | pass_started      |        |         |          |          |
       | attempt_started   | charge | 1       |          |          |
       | service_provided  | charge | 1       | payments | payments |
       | step_failed       | charge | 1       |          |          |

@@ -5,7 +5,10 @@ Feature: The implementation a provider made, and the provider's data
   language names it, and carries the data the provider supplied with the
   instance, if any. Data that is not a value aborts the journey with
   "not a value".
+  Amended by proposal 0134: the ordered pass starts with the fact
+  `pass_started`, right after `journey_started`.
 
+  @proposal-0134
   Scenario: service_provided names the implementation each provider made
     Given the service provider "bank" makes a labeller for "payments", for each attempt
     Given the service provider "sandbox" makes a labeller for "payments", for each attempt
@@ -20,6 +23,7 @@ Feature: The implementation a provider made, and the provider's data
     Then the events are exactly:
       | event             | step   | attempt | key      | provider | implementation  |
       | journey_started   |        |         |          |          |                 |
+      | pass_started      |        |         |          |          |                 |
       | attempt_started   | charge | 1       |          |          |                 |
       | service_provided  | charge | 1       | payments | bank     | first labeller  |
       | step_succeeded    | charge | 1       |          |          |                 |
@@ -28,6 +32,7 @@ Feature: The implementation a provider made, and the provider's data
       | step_succeeded    | refund | 1       |          |          |                 |
       | journey_succeeded |        |         |          |          |                 |
 
+  @proposal-0134
   Scenario: service_provided carries the data the provider supplied with the instance
     Given the service provider "payments" makes a labeller for "payments", for each attempt
     And the service provider "payments" supplies the data {"environment": "sandbox"} with each instance
@@ -39,6 +44,7 @@ Feature: The implementation a provider made, and the provider's data
     Then the events are exactly:
       | event             | step   | attempt | key      | provider | data                       |
       | journey_started   |        |         |          |          |                            |
+      | pass_started      |        |         |          |          |                            |
       | attempt_started   | charge | 1       |          |          |                            |
       | service_provided  | charge | 1       | payments | payments | {"environment": "sandbox"} |
       | step_succeeded    | charge | 1       |          |          |                            |
@@ -55,7 +61,7 @@ Feature: The implementation a provider made, and the provider's data
       | event            | step   | provider | data |
       | service_provided | charge | payments | none |
 
-  @non-value
+  @non-value @proposal-0134
   Scenario: A provider's data that is not a value aborts the journey, and no service event follows
     Given the service provider "payments" makes a labeller for "payments", for each attempt
     And the service provider "payments" supplies data that is not a value with each instance
@@ -68,6 +74,7 @@ Feature: The implementation a provider made, and the provider's data
     And the events are exactly:
       | event           | step   | attempt | provider | code        |
       | journey_started |        |         |          |             |
+      | pass_started    |        |         |          |             |
       | attempt_started | charge | 1       |          |             |
       | journey_aborted | charge |         | payments | not a value |
     And step "charge" ended as aborted after 1 attempts

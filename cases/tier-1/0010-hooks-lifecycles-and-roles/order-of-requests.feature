@@ -4,8 +4,10 @@ Feature: The order in which a hook's requests are resolved
   resolved in the order the hook declares them, whatever their kind, and the
   first that aborts the journey stops the resolution. An abort on a request for
   the failure reason or the error names which of the two was requested.
+  Amended by proposal 0134: the ordered pass starts with the fact
+  `pass_started`, right after `journey_started`.
 
-  @spec-defect-0092 @proposal-0083
+  @spec-defect-0092 @proposal-0083 @proposal-0134
   Scenario: A required request declared first stops the resolution before a later optional one
     Given a step policy "alarm" defines the hook "on step failure"
     Given the hooks request:
@@ -22,6 +24,7 @@ Feature: The order in which a hook's requests are resolved
     Then the events are exactly:
       | event           | step   | key   | attempt | policy | hook            | code                  |
       | journey_started |        |       |         |        |                 |                       |
+      | pass_started    |        |       |         |        |                 |                       |
       | attempt_started | charge |       | 1       |        |                 |                       |
       | step_failed     | charge |       | 1       |        |                 | declined              |
       | step_given_up   | charge |       | 1       |        |                 |                       |

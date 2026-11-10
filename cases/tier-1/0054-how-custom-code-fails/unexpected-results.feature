@@ -9,6 +9,8 @@ Feature: Custom code that returns an unexpected result
   call is awaited, and its result is what it resolves to. A language whose
   types rule out an unexpected result makes it impossible to express, and
   claims the tag unexpected-result as impossible.
+  Amended by proposal 0134: the ordered pass starts with the fact
+  `pass_started`, right after `journey_started`.
 
   @proposal-0122 @unexpected-result
   Scenario: A step that returns no outcome aborts the journey and is not retried
@@ -78,7 +80,7 @@ Feature: Custom code that returns an unexpected result
       | journey_aborted | charge | audit  | on step failure | unexpected result |
     And the journey was aborted with the abort reason "unexpected result"
 
-  @proposal-0122 @unexpected-result
+  @proposal-0122 @unexpected-result @proposal-0134
   Scenario: An input adapter that returns no result aborts the journey
     Given the input adapter "pricing" returns no result for "amount"
     Given a workflow "orders" with the steps:
@@ -90,6 +92,7 @@ Feature: Custom code that returns an unexpected result
     Then the events are exactly:
       | event           | step   | attempt | adapter | key    | code              |
       | journey_started |        |         |         |        |                   |
+      | pass_started    |        |         |         |        |                   |
       | attempt_started | charge | 1       |         |        |                   |
       | journey_aborted | charge |         | pricing | amount | unexpected result |
     And step "charge" ended as aborted
@@ -109,7 +112,7 @@ Feature: Custom code that returns an unexpected result
       | journey_aborted        | charge | pricing | amount | wrong type |
     And the journey was aborted with the abort reason "wrong type"
 
-  @proposal-0122 @unexpected-result
+  @proposal-0122 @unexpected-result @proposal-0134
   Scenario: A service provider that returns a null-like value aborts the journey
     Given the service provider "warehouse" makes a labeller for "stock", for each attempt
     And the service provider "warehouse" returns a null-like value
@@ -121,6 +124,7 @@ Feature: Custom code that returns an unexpected result
     Then the events are exactly:
       | event           | step   | attempt | provider  | key   | code              |
       | journey_started |        |         |           |       |                   |
+      | pass_started    |        |         |           |       |                   |
       | attempt_started | charge | 1       |           |       |                   |
       | journey_aborted | charge |         | warehouse | stock | unexpected result |
     And step "charge" ended as aborted
