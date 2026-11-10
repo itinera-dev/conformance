@@ -7,19 +7,18 @@ Feature: The scope of a service provider
   which no step it serves runs.
 
   Scenario: A journey-scoped service requested by two steps is provided once
+    Given the service provider "stock" makes a labeller for "stock", once per journey
     Given a workflow "orders" with the steps:
-      | step    |
-      | reserve |
-      | ship    |
-    And step "reserve" requests the service "stock" of type labeller
-    And step "reserve" succeeds
-    And step "ship" requests the service "stock" of type labeller
-    And step "ship" succeeds
-    And the workflow declares the service provider "stock" for "stock" of type labeller, once per journey
+      | step    | services        | outcome |
+      | reserve | stock: labeller | success |
+      | ship    | stock: labeller | success |
+    And the workflow binds the service provider "stock"
     When the workflow runs
     Then the service provider "stock" was called 1 times
-    And step "reserve" was given the service "stock" labelled "stock 1" for attempt 1
-    And step "ship" was given the service "stock" labelled "stock 1" for attempt 1
+    And the steps were given the services:
+      | step    | service | label   | attempt |
+      | reserve | stock   | stock 1 | 1       |
+      | ship    | stock   | stock 1 | 1       |
     And the events are exactly:
       | event             | step    | attempt | key   | provider |
       | journey_started   |         |         |       |          |
@@ -32,20 +31,22 @@ Feature: The scope of a service provider
 
   @proposal-0106
   Scenario: A journey-scoped service serves every attempt of a retried step
+    Given the service provider "payments" makes a labeller for "payments", once per journey
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests the service "payments" of type labeller
+      | step   | services           |
+      | charge | payments: labeller |
+    And the workflow binds the service provider "payments"
     And step "charge" allows 1 retries
     And step "charge" attempts:
       | attempt | outcome | code        |
       | 1       | failure | unreachable |
       | 2       | success |             |
-    And the workflow declares the service provider "payments" for "payments" of type labeller, once per journey
     When the workflow runs
     Then the service provider "payments" was called 1 times
-    And step "charge" was given the service "payments" labelled "payments 1" for attempt 1
-    And step "charge" was given the service "payments" labelled "payments 1" for attempt 2
+    And the steps were given the services:
+      | step   | service  | label      | attempt |
+      | charge | payments | payments 1 | 1       |
+      | charge | payments | payments 1 | 2       |
     And the events are exactly:
       | event             | step   | attempt | key      | provider |
       | journey_started   |        |         |          |          |
@@ -59,20 +60,22 @@ Feature: The scope of a service provider
 
   @proposal-0106
   Scenario: An attempt-scoped service is provided for every attempt
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests the service "payments" of type labeller
+      | step   | services           |
+      | charge | payments: labeller |
+    And the workflow binds the service provider "payments"
     And step "charge" allows 1 retries
     And step "charge" attempts:
       | attempt | outcome | code        |
       | 1       | failure | unreachable |
       | 2       | success |             |
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
     When the workflow runs
     Then the service provider "payments" was called 2 times
-    And step "charge" was given the service "payments" labelled "payments 1" for attempt 1
-    And step "charge" was given the service "payments" labelled "payments 2" for attempt 2
+    And the steps were given the services:
+      | step   | service  | label      | attempt |
+      | charge | payments | payments 1 | 1       |
+      | charge | payments | payments 2 | 2       |
     And the events are exactly:
       | event             | step   | attempt | key      | provider |
       | journey_started   |        |         |          |          |
@@ -86,41 +89,39 @@ Feature: The scope of a service provider
       | journey_succeeded |        |         |          |          |
 
   Scenario: An attempt-scoped service is provided for each step that requests it
+    Given the service provider "stock" makes a labeller for "stock", for each attempt
     Given a workflow "orders" with the steps:
-      | step    |
-      | reserve |
-      | ship    |
-    And step "reserve" requests the service "stock" of type labeller
-    And step "reserve" succeeds
-    And step "ship" requests the service "stock" of type labeller
-    And step "ship" succeeds
-    And the workflow declares the service provider "stock" for "stock" of type labeller, for each attempt
+      | step    | services        | outcome |
+      | reserve | stock: labeller | success |
+      | ship    | stock: labeller | success |
+    And the workflow binds the service provider "stock"
     When the workflow runs
     Then the service provider "stock" was called 2 times
-    And step "reserve" was given the service "stock" labelled "stock 1" for attempt 1
-    And step "ship" was given the service "stock" labelled "stock 2" for attempt 1
+    And the steps were given the services:
+      | step    | service | label   | attempt |
+      | reserve | stock   | stock 1 | 1       |
+      | ship    | stock   | stock 2 | 1       |
 
   Scenario: A provider is not called when no step it serves runs
+    Given the service provider "stock" makes a labeller for "stock", once per journey
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
+      | step   | services        | outcome |
+      | charge |                 |         |
+      | ship   | stock: labeller | success |
+    And the workflow binds the service provider "stock"
     And step "charge" attempts:
       | attempt | outcome | code     |
       | 1       | failure | declined |
-    And step "ship" requests the service "stock" of type labeller
-    And step "ship" succeeds
-    And the workflow declares the service provider "stock" for "stock" of type labeller, once per journey
     When the workflow runs
     Then the service provider "stock" was called 0 times
     And the journey failed
 
   Scenario: A provider is not called for a step that does not request its service
+    Given the service provider "stock" makes a labeller for "stock", for each attempt
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And the workflow declares the service provider "stock" for "stock" of type labeller, for each attempt
+      | step   | outcome |
+      | charge | success |
+    And the workflow binds the service provider "stock"
     When the workflow runs
     Then the service provider "stock" was called 0 times
     And the journey succeeded
