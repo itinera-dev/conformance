@@ -280,6 +280,25 @@ Sentences for proposal 0134. Durations are written as a number of milliseconds f
 
 The endings of proposal 0134, in "received the endings": `pending` for an attempt, and `abandoned` for a step. (0134)
 
+## Cancellation
+
+Sentences for proposal 0130. The runner plays the caller of `run`, and gives `run` a cancellation token in the language's own form. It never cancels after a delay or from a thread of its own: it triggers the token in reaction to an event, before its recording reporter returns from that event, for example through a queue whose listener triggers the token and acknowledges while the reporter waits. How each runner triggers the token, drops a journey and waits for cancellation is in its language's implementation issue for proposal 0130. (0130)
+
+- **`And the caller cancels the journey on "<event>"`** and **`And the caller cancels the journey on "<event>" of "<step>"`**: when the first event of this kind, of this step when one is named, is delivered to the recording reporter, the token is triggered before the reporter returns. (0130)
+- **`And the caller cancelled the journey before it runs`**: the token is triggered before `run` is called. (0130)
+- **`And the caller drops the journey on "<event>"`** and **`And the caller drops the journey on "<event>" of "<step>"`**: once the first event of this kind, of this step when one is named, is delivered, the runner drops the running journey, as its language lets a caller do, so that nothing more of it can run. Used only in scenarios tagged `@dropped-journey`. (0130)
+- **`And step "<step>" waits for cancellation`**, **`And the service provider "<provider>" waits for cancellation`** and **`And the hook "<hook>" of policy "<policy>" waits for cancellation`**: after the actions written before this sentence, on every call, the custom code waits in its language's cancellation-aware way, and ends as that cancellation ends it. In a language that has no language checkpoints, it waits until the journey's next executor checkpoint, or until it is dropped. (0130)
+- **`And step "<step>" fails with the language's cancellation failure`**: every attempt fails with the failure its language uses to deliver cancellation, such as `CancellationException` in Kotlin, while no token was triggered. Used only in scenarios tagged `@language-checkpoint`. (0130)
+- **`And the operation "<operation>" of the role "<role>" is asynchronous`** (0130)
+- **`Then the run ended as cancelled`**: `run` ended in its language's own way for a cancelled call, and gave no journey result. (0130)
+- **`Then the scripted run says the journey was cancelled`**: the scripted run gave its record, and in place of a result says that the journey was cancelled. (0130)
+
+"Then step ... ended as" reads a step named among the steps that became `Abandoned` in `journey_cancelled`, or the rescue step it names, as `abandoned`. (0130)
+
+The ending of proposal 0130, in "received the endings": `cancelled`, for an attempt, a step and a journey. (0130)
+
+The checkpoints a `journey_cancelled` names (0130): `before step`, `before attempt`, `before building`, `after the step returns`, `before hook`, `before rescue`, `while waiting` and `language checkpoint`.
+
 ## Events and reporters
 
 - **`And the workflow lists the reporters "<reporter>", "<reporter>"`**: one or more recording reporters, named for the scenario. (0011)
@@ -374,7 +393,7 @@ Fake providers:
 
 Scripted runs:
 
-- **`And the script says:`** followed by a table with the columns `step` and `attempt`, and optionally `contributes`, `emits`, `emit message`, `sets global metadata`, `ending`, `code` and `message`. Each row says what the attempts it chooses do, in the language's own words for the script of proposal 0108. The rows are written in the order given, and each row whose step differs from the row before names that step, with `step` for the first and `and step` for each next one, so a step whose rows another step's interrupt is named again; a rescue step is named `<step>_rescue`. `attempt` chooses the attempts: a number, which may be one the step can never have, such as `0`, `-1` or `1.5` (0119), `every` for every attempt, or `remaining` for every attempt not yet described, which never starts a step's rows; the first row of a step written with `1` may be written without saying it. `contributes` is a JSON object, contributed in the order its keys are written, which the runner keeps when it reads it. `emits` is `step_info`, `step_warning` or `step_error`, emitted with `emit message`. `sets global metadata` is a JSON object, set in the order its keys are written. `ending` is `success`, `failure` (with `code`), `skipped` (with a `code` when the skip has a reason), `pending` (with the optional column `hint`, as JSON, for a step that may be pending; 0134), `abnormal termination` (with its error's `message`, the only ending that uses `message`) or `real run`, which plays nothing and runs the real step; a row with `real run` has no other column filled. (0108)
+- **`And the script says:`** followed by a table with the columns `step` and `attempt`, and optionally `contributes`, `emits`, `emit message`, `sets global metadata`, `ending`, `code` and `message`. Each row says what the attempts it chooses do, in the language's own words for the script of proposal 0108. The rows are written in the order given, and each row whose step differs from the row before names that step, with `step` for the first and `and step` for each next one, so a step whose rows another step's interrupt is named again; a rescue step is named `<step>_rescue`. `attempt` chooses the attempts: a number, which may be one the step can never have, such as `0`, `-1` or `1.5` (0119), `every` for every attempt, or `remaining` for every attempt not yet described, which never starts a step's rows; the first row of a step written with `1` may be written without saying it. `contributes` is a JSON object, contributed in the order its keys are written, which the runner keeps when it reads it. `emits` is `step_info`, `step_warning` or `step_error`, emitted with `emit message`. `sets global metadata` is a JSON object, set in the order its keys are written. `ending` is `success`, `failure` (with `code`), `skipped` (with a `code` when the skip has a reason), `pending` (with the optional column `hint`, as JSON, for a step that may be pending; 0134), `wait for cancellation` (0130), `abnormal termination` (with its error's `message`, the only ending that uses `message`) or `real run`, which plays nothing and runs the real step; a row with `real run` has no other column filled. (0108)
 - **`And the script ensures every step is scripted`** (0108)
 - **`When the workflow runs with the script`**: the runner writes the script through its language's test support and runs the instance with it, on the local executor of the workflow's mode. That executor has no dispatcher factory from the runner, so the runner adds its own recording reporter to the instance as its first reporter, before the reporters the workflow lists, and every sentence about the event stream as a whole reads that reporter; the sentences in which the executor is given a dispatcher or a dispatcher factory are not used with this one. A mistake in writing the script is reported as it is written, so during this sentence. (0108)
 - **`And step "<step>" declares no contributor and no reporter`**: the scripted test step neither contributes, nor emits, nor sets global metadata, and declares neither a contributor nor a step reporter. Used only in scenarios tagged `@undeclared-handles`. (0108)
@@ -424,6 +443,8 @@ Proposal 0133 adds `before journey` and `after journey`, defined by workflow pol
 
 Proposal 0134 adds the step hook `on step pending`. (0134)
 
+Proposal 0130 adds the workflow hook `on journey dropped`. (0130)
+
 ## Event names
 
 The engine catalogue of proposal 0011 as amended by proposal 0040. Facts: `journey_started`, `attempt_started`, `input_adapter_supplied`, `input_adapter_failed`, `optional_input_absent`, `step_succeeded`, `step_failed`, `step_skipped`, `step_abnormal_termination`, `hook_called`, `contribution_committed`, `contributions_discarded`, `data_overwritten`, `journey_aborted`. Decisions: `step_retrying`, `step_given_up`, `step_rescuing`, `step_rescued`, `journey_succeeded`, `journey_failed`; and the events steps and hooks emit: `step_info`, `step_warning`, `step_error`, `journey_info`, `journey_warning`, `journey_error`. (0011, 0040, 0003)
@@ -435,6 +456,8 @@ Proposal 0102 adds the fact `global_metadata_set`. (0102)
 Proposal 0133 adds the facts `before_hook_failed` and `after_hook_failed` and the decision `step_bypassed`, and `hook_called` for its six hooks. (0133)
 
 Proposal 0134 adds the facts `step_pending`, `pass_started` and `journey_waiting`, and the decisions `step_deferred`, `step_waiting`, `step_selected` and `step_abandoned`. (0134)
+
+Proposal 0130 adds the fact `journey_cancelled`. (0130)
 
 ## Abort reasons
 
@@ -461,4 +484,5 @@ The abort reasons of a journey's result (0009, 0032, 0042, 0054, 0056, 0058): `s
 - **`invalid pending wait`**: a step waits for a step the workflow does not have, a step that cannot be pending, itself or a step declared after it. (0134)
 - **`pending budget missing`**: a step that may be pending has no pending budget, or a budget of 0. (0134)
 - **`invalid pending setting`**: a negative default nbf, a pending deadline of 0 or less, a duration with a fraction of a millisecond, or pending settings or waits declared by a step that cannot be pending. (0134)
+- **`asynchronous drop hook`**: `on journey dropped` is asynchronous, or calls a role operation that is. (0130)
 - **`required request in after hook`**: an after hook makes a required request for something that may not exist: data from the workflow, data from the step, the failure reason, the error or the cause. (0133)
