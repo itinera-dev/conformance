@@ -227,11 +227,13 @@ What happened:
 - **`Then the hook "<hook>" of policy "<policy>" received the journey ID "<id>"`** (0010)
 - **`Then the hooks received:`** followed by a table with one row for each hook, in the columns `policy` and `hook` and any of the optional columns below. Each filled cell stands for the sentence below; an empty cell checks nothing, and `none` is written for what was answered absent. A scenario writes only the columns it uses. (0.1.1)
   - `calls`: a number, for "was called <n> times", and `0` for "was not called".
-  - `attempt number`: a number, for "received the attempt number".
+  - `endings`: endings separated by commas, for "received the endings" (0133).
+  - `number of attempts`, `attempt number`: a number, for "received the number of attempts" (0133) and "received the attempt number".
   - `step name`, `journey ID`: for "received the step name" and "received the journey ID".
-  - `cause`: a cause, for "received the cause".
-  - `error`: a message, for "received the error with the message".
+  - `cause`: a cause, for "received the cause", or `none` for "received no cause" (0133).
+  - `error`: a message, for "received the error with the message", or `none` for "received no error" (0133).
   - `failure reason`: only `none`, for "received no failure reason"; a failure reason with its code, message and details stays a sentence of its own.
+  - `hint`: a value, for "received the hint", or `none` for "received no hint" (0134).
 
   Checks with structured values, such as step data or data from the workflow, stay sentences of their own.
 - **`Then the result names the step "<step>" whose hook failed the journey, with the code "<code>"`**: the journey failed by `FailWorkflow` with a reason of this code, and `journey_failed` names this step. (0010, 0065)
@@ -252,17 +254,6 @@ Sentences for the hooks of proposal 0133, `before journey`, `after journey`, `be
 - **`Then the hook "<hook>" of policy "<policy>" received the endings "<ending>", "<ending>"`**: one ending for each call of the hook, in the order of its calls, written as the specification names them: for an attempt `succeeded`, `failed`, `abnormal termination`, `skipped` or `aborted`; for a step `succeeded`, `failed`, `skipped`, `bypassed` or `aborted`; for a journey `succeeded`, `failed` or `aborted`. Later proposals add endings. (0133)
 - **`Then the hook "<hook>" of policy "<policy>" received the number of attempts <n>`** (0133)
 - **`Then the hook "<hook>" of policy "<policy>" received no error`** and **`Then the hook "<hook>" of policy "<policy>" received no cause`**: its optional request was answered absent. (0133)
-- **`Then the hooks received:`** followed by a table with one row for each hook, in the columns `policy` and `hook` and any of the optional columns below. Each filled cell stands for the sentence below; an empty cell checks nothing, and `none` is written for what was answered absent. A scenario writes only the columns it uses. (0133)
-  - `calls`: a number, for "was called <n> times", and `0` for "was not called".
-  - `endings`: endings separated by commas, for "received the endings".
-  - `number of attempts`, `attempt number`: a number, for "received the number of attempts" and "received the attempt number".
-  - `step name`, `journey ID`: for "received the step name" and "received the journey ID".
-  - `cause`: a cause, for "received the cause", or `none` for "received no cause".
-  - `error`: a message, for "received the error with the message", or `none` for "received no error".
-  - `failure reason`: only `none`, for "received no failure reason"; a failure reason with its code, message and details stays a sentence of its own.
-  - `hint`: a value, for "received the hint", or `none` for "received no hint" (0134).
-
-  Checks with structured values, such as step data or data from the workflow, stay sentences of their own.
 - **`Then the policy "<policy>" was built <n> times`**: how many instances of this policy were built in the journey, each counted when building it was called, whether it succeeded or failed. (0133)
 - **`Then the input adapter "<adapter>" was called <n> times`**: counting every call, whether it supplied a value, returned nothing or failed. (0133)
 - **`Then journey_failed names no step`**: the journey's `journey_failed` names no step, as when `before journey` returned `FailWorkflow` or `after journey` failed. (0133)
