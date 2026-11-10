@@ -8,40 +8,41 @@ Feature: The rescued step's hooks
   `pass_started`, right after `journey_started`.
 
   Scenario: The retry and failure hooks are not called for a rescued failure
+    Given the step policies and their hooks:
+      | policy | hook                         |
+      | watch  | on step abnormal termination |
+      | watch  | on step retry                |
+      | watch  | on step failure              |
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
+      | step   | policies | rescue |
+      | charge | watch    | yes    |
     And step "charge" attempts:
       | attempt | outcome | message |
       | 1       | error   | timeout |
       | 2       | success |         |
     And step "charge_rescue" succeeds
-    And a step policy "watch" defines the hook "on step abnormal termination"
-    And a step policy "watch" defines the hook "on step retry"
-    And a step policy "watch" defines the hook "on step failure"
-    And step "charge" has the policies "watch"
     When the workflow runs
     Then the hooks were called in this order:
       | policy | hook                         |
       | watch  | on step abnormal termination |
-    And the hook "on step retry" of policy "watch" was not called
-    And the hook "on step failure" of policy "watch" was not called
+    And the hooks received:
+      | policy | hook            | calls |
+      | watch  | on step retry   | 0     |
+      | watch  | on step failure | 0     |
     And the journey succeeded
 
   @proposal-0134
   Scenario: FailWorkflow from the abnormal termination hook gives the step up instead of rescuing it
+    Given the step policies and their hooks:
+      | policy | hook                         | returns      | code |
+      | watch  | on step abnormal termination | FailWorkflow | stop |
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
+      | step   | policies | rescue |
+      | charge | watch    | yes    |
     And step "charge" attempts:
       | attempt | outcome | message |
       | 1       | error   | timeout |
     And step "charge_rescue" succeeds
-    And a step policy "watch" defines the hook "on step abnormal termination"
-    And the hook "on step abnormal termination" of policy "watch" returns FailWorkflow with code "stop"
-    And step "charge" has the policies "watch"
     When the workflow runs
     Then the events are exactly:
       | event                     | step   | attempt | policy | hook                         | lifecycle    | cause        | decided by                          |
@@ -55,18 +56,16 @@ Feature: The rescued step's hooks
     And the result names the step "charge" whose hook failed the journey, with the code "stop"
 
   Scenario: A step that fails again after its rescue is given up, and is not rescued twice
+    Given a step policy "alarm" defines the hook "on step failure"
+    Given the hook "on step failure" of policy "alarm" requests the failure cause
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
+      | step   | policies | rescue |
+      | charge | alarm    | yes    |
     And step "charge" attempts:
       | attempt | outcome | code     |
       | 1       | failure | expired  |
       | 2       | failure | declined |
     And step "charge_rescue" succeeds
-    And a step policy "alarm" defines the hook "on step failure"
-    And the hook "on step failure" of policy "alarm" requests the failure cause
-    And step "charge" has the policies "alarm"
     When the workflow runs
     Then the events include, in order:
       | event          | step   | attempt | cause   |
@@ -75,8 +74,9 @@ Feature: The rescued step's hooks
       | step_failed    | charge | 2       |         |
       | step_given_up  | charge | 2       | failure |
       | journey_failed | charge |         | failure |
-    And the hook "on step failure" of policy "alarm" was called 1 times
-    And the hook "on step failure" of policy "alarm" received the cause "failure"
+    And the hooks received:
+      | policy | hook            | calls | cause   |
+      | alarm  | on step failure | 1     | failure |
     And step "charge_rescue" was built 1 times, each time as a new instance
     And step "charge" ended as failed after 2 attempts
     And the result names the failed step "charge" with the code "declined"

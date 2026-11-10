@@ -20,8 +20,10 @@ Feature: A reporter that fails while a step or hook runs
     And step "charge" succeeds
     When the workflow runs
     Then the journey was aborted with the abort reason "reporter failed"
-    And the reporter "audit" received the event "step_info" 1 times
-    And the reporter "audit" did not receive the event "step_succeeded"
+    And the reporters received:
+      | reporter | event          | received |
+      | audit    | step_info      | 1        |
+      | audit    | step_succeeded | no       |
     And step "charge" ended as aborted after 1 attempts
     And no contribution of "receipt" was committed
     And the last event is "journey_aborted"
@@ -41,12 +43,12 @@ Feature: A reporter that fails while a step or hook runs
     And the last event is "journey_aborted"
 
   Scenario: A hook ends at the emit call, and nothing it did afterwards counts
-    Given the reporter "fragile" throws on "journey_info"
-    And step "charge" succeeds
-    And a step policy "audit-policy" defines the hook "on step success"
+    Given a step policy "audit-policy" defines the hook "on step success"
     And the hook "on step success" of policy "audit-policy" emits journey_info "checked"
     And the hook "on step success" of policy "audit-policy" contributes "note" = "seen"
     And step "charge" has the policies "audit-policy"
+    And the reporter "fragile" throws on "journey_info"
+    And step "charge" succeeds
     When the workflow runs
     Then the journey was aborted with the abort reason "reporter failed"
     And the reporter "audit" did not receive the event "hook_called"

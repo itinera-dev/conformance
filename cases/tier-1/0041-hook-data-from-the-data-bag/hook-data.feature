@@ -9,14 +9,12 @@ Feature: Hooks read data from the workflow from the data bag
 
   @proposal-0134
   Scenario: A hook's missing required data aborts the journey before the hook runs
+    Given a step policy "audit" defines the hook "on step success"
+    Given the hook "on step success" of policy "audit" requests data from the workflow "amount" of type integer
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies | outcome |
+      | charge | audit    | success |
     And the data bag is empty
-    And step "charge" succeeds
-    And a step policy "audit" defines the hook "on step success"
-    And the hook "on step success" of policy "audit" requests data from the workflow "amount" of type integer
-    And step "charge" has the policies "audit"
     When the workflow runs
     Then the events are exactly:
       | event           | step   | key    | attempt | policy | hook            | code                  |
@@ -27,16 +25,14 @@ Feature: Hooks read data from the workflow from the data bag
       | journey_aborted | charge | amount |         | audit  | on step success | required data missing |
 
   Scenario: A workflow hook's data of the wrong type aborts the journey before the hook runs
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+    Given a workflow policy "close" defines the hook "on workflow success"
+    Given the hook "on workflow success" of policy "close" requests optional data from the workflow "amount" of type integer
+    Given a workflow "orders" with the policies "close" and the steps:
+      | step   | outcome |
+      | charge | success |
     And the data bag contains:
       | key    | value  |
       | amount | "many" |
-    And step "charge" succeeds
-    And a workflow policy "close" defines the hook "on workflow success"
-    And the hook "on workflow success" of policy "close" requests optional data from the workflow "amount" of type integer
-    And the workflow has the policies "close"
     When the workflow runs
     Then the events include, in order:
       | event           | key    | policy | hook                | code       |

@@ -7,28 +7,23 @@ Feature: Providers attached to steps
   provider serves each step's services.
 
   Scenario: A provider attached to two steps serves them, and the other provider serves the rest
+    Given the service provider "payments" makes a labeller for "payments", once per journey
+    Given the service provider "fresh payments" makes a labeller for "payments", for each attempt
     Given a workflow "orders" with the steps:
-      | step    |
-      | reserve |
-      | charge  |
-      | refund  |
-      | ship    |
-    And step "reserve" requests the service "payments" of type labeller
-    And step "reserve" succeeds
-    And step "charge" requests the service "payments" of type labeller
-    And step "charge" succeeds
-    And step "refund" requests the service "payments" of type labeller
-    And step "refund" succeeds
-    And step "ship" requests the service "payments" of type labeller
-    And step "ship" succeeds
-    And the workflow declares the service provider "payments" for "payments" of type labeller, once per journey
-    And the workflow declares the service provider "fresh payments" for "payments" of type labeller, for each attempt
-    And the service provider "fresh payments" serves only the steps "charge", "refund"
+      | step    | services           | outcome |
+      | reserve | payments: labeller | success |
+      | charge  | payments: labeller | success |
+      | refund  | payments: labeller | success |
+      | ship    | payments: labeller | success |
+    And the workflow binds the service provider "payments"
+    And the workflow binds the service provider "fresh payments" to the steps "charge", "refund"
     When the workflow runs
-    Then step "reserve" was given the service "payments" labelled "payments 1" for attempt 1
-    And step "charge" was given the service "payments" labelled "fresh payments 1" for attempt 1
-    And step "refund" was given the service "payments" labelled "fresh payments 2" for attempt 1
-    And step "ship" was given the service "payments" labelled "payments 1" for attempt 1
+    Then the steps were given the services:
+      | step    | service  | label            | attempt |
+      | reserve | payments | payments 1       | 1       |
+      | charge  | payments | fresh payments 1 | 1       |
+      | refund  | payments | fresh payments 2 | 1       |
+      | ship    | payments | payments 1       | 1       |
     And the service provider "payments" was called 1 times
     And the service provider "fresh payments" was called 2 times
     And the events include, in order:
@@ -38,57 +33,47 @@ Feature: Providers attached to steps
       | service_provided | refund  | payments | fresh payments |
 
   Scenario: A journey-scoped provider attached to steps is shared by those steps only
+    Given the service provider "stock" makes a labeller for "stock", once per journey
+    Given the service provider "warehouse" makes a labeller for "stock", once per journey
     Given a workflow "orders" with the steps:
-      | step    |
-      | reserve |
-      | charge  |
-      | ship    |
-    And step "reserve" requests the service "stock" of type labeller
-    And step "reserve" succeeds
-    And step "charge" requests the service "stock" of type labeller
-    And step "charge" succeeds
-    And step "ship" requests the service "stock" of type labeller
-    And step "ship" succeeds
-    And the workflow declares the service provider "stock" for "stock" of type labeller, once per journey
-    And the workflow declares the service provider "warehouse" for "stock" of type labeller, once per journey
-    And the service provider "warehouse" serves only the steps "reserve", "ship"
+      | step    | services        | outcome |
+      | reserve | stock: labeller | success |
+      | charge  | stock: labeller | success |
+      | ship    | stock: labeller | success |
+    And the workflow binds the service provider "stock"
+    And the workflow binds the service provider "warehouse" to the steps "reserve", "ship"
     When the workflow runs
-    Then step "reserve" was given the service "stock" labelled "warehouse 1" for attempt 1
-    And step "charge" was given the service "stock" labelled "stock 1" for attempt 1
-    And step "ship" was given the service "stock" labelled "warehouse 1" for attempt 1
+    Then the steps were given the services:
+      | step    | service | label       | attempt |
+      | reserve | stock   | warehouse 1 | 1       |
+      | charge  | stock   | stock 1     | 1       |
+      | ship    | stock   | warehouse 1 | 1       |
     And the service provider "warehouse" was called 1 times
     And the service provider "stock" was called 1 times
 
   Scenario: An attached provider needs no provider of the same key for the other steps
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
-    And step "charge" requests the service "payments" of type labeller
-    And step "charge" succeeds
-    And step "ship" succeeds
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
-    And the service provider "payments" serves only the steps "charge"
+      | step   | services           | outcome |
+      | charge | payments: labeller | success |
+      | ship   |                    | success |
+    And the workflow binds the service provider "payments" to the step "charge"
     When the workflow runs
     Then step "charge" was given the service "payments" labelled "payments 1" for attempt 1
     And the journey succeeded
 
   Scenario: The listing shows which provider serves each step's services
+    Given the service provider "stock" makes a labeller for "stock", once per journey
+    Given the service provider "payments" makes a labeller for "payments", once per journey
+    Given the service provider "fresh stock" makes a labeller for "stock", for each attempt
     Given a workflow "orders" with the steps:
-      | step    |
-      | reserve |
-      | charge  |
-      | ship    |
-    And step "reserve" requests the service "stock" of type labeller
-    And step "reserve" succeeds
-    And step "charge" requests the service "payments" of type labeller
-    And step "charge" requests the service "stock" of type labeller
-    And step "charge" succeeds
-    And step "ship" succeeds
-    And the workflow declares the service provider "stock" for "stock" of type labeller, once per journey
-    And the workflow declares the service provider "payments" for "payments" of type labeller, once per journey
-    And the workflow declares the service provider "fresh stock" for "stock" of type labeller, for each attempt
-    And the service provider "fresh stock" serves only the steps "charge"
+      | step    | services                            | outcome |
+      | reserve | stock: labeller                     | success |
+      | charge  | payments: labeller, stock: labeller | success |
+      | ship    |                                     | success |
+    And the workflow binds the service provider "stock"
+    And the workflow binds the service provider "payments"
+    And the workflow binds the service provider "fresh stock" to the step "charge"
     When the workflow is listed
     Then the listing is:
       | step    | position | policies | adapter | services                               |
@@ -98,25 +83,23 @@ Feature: Providers attached to steps
     And no step ran
 
   Scenario: A provider attached to a step that does not request its key is never called
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
-    And the service provider "payments" serves only the steps "charge"
+      | step   | outcome |
+      | charge | success |
+    And the workflow binds the service provider "payments" to the step "charge"
     When the workflow runs
     Then the service provider "payments" was called 0 times
     And the journey succeeded
 
   Scenario: A provider of another type that serves no step is not checked against one
+    Given the service provider "stock" makes a meter for "stock", once per journey
+    Given the service provider "warehouse" makes a labeller for "stock", once per journey
     Given a workflow "orders" with the steps:
-      | step    |
-      | reserve |
-    And step "reserve" requests the service "stock" of type labeller
-    And step "reserve" succeeds
-    And the workflow declares the service provider "stock" for "stock" of type meter, once per journey
-    And the workflow declares the service provider "warehouse" for "stock" of type labeller, once per journey
-    And the service provider "warehouse" serves only the steps "reserve"
+      | step    | services        | outcome |
+      | reserve | stock: labeller | success |
+    And the workflow binds the service provider "stock"
+    And the workflow binds the service provider "warehouse" to the step "reserve"
     When the workflow runs
     Then step "reserve" was given the service "stock" labelled "warehouse 1" for attempt 1
     And the service provider "stock" was called 0 times

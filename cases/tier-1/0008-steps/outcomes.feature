@@ -9,17 +9,16 @@ Feature: Outcomes of running a step
 
   @proposal-0106
   Scenario: An error escaping a running step is an abnormal termination, retried while the budget lasts
+    Given a step policy "policy" defines the hook "on step abnormal termination"
+    Given the hook "on step abnormal termination" of policy "policy" requests the error
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | policy   |
     And step "charge" allows 1 retries
     And step "charge" attempts:
       | attempt | outcome |
       | 1       | error   |
       | 2       | success |
-    And a step policy "policy" defines the hook "on step abnormal termination"
-    And the hook "on step abnormal termination" of policy "policy" requests the error
-    And step "charge" has the policies "policy"
     When the workflow runs
     Then the hook "on step abnormal termination" of policy "policy" received an error
     And step "charge" ended as succeeded after 2 attempts
@@ -28,62 +27,60 @@ Feature: Outcomes of running a step
   @proposal-0106
   Scenario: A failure without a retry budget fails the journey on its first attempt
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
+      | step   | outcome |
+      | charge |         |
+      | ship   | success |
     And step "charge" attempts:
       | attempt | outcome | code     |
       | 1       | failure | declined |
-    And step "ship" succeeds
     When the workflow runs
-    Then step "charge" ended as failed after 1 attempts
-    And step "ship" ended as not executed after 0 attempts
+    Then the steps ended as:
+      | step   | status       | attempts |
+      | charge | failed       | 1        |
+      | ship   | not executed | 0        |
     And the journey failed
 
   @proposal-0106
   Scenario: A failure is tried again while the retry budget lasts
+    Given a step policy "policy" defines the hook "on step retry"
+    Given the hook "on step retry" of policy "policy" requests the retry cause
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | policy   |
     And step "charge" allows 2 retries
     And step "charge" attempts:
       | attempt | outcome | code        |
       | 1       | failure | unreachable |
       | 2       | success |             |
-    And a step policy "policy" defines the hook "on step retry"
-    And the hook "on step retry" of policy "policy" requests the retry cause
-    And step "charge" has the policies "policy"
     When the workflow runs
     Then the hook "on step retry" of policy "policy" received the cause "failure"
     And step "charge" ended as succeeded after 2 attempts
     And the journey succeeded
 
   Scenario: The failure hook receives the reason the step gave
+    Given a step policy "policy" defines the hook "on step failure"
+    Given the hook "on step failure" of policy "policy" requests the failure reason
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | policy   |
     And step "charge" attempts:
       | attempt | outcome | code     | message           | details               |
       | 1       | failure | declined | card was declined | {"bank_code": "05"}   |
-    And a step policy "policy" defines the hook "on step failure"
-    And the hook "on step failure" of policy "policy" requests the failure reason
-    And step "charge" has the policies "policy"
     When the workflow runs
     Then the hook "on step failure" of policy "policy" received the failure reason with code "declined", message "card was declined" and details {"bank_code": "05"}
     And the journey failed
 
   @proposal-0106
   Scenario: When retries run out, the failure hook is called with the cause "retries exhausted"
+    Given a step policy "policy" defines the hook "on step failure"
+    Given the hook "on step failure" of policy "policy" requests the failure cause
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | policy   |
     And step "charge" allows 2 retries
     And step "charge" attempts:
       | attempt | outcome | code        |
       | 1       | failure | unreachable |
-    And a step policy "policy" defines the hook "on step failure"
-    And the hook "on step failure" of policy "policy" requests the failure cause
-    And step "charge" has the policies "policy"
     When the workflow runs
     Then the hook "on step failure" of policy "policy" received the cause "retries exhausted"
     And step "charge" ended as failed after 3 attempts

@@ -10,9 +10,8 @@ Feature: What the rescue step receives
 
   Scenario: The rescue step receives the failed attempt's contributions and failure reason
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
+      | step   | rescue |
+      | charge | yes    |
     And step "charge" attempts:
       | attempt | outcome | code    | message       | details      | contributes        |
       | 1       | failure | expired | token expired | {"since": 3} | {"account": "A-1"} |
@@ -27,9 +26,8 @@ Feature: What the rescue step receives
 
   Scenario: The rescue step receives the error of an abnormal termination
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
+      | step   | rescue |
+      | charge | yes    |
     And step "charge" attempts:
       | attempt | outcome | message      |
       | 1       | error   | unauthorised |
@@ -42,27 +40,25 @@ Feature: What the rescue step receives
 
   Scenario: A rescue step with no input adapter reads its inputs from the data bag
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And the data bag contains:
-      | key    | value |
-      | client | "c-9" |
-    And step "charge" has a rescue step
+      | step   | rescue |
+      | charge | yes    |
     And step "charge" attempts:
       | attempt | outcome | code    |
       | 1       | failure | expired |
       | 2       | success |         |
     And step "charge_rescue" requests input "client" of type string
     And step "charge_rescue" succeeds
+    And the data bag contains:
+      | key    | value |
+      | client | "c-9" |
     When the workflow runs
     Then step "charge_rescue" was built with input "client" = "c-9"
     And the journey succeeded
 
   Scenario: A required failure reason that does not exist aborts the journey
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
+      | step   | rescue |
+      | charge | yes    |
     And step "charge" attempts:
       | attempt | outcome | message      |
       | 1       | error   | unauthorised |
@@ -78,9 +74,8 @@ Feature: What the rescue step receives
 
   Scenario: Optional data the failed attempt did not contribute is absent
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
+      | step   | rescue |
+      | charge | yes    |
     And step "charge" attempts:
       | attempt | outcome | code    |
       | 1       | failure | expired |
