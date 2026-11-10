@@ -8,14 +8,12 @@ Feature: The workflow instance, its data and its journey ID
 
   Scenario: The initial data is the initial content of the data bag
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | inputs          | outcome |
+      | charge | amount: integer | success |
     And the data bag contains:
       | key      | value |
       | amount   | 42    |
       | currency | "EUR" |
-    And step "charge" requests input "amount" of type integer
-    And step "charge" succeeds
     When the workflow runs
     Then step "charge" was built with input "amount" = 42
     And the journey_started event lists the initial keys "amount", "currency" without their values
@@ -23,13 +21,12 @@ Feature: The workflow instance, its data and its journey ID
 
   Scenario: A contribution may overwrite a key from the initial data
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
+    And step "charge" contributes "status" = "paid"
     And the data bag contains:
       | key    | value |
       | status | "new" |
-    And step "charge" contributes "status" = "paid"
-    And step "charge" succeeds
     When the workflow runs
     Then the result's data bag contains:
       | key    | value  |
@@ -40,18 +37,16 @@ Feature: The workflow instance, its data and its journey ID
 
   Scenario: Without a custom generator, the journey ID is a UUID v4
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the workflow has no ID generator
     When the workflow runs
     Then the journey ID is a UUID v4
 
   Scenario: With a custom generator, the journey ID is the generator's value
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the workflow's ID generator returns "order-1234"
     When the workflow runs
     Then the journey ID is "order-1234"

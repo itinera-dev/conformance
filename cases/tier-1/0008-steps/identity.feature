@@ -17,12 +17,12 @@ Feature: Step identity
 
   Scenario: Step names are case-sensitive
     Given a workflow "orders" with the steps:
-      | step   |
-      | Charge |
-      | charge |
-    And step "Charge" succeeds
-    And step "charge" succeeds
+      | step   | outcome |
+      | Charge | success |
+      | charge | success |
     When the workflow runs
-    Then step "Charge" ended as succeeded after 1 attempts
-    And step "charge" ended as succeeded after 1 attempts
+    Then the steps ended as:
+      | step   | status    | attempts |
+      | Charge | succeeded | 1        |
+      | charge | succeeded | 1        |
     And the journey succeeded
