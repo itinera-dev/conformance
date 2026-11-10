@@ -1,0 +1,68 @@
+name: Pages
+
+# Builds the site, https://itinera-dev.org/conformance/, and deploys it to
+# GitHub Pages: the scenario pages of every tag and of main (FORMAT.md, "The
+# scenario pages"). It runs on every push to main, after every new tag
+# through the Tagged workflow, every day and on demand. Each run builds the
+# whole site, since a deployment replaces it, and site-live then checks that
+# Pages serve what was built. It never changes main.
+
+on:
+  push:
+    branches: [main]
+  workflow_run:
+    workflows: [Tagged]
+    types: [completed]
+  schedule:
+    - cron: '23 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One build at a time, so a deployment never replaces a newer site with an
+# older one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: build the site
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - id: pages
+        uses: itinera-dev/actions/scenario-pages@v1
+        with:
+          site-dir: site/
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site/
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: build
+          path: site/${{ steps.pages.outputs.build-file }}
+
+  deploy:
+    name: deploy
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: build
+      - uses: itinera-dev/actions/site-live@v1
+        with:
+          url: ${{ steps.deployment.outputs.page_url }}cases/build.txt
+          expected: build.txt
