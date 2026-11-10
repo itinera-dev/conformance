@@ -13,49 +13,49 @@ Feature: Custom code that returns an unexpected result
   @proposal-0122 @unexpected-result
   Scenario: A step that returns no outcome aborts the journey and is not retried
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
+      | step   | outcome |
+      | charge |         |
+      | ship   | success |
     And step "charge" allows 2 retries
     And step "charge" returns no outcome
-    And step "ship" succeeds
     When the workflow runs
     Then the events include, in order:
       | event           | step   | code              |
       | attempt_started | charge |                   |
       | journey_aborted | charge | unexpected result |
     And the last event is "journey_aborted"
-    And step "charge" ended as aborted after 1 attempts
-    And step "ship" ended as not executed after 0 attempts
+    And the steps ended as:
+      | step   | status       | attempts |
+      | charge | aborted      | 1        |
+      | ship   | not executed | 0        |
     And the result names the step "charge" as where the journey was aborted, with the abort reason "unexpected result"
 
   @proposal-0122 @unexpected-result
   Scenario: A rescue step that returns no outcome aborts the journey
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | rescue |
+      | charge | yes    |
     And step "charge" attempts:
       | attempt | outcome | code     |
       | 1       | failure | declined |
-    And step "charge" has a rescue step
     And step "charge_rescue" returns no outcome
     When the workflow runs
     Then the events include, in order:
       | event           | step          | code              |
       | journey_aborted | charge_rescue | unexpected result |
     And the journey was aborted with the abort reason "unexpected result"
-    And step "charge" ended as aborted
-    And step "charge_rescue" ended as aborted
+    And the steps ended as:
+      | step          | status  |
+      | charge        | aborted |
+      | charge_rescue | aborted |
 
   @proposal-0122 @unexpected-result
   Scenario: A step hook that returns something that is not a lifecycle aborts the journey
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And a step policy "audit" defines the hook "on step success"
+    Given a step policy "audit" defines the hook "on step success"
     And the hook "on step success" of policy "audit" returns something that is not a lifecycle
-    And step "charge" has the policies "audit"
+    Given a workflow "orders" with the steps:
+      | step   | policies | outcome |
+      | charge | audit    | success |
     When the workflow runs
     Then the events include, in order:
       | event           | step   | policy | hook            | code              |
@@ -64,15 +64,14 @@ Feature: Custom code that returns an unexpected result
 
   @proposal-0122 @unexpected-result
   Scenario: A step hook that returns a null-like value does not keep the default
+    Given a step policy "audit" defines the hook "on step failure"
+    And the hook "on step failure" of policy "audit" returns a null-like value
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | audit    |
     And step "charge" attempts:
       | attempt | outcome | code     |
       | 1       | failure | declined |
-    And a step policy "audit" defines the hook "on step failure"
-    And the hook "on step failure" of policy "audit" returns a null-like value
-    And step "charge" has the policies "audit"
     When the workflow runs
     Then the events include, in order:
       | event           | step   | policy | hook            | code              |
@@ -81,13 +80,12 @@ Feature: Custom code that returns an unexpected result
 
   @proposal-0122 @unexpected-result
   Scenario: An input adapter that returns no result aborts the journey
+    Given the input adapter "pricing" returns no result for "amount"
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
+    And the workflow binds the input adapter "pricing" to the step "charge"
     And step "charge" requests optional input "amount" of type integer
-    And step "charge" succeeds
-    And the workflow declares the input adapter "pricing" for the steps "charge"
-    And the input adapter "pricing" returns no result for "amount"
     When the workflow runs
     Then the events are exactly:
       | event           | step   | attempt | adapter | key    | code              |
@@ -99,13 +97,11 @@ Feature: Custom code that returns an unexpected result
 
   @proposal-0122
   Scenario: An input adapter that returns the value null supplies it, and it is checked against the input's type
+    Given the input adapter "pricing" returns null when step "charge" requests "amount"
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests input "amount" of type integer
-    And step "charge" succeeds
-    And the workflow declares the input adapter "pricing" for the steps "charge"
-    And the input adapter "pricing" returns null for "amount"
+      | step   | inputs          | outcome |
+      | charge | amount: integer | success |
+    And the workflow binds the input adapter "pricing" to the step "charge"
     When the workflow runs
     Then the events include, in order:
       | event                  | step   | adapter | key    | code       |
@@ -115,13 +111,12 @@ Feature: Custom code that returns an unexpected result
 
   @proposal-0122 @unexpected-result
   Scenario: A service provider that returns a null-like value aborts the journey
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests the service "stock" of type labeller
-    And step "charge" succeeds
-    And the workflow declares the service provider "warehouse" for "stock" of type labeller, for each attempt
+    Given the service provider "warehouse" makes a labeller for "stock", for each attempt
     And the service provider "warehouse" returns a null-like value
+    Given a workflow "orders" with the steps:
+      | step   | services        | outcome |
+      | charge | stock: labeller | success |
+    And the workflow binds the service provider "warehouse"
     When the workflow runs
     Then the events are exactly:
       | event           | step   | attempt | provider  | key   | code              |
@@ -145,13 +140,11 @@ Feature: Custom code that returns an unexpected result
 
   @proposal-0122 @unexpected-result
   Scenario: A step policy whose construction returns no policy aborts the journey
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And a step policy "audit" defines the hook "on step success"
+    Given a step policy "audit" defines the hook "on step success"
     And the policy "audit" is built as a null-like value
-    And step "charge" has the policies "audit"
+    Given a workflow "orders" with the steps:
+      | step   | policies | outcome |
+      | charge | audit    | success |
     When the workflow runs
     Then the events include, in order:
       | event           | step   | policy | code              |
@@ -160,13 +153,11 @@ Feature: Custom code that returns an unexpected result
 
   @proposal-0122 @unexpected-result
   Scenario: A workflow policy whose construction returns no policy refuses run
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And a workflow policy "closing" defines the hook "on workflow success"
-    And the workflow has the policies "closing"
+    Given a workflow policy "closing" defines the hook "on workflow success"
     And the policy "closing" is built as a null-like value
+    Given a workflow "orders" with the policies "closing" and the steps:
+      | step   | outcome |
+      | charge | success |
     When the workflow runs
     Then run was refused
     And no event was emitted
@@ -174,13 +165,11 @@ Feature: Custom code that returns an unexpected result
 
   @proposal-0122
   Scenario: What a workflow hook returns is never read
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And a workflow policy "closing" defines the hook "on workflow success"
-    And the workflow has the policies "closing"
+    Given a workflow policy "closing" defines the hook "on workflow success"
     And the hook "on workflow success" of policy "closing" returns a value
+    Given a workflow "orders" with the policies "closing" and the steps:
+      | step   | outcome |
+      | charge | success |
     When the workflow runs
     Then the hook "on workflow success" of policy "closing" was called 1 times
     And the journey succeeded
@@ -200,28 +189,25 @@ Feature: Custom code that returns an unexpected result
 
   @proposal-0122 @capability-async
   Scenario: An asynchronous workflow hook is awaited, and its failure aborts the journey
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And a workflow policy "closing" defines the hook "on workflow success"
-    And the workflow has the policies "closing"
+    Given the workflow policies and their hooks:
+      | policy  | hook                | fails with    |
+      | closing | on workflow success | ledger closed |
     And the hook "on workflow success" of policy "closing" is asynchronous
-    And the hook "on workflow success" of policy "closing" fails with "ledger closed"
+    Given a workflow "orders" with the policies "closing" and the steps:
+      | step   | outcome |
+      | charge | success |
     When the workflow runs
     Then the journey was aborted with the abort reason "hook failed"
     And the result's abort carries the error "ledger closed"
 
   @proposal-0122 @capability-async
   Scenario: What an asynchronous workflow hook resolves to is never read
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And a workflow policy "closing" defines the hook "on workflow success"
-    And the workflow has the policies "closing"
+    Given a workflow policy "closing" defines the hook "on workflow success"
     And the hook "on workflow success" of policy "closing" is asynchronous
     And the hook "on workflow success" of policy "closing" returns a value
+    Given a workflow "orders" with the policies "closing" and the steps:
+      | step   | outcome |
+      | charge | success |
     When the workflow runs
     Then the hook "on workflow success" of policy "closing" was called 1 times
     And the journey succeeded

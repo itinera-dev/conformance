@@ -7,21 +7,18 @@ Feature: The event stream and the engine catalogue
 
   Scenario: Every event carries the journey ID and the workflow name, with increasing sequence numbers
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And the workflow's ID generator returns "order-7"
-    And step "charge" succeeds
     When the workflow runs
     Then every event carries the journey ID "order-7" and the workflow name "orders", with increasing sequence numbers
 
   Scenario: A complete journey produces exactly the catalogue's events, in order
+    Given a step policy "audit" defines the hook "on step success"
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies | outcome |
+      | charge | audit    | success |
     And step "charge" contributes "receipt" = "R-1"
-    And step "charge" succeeds
-    And a step policy "audit" defines the hook "on step success"
-    And step "charge" has the policies "audit"
     When the workflow runs
     Then the events are exactly:
       | event                  | step   | key     | attempt | policy | hook            | lifecycle | source |
@@ -51,13 +48,12 @@ Feature: The event stream and the engine catalogue
       | step_succeeded  | charge | 2       |             |
 
   Scenario: hook_called records the lifecycle returned, and journey_failed names the step and the reason
+    Given the step policies and their hooks:
+      | policy | hook            | returns      | code       |
+      | limit  | on step success | FailWorkflow | over limit |
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And a step policy "limit" defines the hook "on step success"
-    And the hook "on step success" of policy "limit" returns FailWorkflow with code "over limit"
-    And step "charge" has the policies "limit"
+      | step   | policies | outcome |
+      | charge | limit    | success |
     When the workflow runs
     Then the events include, in order:
       | event          | step   | attempt | policy | hook            | lifecycle    | code       |
@@ -65,15 +61,14 @@ Feature: The event stream and the engine catalogue
       | journey_failed | charge |         |        |                 |              | over limit |
 
   Scenario: Contributions record their source, and an abnormal termination is its own event
+    Given a step policy "record" defines the hook "on step failure"
+    And the hook "on step failure" of policy "record" contributes "note" = "crashed"
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | policies |
+      | charge | record   |
     And step "charge" attempts:
       | attempt | outcome |
       | 1       | error   |
-    And a step policy "record" defines the hook "on step failure"
-    And the hook "on step failure" of policy "record" contributes "note" = "crashed"
-    And step "charge" has the policies "record"
     When the workflow runs
     Then the events include, in order:
       | event                     | step   | key  | attempt | source                  |
@@ -82,13 +77,12 @@ Feature: The event stream and the engine catalogue
 
   Scenario: Engine events never carry data values
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
+    And step "charge" contributes "token" = "secret-token"
     And the data bag contains:
       | key  | value  |
       | card | "4111" |
-    And step "charge" contributes "token" = "secret-token"
-    And step "charge" succeeds
     When the workflow runs
     Then no engine event carries the value of "card"
     And no engine event carries the value of "token"

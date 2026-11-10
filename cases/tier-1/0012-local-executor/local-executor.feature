@@ -28,19 +28,17 @@ Feature: The local executor
 
   Scenario: An executor is stateless between journeys
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" contributes "receipt" = "R-1"
-    And step "charge" succeeds
     When the same executor runs the workflow twice, with a new instance each time
     Then the two journeys have different journey IDs
     And the second journey's events are the first journey's events, apart from the journey ID and timestamps
 
   Scenario: A dispatcher given to the executor leaks no reporter from one journey to the next
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the workflow lists the reporters "audit"
     And the executor is given a dispatcher holding the reporter "test"
     When the same executor runs the workflow twice, with a new instance each time
@@ -49,10 +47,9 @@ Feature: The local executor
   @capability-sync @proposal-0042 @mode-not-accepted
   Scenario: A synchronous-only executor refuses an asynchronous step before the journey starts
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" is asynchronous
-    And step "charge" succeeds
     And the executor accepts only synchronous steps, hooks and reporters
     When the workflow runs
     Then admission is refused with the violations:
@@ -62,14 +59,12 @@ Feature: The local executor
 
   @capability-sync @proposal-0060 @mode-not-accepted @spec-defect-0125
   Scenario: A synchronous-only executor refuses an asynchronous input adapter before the journey starts
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests input "amount" of type integer
-    And step "charge" succeeds
-    And the workflow declares the input adapter "pricing" for the steps "charge"
-    And the input adapter "pricing" returns 42 for "amount"
+    Given the input adapter "pricing" returns 42 when step "charge" requests "amount"
     And the input adapter "pricing" is asynchronous
+    Given a workflow "orders" with the steps:
+      | step   | inputs          | outcome |
+      | charge | amount: integer | success |
+    And the workflow binds the input adapter "pricing" to the step "charge"
     And the executor accepts only synchronous steps, hooks and reporters
     When the workflow runs
     Then admission is refused with the violations:

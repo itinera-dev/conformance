@@ -9,21 +9,18 @@ Feature: How custom code fails
   error.
 
   Scenario: A hook that fails aborts the journey with "hook failed"
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And a step policy "broken" defines the hook "on step success"
+    Given a step policy "broken" defines the hook "on step success"
     And the hook "on step success" of policy "broken" throws
-    And step "charge" has the policies "broken"
+    Given a workflow "orders" with the steps:
+      | step   | policies | outcome |
+      | charge | broken   | success |
     When the workflow runs
     Then the journey was aborted with the abort reason "hook failed"
 
   Scenario: A reporter that fails aborts the journey with "reporter failed"
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the workflow lists the reporters "broken", "audit"
     And the reporter "broken" throws on "step_succeeded"
     And the executor uses its default dispatcher
@@ -32,13 +29,12 @@ Feature: How custom code fails
 
   @proposal-0083
   Scenario: A hook that fails carries its error in the abort
+    Given the step policies and their hooks:
+      | policy | hook            | fails with    |
+      | ledger | on step success | ledger closed |
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And a step policy "ledger" defines the hook "on step success"
-    And the hook "on step success" of policy "ledger" fails with "ledger closed"
-    And step "charge" has the policies "ledger"
+      | step   | policies | outcome |
+      | charge | ledger   | success |
     When the workflow runs
     Then the events include, in order:
       | event           | code        | error         |
@@ -49,9 +45,8 @@ Feature: How custom code fails
   @proposal-0083
   Scenario: A reporter that fails carries its error in the abort
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the workflow lists the reporters "fragile"
     And the reporter "fragile" fails with "disk full" on "attempt_started"
     And the executor is given a dispatcher holding the reporter "test"

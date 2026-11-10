@@ -9,10 +9,9 @@ Feature: A scripted run plays what the script says instead of running steps
 
   Scenario: A scripted attempt replaces the step's run
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" contributes "real" = true
-    And step "charge" succeeds
     And the script says:
       | step   | attempt | ending  | code     |
       | charge | 1       | failure | declined |
@@ -23,12 +22,10 @@ Feature: A scripted run plays what the script says instead of running steps
 
   Scenario: A step the script does not name runs for real
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
+      | ship   | success |
     And step "ship" contributes "shipped" = true
-    And step "ship" succeeds
     And the script says:
       | step   | attempt | ending  |
       | charge | 1       | success |
@@ -40,10 +37,9 @@ Feature: A scripted run plays what the script says instead of running steps
 
   Scenario: An attempt scripted to run for real runs the real step
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
+      | step   | outcome |
+      | charge | success |
     And step "charge" contributes "real" = true
-    And step "charge" succeeds
     And step "charge" allows 1 retries
     And the script says:
       | step   | attempt | ending   | code     |
@@ -58,10 +54,8 @@ Feature: A scripted run plays what the script says instead of running steps
 
   Scenario: A scripted step is still built, so a missing required input aborts the journey
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests input "amount" of type integer
-    And step "charge" succeeds
+      | step   | inputs          | outcome |
+      | charge | amount: integer | success |
     And the data bag is empty
     And the script says:
       | step   | attempt | ending  |
@@ -82,13 +76,12 @@ Feature: A scripted run plays what the script says instead of running steps
     And the result's abort carries the error "broken"
 
   Scenario: A scripted step is still built, so a failing service provider aborts the journey
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests the service "payments" of type labeller
-    And step "charge" succeeds
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
     And the service provider "payments" fails with "gateway down"
+    Given a workflow "orders" with the steps:
+      | step   | services           | outcome |
+      | charge | payments: labeller | success |
+    And the workflow binds the service provider "payments"
     And the script says:
       | step   | attempt | ending  |
       | charge | 1       | success |
@@ -98,9 +91,8 @@ Feature: A scripted run plays what the script says instead of running steps
 
   Scenario: A scripted skip is a skip, with its reason
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the script says:
       | step   | attempt | ending  | code |
       | charge | 1       | skipped | paid |
@@ -112,9 +104,8 @@ Feature: A scripted run plays what the script says instead of running steps
 
   Scenario: A scripted skip without a reason is a skip without one
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the script says:
       | step   | attempt | ending  |
       | charge | 1       | skipped |
@@ -126,9 +117,8 @@ Feature: A scripted run plays what the script says instead of running steps
 
   Scenario: A scripted abnormal termination is retried within the budget, as an error escaping the step would be
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And step "charge" allows 1 retries
     And the script says:
       | step   | attempt | ending               | message |
@@ -144,11 +134,10 @@ Feature: A scripted run plays what the script says instead of running steps
 
   Scenario: Scripted contributions are committed only when the attempt succeeds
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And step "charge" allows 1 retries
+      | step   | outcome |
+      | charge | success |
     And the workflow lists the reporters "audit"
+    And step "charge" allows 1 retries
     And the script says:
       | step   | attempt | contributes    | ending  | code     |
       | charge | 1       | {"charged": 1} | failure | declined |
@@ -161,9 +150,8 @@ Feature: A scripted run plays what the script says instead of running steps
 
   Scenario: Scripted emits and global metadata are the step's own
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the workflow lists the reporters "audit"
     And the script says:
       | step   | attempt | emits        | emit message | sets global metadata | ending  |
@@ -182,10 +170,8 @@ Feature: A scripted run plays what the script says instead of running steps
 
   Scenario: A scripted rescue step rescues its step
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
-    And step "charge" succeeds
+      | step   | outcome | rescue |
+      | charge | success | yes    |
     And step "charge_rescue" succeeds
     And the script says:
       | step          | attempt | ending  | code    |

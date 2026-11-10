@@ -8,9 +8,8 @@ Feature: A journey ID is a string that is not empty
   @proposal-0122 @non-string-journey-id
   Scenario: An ID generator that returns something that is not a string fails the instance
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the workflow's ID generator returns something that is not a string
     When the workflow runs
     Then creating the workflow instance failed
@@ -20,9 +19,8 @@ Feature: A journey ID is a string that is not empty
   @proposal-0122 @empty-journey-id
   Scenario: An ID generator that returns an empty string fails the instance
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the workflow's ID generator returns ""
     When the workflow runs
     Then creating the workflow instance failed

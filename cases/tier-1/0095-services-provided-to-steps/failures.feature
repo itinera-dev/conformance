@@ -8,13 +8,12 @@ Feature: Providers and services that fail, and a provider's events
   termination.
 
   Scenario: A provider that fails aborts the journey
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests the service "payments" of type labeller
-    And step "charge" succeeds
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
     And the service provider "payments" fails with "gateway down"
+    Given a workflow "orders" with the steps:
+      | step   | services           | outcome |
+      | charge | payments: labeller | success |
+    And the workflow binds the service provider "payments"
     When the workflow runs
     Then the events are exactly:
       | event                   | step   | attempt | key      | provider | code                    | error        |
@@ -27,10 +26,15 @@ Feature: Providers and services that fail, and a provider's events
 
   @proposal-0106
   Scenario: A provider that fails on a retry aborts the journey, and the attempt counts
+    Given a step policy "fallback" defines the hook "on step retry"
+    And the hook "on step retry" of policy "fallback" contributes "gateway" = "backup"
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
+    And the service provider "payments" requests data from the workflow "gateway" of type string
+    And the service provider "payments" fails with "no backup" when it receives "backup" for "gateway"
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests the service "payments" of type labeller
+      | step   | policies | services           |
+      | charge | fallback | payments: labeller |
+    And the workflow binds the service provider "payments"
     And step "charge" allows 2 retries
     And step "charge" attempts:
       | attempt | outcome | code        |
@@ -39,12 +43,6 @@ Feature: Providers and services that fail, and a provider's events
     And the data bag contains:
       | key     | value  |
       | gateway | "main" |
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
-    And the service provider "payments" requests data from the workflow "gateway" of type string
-    And the service provider "payments" fails with "no backup" when it receives "backup" for "gateway"
-    And a step policy "fallback" defines the hook "on step retry"
-    And the hook "on step retry" of policy "fallback" contributes "gateway" = "backup"
-    And step "charge" has the policies "fallback"
     When the workflow runs
     Then the events include, in order:
       | event                   | step   | attempt | key      | provider | code                    |
@@ -57,13 +55,12 @@ Feature: Providers and services that fail, and a provider's events
 
   @no-instance
   Scenario: A provider that returns nothing aborts the journey, with no error
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests the service "payments" of type labeller
-    And step "charge" succeeds
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
     And the service provider "payments" returns nothing
+    Given a workflow "orders" with the steps:
+      | step   | services           | outcome |
+      | charge | payments: labeller | success |
+    And the workflow binds the service provider "payments"
     When the workflow runs
     Then the events are exactly:
       | event                   | step   | attempt | key      | provider | code                    |
@@ -76,14 +73,13 @@ Feature: Providers and services that fail, and a provider's events
     And no step ran
 
   Scenario: A provider's events carry its name and come before service_provided
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests the service "payments" of type labeller
-    And step "charge" emits step_info "charging"
-    And step "charge" succeeds
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
     And the service provider "payments" emits journey_info "choosing the main gateway"
+    Given a workflow "orders" with the steps:
+      | step   | services           | outcome |
+      | charge | payments: labeller | success |
+    And the workflow binds the service provider "payments"
+    And step "charge" emits step_info "charging"
     When the workflow runs
     Then the events are exactly:
       | event             | step   | attempt | key      | provider | message                   |
@@ -96,33 +92,33 @@ Feature: Providers and services that fail, and a provider's events
       | journey_succeeded |        |         |          |          |                           |
 
   Scenario: A reporter that fails on a provider's event ends the provider, and no service event follows
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And the workflow lists the reporters "audit", "fragile"
-    And the executor uses its default dispatcher
-    And the reporter "fragile" throws on "journey_info"
-    And step "charge" requests the service "payments" of type labeller
-    And step "charge" succeeds
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
     And the service provider "payments" emits journey_info "choosing the main gateway"
+    Given a workflow "orders" with the steps:
+      | step   | services           | outcome |
+      | charge | payments: labeller | success |
+    And the workflow binds the service provider "payments"
+    And the workflow lists the reporters "audit", "fragile"
+    And the reporter "fragile" throws on "journey_info"
+    And the executor uses its default dispatcher
     When the workflow runs
     Then the journey was aborted with the abort reason "reporter failed"
-    And the reporter "audit" did not receive the event "service_provided"
-    And the reporter "audit" did not receive the event "service_provider_failed"
+    And the reporters received:
+      | reporter | event                   | received |
+      | audit    | service_provided        | no       |
+      | audit    | service_provider_failed | no       |
     And step "charge" ended as aborted after 1 attempts
     And no step ran
     And the last event is "journey_aborted"
 
   @non-value
   Scenario: A provider's event data that is not a value aborts the journey, and the event is not delivered
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests the service "payments" of type labeller
-    And step "charge" succeeds
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
     And the service provider "payments" emits journey_info "odd data" with data that is not a value
+    Given a workflow "orders" with the steps:
+      | step   | services           | outcome |
+      | charge | payments: labeller | success |
+    And the workflow binds the service provider "payments"
     When the workflow runs
     Then the events are exactly:
       | event           | step   | attempt | provider | code        |
@@ -132,13 +128,12 @@ Feature: Providers and services that fail, and a provider's events
     And no event carries the message "odd data"
 
   Scenario: An error from a service's operation, returned through the step, is an abnormal termination
-    Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" requests the service "payments" of type labeller
-    And step "charge" succeeds
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
     And the services the provider "payments" makes fail with "card network down" when used
+    Given a workflow "orders" with the steps:
+      | step   | services           | outcome |
+      | charge | payments: labeller | success |
+    And the workflow binds the service provider "payments"
     When the workflow runs
     Then the events include, in order:
       | event                     | step   | attempt |

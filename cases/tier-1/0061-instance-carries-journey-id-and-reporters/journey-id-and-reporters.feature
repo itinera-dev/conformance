@@ -6,9 +6,8 @@ Feature: The instance carries its journey ID and reporters
 
   Scenario: A reporter is made with the journey ID
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the workflow's ID generator returns "order-7"
     And the workflow lists the reporters "audit"
     When the workflow runs

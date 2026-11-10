@@ -9,24 +9,25 @@ Feature: Services for rescue steps
   attached to it twice, which is "service provided twice".
 
   Scenario: A rescue step is served by the provider attached to no step
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
+    Given the service provider "charging" makes a labeller for "payments", for each attempt
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
-    And step "charge" requests the service "payments" of type labeller
+      | step   | services           | rescue |
+      | charge | payments: labeller | yes    |
+    And the workflow binds the service provider "payments"
+    And the workflow binds the service provider "charging" to the step "charge"
     And step "charge" attempts:
       | attempt | outcome | code    |
       | 1       | failure | expired |
       | 2       | success |         |
     And step "charge_rescue" requests the service "payments" of type labeller
     And step "charge_rescue" succeeds
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
-    And the workflow declares the service provider "charging" for "payments" of type labeller, for each attempt
-    And the service provider "charging" serves only the steps "charge"
     When the workflow runs
-    Then step "charge" was given the service "payments" labelled "charging 1" for attempt 1
-    And step "charge_rescue" was given the service "payments" labelled "payments 1" for attempt 1
-    And step "charge" was given the service "payments" labelled "charging 2" for attempt 2
+    Then the steps were given the services:
+      | step          | service  | label      | attempt |
+      | charge        | payments | charging 1 | 1       |
+      | charge_rescue | payments | payments 1 | 1       |
+      | charge        | payments | charging 2 | 2       |
     And the events include, in order:
       | event            | step          | attempt | key      | provider |
       | service_provided | charge        | 1       | payments | charging |
@@ -37,19 +38,19 @@ Feature: Services for rescue steps
     And the journey succeeded
 
   Scenario: An attempt-scoped provider receives the rescue step's name and its attempt 1
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
+    And the service provider "payments" requests the step name
+    And the service provider "payments" requests the attempt number
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
+      | step   | rescue |
+      | charge | yes    |
+    And the workflow binds the service provider "payments"
     And step "charge" attempts:
       | attempt | outcome | code    |
       | 1       | failure | expired |
       | 2       | success |         |
     And step "charge_rescue" requests the service "payments" of type labeller
     And step "charge_rescue" succeeds
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
-    And the service provider "payments" requests the step name
-    And the service provider "payments" requests the attempt number
     When the workflow runs
     Then the service provider "payments" was called 1 times
     And the service provider "payments" received the step name "charge_rescue"
@@ -57,44 +58,46 @@ Feature: Services for rescue steps
     And the journey succeeded
 
   Scenario: A journey-scoped provider lends a rescue step the journey's instance
+    Given the service provider "stock" makes a labeller for "stock", once per journey
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
-    And step "charge" requests the service "stock" of type labeller
+      | step   | services        | rescue |
+      | charge | stock: labeller | yes    |
+    And the workflow binds the service provider "stock"
     And step "charge" attempts:
       | attempt | outcome | code    |
       | 1       | failure | expired |
       | 2       | success |         |
     And step "charge_rescue" requests the service "stock" of type labeller
     And step "charge_rescue" succeeds
-    And the workflow declares the service provider "stock" for "stock" of type labeller, once per journey
     When the workflow runs
     Then the service provider "stock" was called 1 times
-    And step "charge_rescue" was given the service "stock" labelled "stock 1" for attempt 1
-    And step "charge" was given the service "stock" labelled "stock 1" for attempt 2
+    And the steps were given the services:
+      | step          | service | label   | attempt |
+      | charge_rescue | stock   | stock 1 | 1       |
+      | charge        | stock   | stock 1 | 2       |
     And the journey succeeded
 
   @proposal-0098
   Scenario: A provider attached to a rescue step's name serves it instead of the provider attached to no step
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
+    Given the service provider "backup payments" makes a labeller for "payments", for each attempt
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
-    And step "charge" requests the service "payments" of type labeller
+      | step   | services           | rescue |
+      | charge | payments: labeller | yes    |
+    And the workflow binds the service provider "payments"
+    And the workflow binds the service provider "backup payments" to the step "charge_rescue"
     And step "charge" attempts:
       | attempt | outcome | code    |
       | 1       | failure | expired |
       | 2       | success |         |
     And step "charge_rescue" requests the service "payments" of type labeller
     And step "charge_rescue" succeeds
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
-    And the workflow declares the service provider "backup payments" for "payments" of type labeller, for each attempt
-    And the service provider "backup payments" serves only the steps "charge_rescue"
     When the workflow runs
-    Then step "charge" was given the service "payments" labelled "payments 1" for attempt 1
-    And step "charge_rescue" was given the service "payments" labelled "backup payments 1" for attempt 1
-    And step "charge" was given the service "payments" labelled "payments 2" for attempt 2
+    Then the steps were given the services:
+      | step          | service  | label             | attempt |
+      | charge        | payments | payments 1        | 1       |
+      | charge_rescue | payments | backup payments 1 | 1       |
+      | charge        | payments | payments 2        | 2       |
     And the events include, in order:
       | event            | step          | attempt | key      | provider        |
       | service_provided | charge        | 1       | payments | payments        |
@@ -106,16 +109,13 @@ Feature: Services for rescue steps
 
   @proposal-0042
   Scenario: A rescue step is not served by a provider attached to the step it rescues
+    Given the service provider "charging" makes a labeller for "payments", for each attempt
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
-    And step "charge" requests the service "payments" of type labeller
-    And step "charge" succeeds
+      | step   | services           | outcome | rescue |
+      | charge | payments: labeller | success | yes    |
+    And the workflow binds the service provider "charging" to the step "charge"
     And step "charge_rescue" requests the service "payments" of type labeller
     And step "charge_rescue" succeeds
-    And the workflow declares the service provider "charging" for "payments" of type labeller, for each attempt
-    And the service provider "charging" serves only the steps "charge"
     When the workflow runs
     Then admission is refused with the violations:
       | violation            |
@@ -124,39 +124,37 @@ Feature: Services for rescue steps
 
   @proposal-0098
   Scenario: A journey-scoped provider attached to a step and to its rescue step lends them the same instance
+    Given the service provider "stock" makes a labeller for "stock", once per journey
+    Given the service provider "warehouse" makes a labeller for "stock", once per journey
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-      | ship   |
-    And step "charge" has a rescue step
-    And step "charge" requests the service "stock" of type labeller
+      | step   | services        | outcome | rescue |
+      | charge | stock: labeller |         | yes    |
+      | ship   | stock: labeller | success |        |
+    And the workflow binds the service provider "stock"
+    And the workflow binds the service provider "warehouse" to the steps "charge", "charge_rescue"
     And step "charge" attempts:
       | attempt | outcome | code    |
       | 1       | failure | expired |
       | 2       | success |         |
     And step "charge_rescue" requests the service "stock" of type labeller
     And step "charge_rescue" succeeds
-    And step "ship" requests the service "stock" of type labeller
-    And step "ship" succeeds
-    And the workflow declares the service provider "stock" for "stock" of type labeller, once per journey
-    And the workflow declares the service provider "warehouse" for "stock" of type labeller, once per journey
-    And the service provider "warehouse" serves only the steps "charge", "charge_rescue"
     When the workflow runs
     Then the service provider "warehouse" was called 1 times
-    And step "charge" was given the service "stock" labelled "warehouse 1" for attempt 1
-    And step "charge_rescue" was given the service "stock" labelled "warehouse 1" for attempt 1
-    And step "charge" was given the service "stock" labelled "warehouse 1" for attempt 2
-    And step "ship" was given the service "stock" labelled "stock 1" for attempt 1
+    And the steps were given the services:
+      | step          | service | label       | attempt |
+      | charge        | stock   | warehouse 1 | 1       |
+      | charge_rescue | stock   | warehouse 1 | 1       |
+      | charge        | stock   | warehouse 1 | 2       |
+      | ship          | stock   | stock 1     | 1       |
     And the journey succeeded
 
   @proposal-0098 @proposal-0042
   Scenario: A provider attached to a rescue step's name is refused when the step has no rescue step
+    Given the service provider "payments" makes a labeller for "payments", for each attempt
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
-    And the workflow declares the service provider "payments" for "payments" of type labeller, for each attempt
-    And the service provider "payments" serves only the steps "charge_rescue"
+      | step   | outcome |
+      | charge | success |
+    And the workflow binds the service provider "payments" to the step "charge_rescue"
     When the workflow runs
     Then admission is refused with the violations:
       | violation                         |
@@ -165,17 +163,15 @@ Feature: Services for rescue steps
 
   @proposal-0098 @proposal-0042
   Scenario: Two providers of one key attached to one rescue step are refused
+    Given the service provider "main" makes a labeller for "payments", for each attempt
+    Given the service provider "backup" makes a labeller for "payments", for each attempt
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
-    And step "charge" succeeds
+      | step   | outcome | rescue |
+      | charge | success | yes    |
+    And the workflow binds the service provider "main" to the step "charge_rescue"
+    And the workflow binds the service provider "backup" to the step "charge_rescue"
     And step "charge_rescue" requests the service "payments" of type labeller
     And step "charge_rescue" succeeds
-    And the workflow declares the service provider "main" for "payments" of type labeller, for each attempt
-    And the service provider "main" serves only the steps "charge_rescue"
-    And the workflow declares the service provider "backup" for "payments" of type labeller, for each attempt
-    And the service provider "backup" serves only the steps "charge_rescue"
     When the workflow runs
     Then admission is refused with the violations:
       | violation              |
@@ -184,15 +180,13 @@ Feature: Services for rescue steps
 
   @proposal-0116 @proposal-0098 @proposal-0042
   Scenario: A provider that names one rescue step twice is refused
+    Given the service provider "main" makes a labeller for "payments", for each attempt
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" has a rescue step
-    And step "charge" succeeds
+      | step   | outcome | rescue |
+      | charge | success | yes    |
+    And the workflow binds the service provider "main" to the steps "charge_rescue", "charge_rescue"
     And step "charge_rescue" requests the service "payments" of type labeller
     And step "charge_rescue" succeeds
-    And the workflow declares the service provider "main" for "payments" of type labeller, for each attempt
-    And the service provider "main" serves only the steps "charge_rescue", "charge_rescue"
     When the workflow runs
     Then admission is refused with the violations:
       | violation              |

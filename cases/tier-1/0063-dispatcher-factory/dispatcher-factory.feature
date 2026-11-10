@@ -7,9 +7,8 @@ Feature: The executor is given a dispatcher factory
 
   Scenario: A dispatcher factory that fails is a refusal, with no event
     Given a workflow "orders" with the steps:
-      | step   |
-      | charge |
-    And step "charge" succeeds
+      | step   | outcome |
+      | charge | success |
     And the executor is given a dispatcher factory that fails
     When the workflow runs
     Then run was refused
