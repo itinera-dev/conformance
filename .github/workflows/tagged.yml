@@ -1,0 +1,21 @@
+name: Tagged
+
+# Marks each new tag of the cases, such as v0.1.1, so that the Pages workflow,
+# which follows this one through workflow_run, publishes the tag's scenario
+# pages. Pages ignore a deployment made from a tag of a commit they already
+# serve, while still reporting it as successful, and a tag is usually made on
+# a commit main has just deployed; workflow_run runs on main, so its
+# deployment is never one of those.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions: {}
+
+jobs:
+  tagged:
+    name: tagged
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Tagged $GITHUB_REF_NAME; the Pages workflow publishes its scenario pages."
