@@ -70,7 +70,7 @@ Event tables use one row per event. The column `event` is required; any of these
 - `step`, `attempt`: the step and attempt the event concerns;
 - `key`: the data key it concerns; for a `journey_aborted` on a hook's or a rescue step's request for the failure reason or the error, `failure reason` or `error` (spec#92, proposal 0003);
 - `code`: the reason code it carries, for events about a failure, a skip or an abort;
-- `policy`, `hook`, `lifecycle`: for events from or about a hook; `lifecycle` is the lifecycle returned, or `none`;
+- `policy`, `hook`, `lifecycle`: for events from or about a hook; `lifecycle` is the lifecycle returned, or `none`; for a `before step`, `bypass` when it bypassed its step (proposal 0133);
 - `adapter`: the input adapter an event names;
 - `provider`: the service provider an event names, or that emitted a `journey_*` event (proposal 0095);
 - `implementation`: the implementation a `service_provided` names, written as the name of an implementation in [STEPS.md](STEPS.md), "Services", such as `second labeller`; the runner compares the event's implementation with the name its language gives that implementation's type, since the format of that name is the language's own (proposal 0104);
@@ -79,14 +79,14 @@ Event tables use one row per event. The column `event` is required; any of these
 - `rescue`: the rescue step a `step_rescuing` or `step_rescued` names (proposal 0003);
 - `decided by`: who took a decision: `default`, or the policy and hook as `policy, hook`;
 - `message`, `data`: for events emitted by steps, hooks and service providers; `data` is JSON, or `none` for an event that carries no data. `data` is also the data a `service_provided` carries (proposal 0104).
-- `error`: the message of the error a `journey_failed` or `journey_aborted` carries (proposal 0083). An error's message is the language's own text for it; for a failure scripted with a message, exactly that message.
+- `error`: the message of the error a `journey_failed` or `journey_aborted` carries (proposal 0083), or that a `before_hook_failed` or `after_hook_failed` records (proposal 0133). An error's message is the language's own text for it; for a failure scripted with a message, exactly that message.
 
 Two sentences compare them:
 
 - "the events include, in order" checks that these events appear in this order, possibly with others in between;
 - "the events are exactly" checks the complete stream.
 
-Event names are those of the engine catalogue of proposal 0011 (Events), as amended by proposals 0040, 0003, 0095 and 0102, and the `step_*` and `journey_*` events steps, hooks and service providers emit.
+Event names are those of the engine catalogue of proposal 0011 (Events), as amended by proposals 0040, 0003, 0095, 0102 and 0133, and the `step_*` and `journey_*` events steps, hooks and service providers emit.
 
 ## Versions of the cases
 
